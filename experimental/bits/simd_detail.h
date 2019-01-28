@@ -76,10 +76,10 @@ template <int NRegisters> using __avx_x = __combine<NRegisters, __avx_abi<>>;
 template <int NRegisters> using __avx512_x = __combine<NRegisters, __avx512_abi<>>;
 template <int NRegisters> using __neon_x = __combine<NRegisters, __neon_abi<>>;
 
-template <class _T, int _N> using __sse_n = __sse_abi<sizeof(_T) * _N>;
-template <class _T, int _N> using __avx_n = __avx_abi<sizeof(_T) * _N>;
-template <class _T, int _N> using __avx512_n = __avx512_abi<sizeof(_T) * _N>;
-template <class _T, int _N> using __neon_n = __neon_abi<sizeof(_T) * _N>;
+template <class _Tp, int _N> using __sse_n = __sse_abi<sizeof(_Tp) * _N>;
+template <class _Tp, int _N> using __avx_n = __avx_abi<sizeof(_Tp) * _N>;
+template <class _Tp, int _N> using __avx512_n = __avx512_abi<sizeof(_Tp) * _N>;
+template <class _Tp, int _N> using __neon_n = __neon_abi<sizeof(_Tp) * _N>;
 
 using __sse = __sse_abi<>;
 using __avx = __avx_abi<>;
@@ -90,16 +90,16 @@ using __neon128 = __neon_abi<16>;
 using __neon64 = __neon_abi<8>;
 
 // standard:
-template <class _T, size_t _N, class... > struct deduce;
+template <class _Tp, size_t _N, class... > struct deduce;
 template <int _N> using fixed_size = __fixed_abi<_N>;
 using scalar = __scalar_abi;
 }  // namespace simd_abi }}}
 // forward declarations is_simd(_mask), simd(_mask), simd_size {{{
-template <class _T> struct is_simd;
-template <class _T> struct is_simd_mask;
-template <class _T, class Abi> class simd;
-template <class _T, class Abi> class simd_mask;
-template <class _T, class Abi> struct simd_size;
+template <class _Tp> struct is_simd;
+template <class _Tp> struct is_simd_mask;
+template <class _Tp, class Abi> class simd;
+template <class _Tp, class Abi> class simd_mask;
+template <class _Tp, class Abi> struct simd_size;
 // }}}
 
 // On Windows (WIN32) we might see macros called min and max. Just undefine them and hope

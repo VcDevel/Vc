@@ -9,10 +9,10 @@
 // 1-arg __convert_x86 {{{1
 template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __convert_x86(_V __vv)
 {
-    using _T = typename _Traits::value_type;
+    using _Tp = typename _Traits::value_type;
     constexpr size_t _N = _Traits::_S_width;
     [[maybe_unused]] const auto __intrin = __to_intrin(__vv);
-    __storage<_T, _N> __v(__vv);
+    __storage<_Tp, _N> __v(__vv);
     using _U = typename __vector_traits<_To>::value_type;
     constexpr size_t _M = __vector_traits<_To>::_S_width;
 
@@ -28,48 +28,48 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     [[maybe_unused]] constexpr bool __z_to_z = sizeof(__v) == 64 && sizeof(_To) == 64;
 
     // iX_to_iX {{{2
-    [[maybe_unused]] constexpr bool __i_to_i = is_integral_v<_U> && is_integral_v<_T>;
-    [[maybe_unused]] constexpr bool __i8_to_i16  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 2;
-    [[maybe_unused]] constexpr bool __i8_to_i32  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __i8_to_i64  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __i16_to_i8  = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 1;
-    [[maybe_unused]] constexpr bool __i16_to_i32 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __i16_to_i64 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __i32_to_i8  = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 1;
-    [[maybe_unused]] constexpr bool __i32_to_i16 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 2;
-    [[maybe_unused]] constexpr bool __i32_to_i64 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __i64_to_i8  = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 1;
-    [[maybe_unused]] constexpr bool __i64_to_i16 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 2;
-    [[maybe_unused]] constexpr bool __i64_to_i32 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __i_to_i = is_integral_v<_U> && is_integral_v<_Tp>;
+    [[maybe_unused]] constexpr bool __i8_to_i16  = __i_to_i && sizeof(_Tp) == 1 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool __i8_to_i32  = __i_to_i && sizeof(_Tp) == 1 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __i8_to_i64  = __i_to_i && sizeof(_Tp) == 1 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __i16_to_i8  = __i_to_i && sizeof(_Tp) == 2 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool __i16_to_i32 = __i_to_i && sizeof(_Tp) == 2 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __i16_to_i64 = __i_to_i && sizeof(_Tp) == 2 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __i32_to_i8  = __i_to_i && sizeof(_Tp) == 4 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool __i32_to_i16 = __i_to_i && sizeof(_Tp) == 4 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool __i32_to_i64 = __i_to_i && sizeof(_Tp) == 4 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __i64_to_i8  = __i_to_i && sizeof(_Tp) == 8 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool __i64_to_i16 = __i_to_i && sizeof(_Tp) == 8 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool __i64_to_i32 = __i_to_i && sizeof(_Tp) == 8 && sizeof(_U) == 4;
 
     // [fsu]X_to_[fsu]X {{{2
     // ibw = integral && byte or word, i.e. char and short with any signedness
-    [[maybe_unused]] constexpr bool __s64_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __s32_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __s16_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool  __s8_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __u64_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __u32_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __u16_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool  __u8_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __s64_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __s32_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __u64_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __u32_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __f32_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    [[maybe_unused]] constexpr bool __f32_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    [[maybe_unused]] constexpr bool __f32_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    [[maybe_unused]] constexpr bool __f32_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    [[maybe_unused]] constexpr bool __f64_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    [[maybe_unused]] constexpr bool __f64_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    [[maybe_unused]] constexpr bool __f64_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    [[maybe_unused]] constexpr bool __f64_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    [[maybe_unused]] constexpr bool __ibw_to_f32 = is_integral_v<_T> && sizeof(_T) <= 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __ibw_to_f64 = is_integral_v<_T> && sizeof(_T) <= 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __f32_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    [[maybe_unused]] constexpr bool __f64_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    [[maybe_unused]] constexpr bool __f32_to_f64 = is_floating_point_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __f64_to_f32 = is_floating_point_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __s64_to_f32 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __s32_to_f32 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __s16_to_f32 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool  __s8_to_f32 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __u64_to_f32 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __u32_to_f32 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __u16_to_f32 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool  __u8_to_f32 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __s64_to_f64 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __s32_to_f64 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __u64_to_f64 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __u32_to_f64 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __f32_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_Tp> && sizeof(_Tp) == 4;
+    [[maybe_unused]] constexpr bool __f32_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_Tp> && sizeof(_Tp) == 4;
+    [[maybe_unused]] constexpr bool __f32_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_Tp> && sizeof(_Tp) == 4;
+    [[maybe_unused]] constexpr bool __f32_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_Tp> && sizeof(_Tp) == 4;
+    [[maybe_unused]] constexpr bool __f64_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_Tp> && sizeof(_Tp) == 8;
+    [[maybe_unused]] constexpr bool __f64_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_Tp> && sizeof(_Tp) == 8;
+    [[maybe_unused]] constexpr bool __f64_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_Tp> && sizeof(_Tp) == 8;
+    [[maybe_unused]] constexpr bool __f64_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_Tp> && sizeof(_Tp) == 8;
+    [[maybe_unused]] constexpr bool __ibw_to_f32 = is_integral_v<_Tp> && sizeof(_Tp) <= 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __ibw_to_f64 = is_integral_v<_Tp> && sizeof(_Tp) <= 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __f32_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_Tp> && sizeof(_Tp) == 4;
+    [[maybe_unused]] constexpr bool __f64_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_Tp> && sizeof(_Tp) == 8;
+    [[maybe_unused]] constexpr bool __f32_to_f64 = is_floating_point_v<_Tp> && sizeof(_Tp) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __f64_to_f32 = is_floating_point_v<_Tp> && sizeof(_Tp) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
 
     if constexpr (__i_to_i && __y_to_x && !__have_avx2) {  //{{{2
         return __convert_x86<_To>(__lo128(__v), __hi128(__v));
@@ -80,15 +80,15 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     } else if constexpr (__i_to_i) {  //{{{2
         static_assert(__x_to_x || __have_avx2,
                       "integral conversions with ymm registers require AVX2");
-        static_assert(__have_avx512bw || ((sizeof(_T) >= 4 || sizeof(__v) < 64) &&
+        static_assert(__have_avx512bw || ((sizeof(_Tp) >= 4 || sizeof(__v) < 64) &&
                                         (sizeof(_U) >= 4 || sizeof(_To) < 64)),
                       "8/16-bit integers in zmm registers require AVX512BW");
         static_assert((sizeof(__v) < 64 && sizeof(_To) < 64) || __have_avx512f,
                       "integral conversions with ymm registers require AVX2");
     }
 
-    if constexpr (is_floating_point_v<_T> == is_floating_point_v<_U> &&  //{{{2
-                  sizeof(_T) == sizeof(_U)) {
+    if constexpr (is_floating_point_v<_Tp> == is_floating_point_v<_U> &&  //{{{2
+                  sizeof(_Tp) == sizeof(_U)) {
         // conversion uses simple bit reinterpretation (or no conversion at all)
         if constexpr (_N >= _M) {
             return __intrin_bitcast<_To>(__vv);
@@ -153,14 +153,14 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         }
     } else if constexpr (__i32_to_i64) {    //{{{2
         if constexpr (__have_sse4_1 && __x_to_x) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi32_epi64(__intrin) : _mm_cvtepu32_epi64(__intrin));
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm_cvtepi32_epi64(__intrin) : _mm_cvtepu32_epi64(__intrin));
         } else if constexpr (__x_to_x) {
             return __intrin_bitcast<_To>(_mm_unpacklo_epi32(
-                __intrin, is_signed_v<_T> ? _mm_srai_epi32(__intrin, 31) : __m128i()));
+                __intrin, is_signed_v<_Tp> ? _mm_srai_epi32(__intrin, 31) : __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi32_epi64(__intrin) : _mm256_cvtepu32_epi64(__intrin));
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm256_cvtepi32_epi64(__intrin) : _mm256_cvtepu32_epi64(__intrin));
         } else if constexpr (__y_to_z) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi32_epi64(__intrin) : _mm512_cvtepu32_epi64(__intrin));
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm512_cvtepi32_epi64(__intrin) : _mm512_cvtepu32_epi64(__intrin));
         }
     } else if constexpr (__i32_to_i16) {  //{{{2
         if constexpr (__x_to_x && __have_avx512vl) {
@@ -217,8 +217,8 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         }
     } else if constexpr (__i16_to_i64) {  //{{{2
         if constexpr (__x_to_x && __have_sse4_1) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi16_epi64(__intrin) : _mm_cvtepu16_epi64(__intrin));
-        } else if constexpr (__x_to_x && is_signed_v<_T>) {
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm_cvtepi16_epi64(__intrin) : _mm_cvtepu16_epi64(__intrin));
+        } else if constexpr (__x_to_x && is_signed_v<_Tp>) {
             auto __x = _mm_srai_epi16(__intrin, 15);
             auto __y = _mm_unpacklo_epi16(__intrin, __x);
             __x = _mm_unpacklo_epi16(__x, __x);
@@ -226,21 +226,21 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         } else if constexpr (__x_to_x) {
             return __intrin_bitcast<_To>(_mm_unpacklo_epi32(_mm_unpacklo_epi16(__intrin, __m128i()), __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi16_epi64(__intrin) : _mm256_cvtepu16_epi64(__intrin));
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm256_cvtepi16_epi64(__intrin) : _mm256_cvtepu16_epi64(__intrin));
         } else if constexpr (__x_to_z) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi16_epi64(__intrin) : _mm512_cvtepu16_epi64(__intrin));
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm512_cvtepi16_epi64(__intrin) : _mm512_cvtepu16_epi64(__intrin));
         }
     } else if constexpr (__i16_to_i32) {  //{{{2
         if constexpr (__x_to_x && __have_sse4_1) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi16_epi32(__intrin) : _mm_cvtepu16_epi32(__intrin));
-        } else if constexpr (__x_to_x && is_signed_v<_T>) {
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm_cvtepi16_epi32(__intrin) : _mm_cvtepu16_epi32(__intrin));
+        } else if constexpr (__x_to_x && is_signed_v<_Tp>) {
             return __intrin_bitcast<_To>(_mm_srai_epi32(_mm_unpacklo_epi16(__intrin, __intrin), 16));
-        } else if constexpr (__x_to_x && is_unsigned_v<_T>) {
+        } else if constexpr (__x_to_x && is_unsigned_v<_Tp>) {
             return __intrin_bitcast<_To>(_mm_unpacklo_epi16(__intrin, __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi16_epi32(__intrin) : _mm256_cvtepu16_epi32(__intrin));
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm256_cvtepi16_epi32(__intrin) : _mm256_cvtepu16_epi32(__intrin));
         } else if constexpr (__y_to_z) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi16_epi32(__intrin) : _mm512_cvtepu16_epi32(__intrin));
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm512_cvtepi16_epi32(__intrin) : _mm512_cvtepu16_epi32(__intrin));
         }
     } else if constexpr (__i16_to_i8) {   //{{{2
         if constexpr (__x_to_x && __have_avx512bw_vl) {
@@ -273,12 +273,12 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         } else if constexpr (__z_to_y && __have_avx512bw) {
             return __intrin_bitcast<_To>(_mm512_cvtepi16_epi8(__intrin));
         } else if constexpr (__z_to_y)  {
-            __assert_unreachable<_T>();
+            __assert_unreachable<_Tp>();
         }
     } else if constexpr (__i8_to_i64) {  //{{{2
         if constexpr (__x_to_x && __have_sse4_1) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi8_epi64(__intrin) : _mm_cvtepu8_epi64(__intrin));
-        } else if constexpr (__x_to_x && is_signed_v<_T>) {
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm_cvtepi8_epi64(__intrin) : _mm_cvtepu8_epi64(__intrin));
+        } else if constexpr (__x_to_x && is_signed_v<_Tp>) {
             if constexpr (__have_ssse3) {
                 auto __dup = _mm_unpacklo_epi8(__intrin, __intrin);
                 auto __epi16 = _mm_srai_epi16(__dup, 8);
@@ -295,36 +295,36 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 _mm_unpacklo_epi16(_mm_unpacklo_epi8(__intrin, __m128i()), __m128i()),
                 __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi8_epi64(__intrin) : _mm256_cvtepu8_epi64(__intrin));
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm256_cvtepi8_epi64(__intrin) : _mm256_cvtepu8_epi64(__intrin));
         } else if constexpr (__x_to_z) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi8_epi64(__intrin) : _mm512_cvtepu8_epi64(__intrin));
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm512_cvtepi8_epi64(__intrin) : _mm512_cvtepu8_epi64(__intrin));
         }
     } else if constexpr (__i8_to_i32) {  //{{{2
         if constexpr (__x_to_x && __have_sse4_1) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi8_epi32(__intrin) : _mm_cvtepu8_epi32(__intrin));
-        } else if constexpr (__x_to_x && is_signed_v<_T>) {
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm_cvtepi8_epi32(__intrin) : _mm_cvtepu8_epi32(__intrin));
+        } else if constexpr (__x_to_x && is_signed_v<_Tp>) {
             const auto __x = _mm_unpacklo_epi8(__intrin, __intrin);
             return __intrin_bitcast<_To>(_mm_srai_epi32(_mm_unpacklo_epi16(__x, __x), 24));
-        } else if constexpr (__x_to_x && is_unsigned_v<_T>) {
+        } else if constexpr (__x_to_x && is_unsigned_v<_Tp>) {
             return __intrin_bitcast<_To>(_mm_unpacklo_epi16(_mm_unpacklo_epi8(__intrin, __m128i()), __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi8_epi32(__intrin) : _mm256_cvtepu8_epi32(__intrin));
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm256_cvtepi8_epi32(__intrin) : _mm256_cvtepu8_epi32(__intrin));
         } else if constexpr (__x_to_z) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi8_epi32(__intrin) : _mm512_cvtepu8_epi32(__intrin));
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm512_cvtepi8_epi32(__intrin) : _mm512_cvtepu8_epi32(__intrin));
         }
     } else if constexpr (__i8_to_i16) {   //{{{2
         if constexpr (__x_to_x && __have_sse4_1) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi8_epi16(__intrin) : _mm_cvtepu8_epi16(__intrin));
-        } else if constexpr (__x_to_x && is_signed_v<_T>) {
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm_cvtepi8_epi16(__intrin) : _mm_cvtepu8_epi16(__intrin));
+        } else if constexpr (__x_to_x && is_signed_v<_Tp>) {
             return __intrin_bitcast<_To>(_mm_srai_epi16(_mm_unpacklo_epi8(__intrin, __intrin), 8));
-        } else if constexpr (__x_to_x && is_unsigned_v<_T>) {
+        } else if constexpr (__x_to_x && is_unsigned_v<_Tp>) {
             return __intrin_bitcast<_To>(_mm_unpacklo_epi8(__intrin, __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi8_epi16(__intrin) : _mm256_cvtepu8_epi16(__intrin));
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm256_cvtepi8_epi16(__intrin) : _mm256_cvtepu8_epi16(__intrin));
         } else if constexpr (__y_to_z && __have_avx512bw) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi8_epi16(__intrin) : _mm512_cvtepu8_epi16(__intrin));
+            return __intrin_bitcast<_To>(is_signed_v<_Tp> ? _mm512_cvtepi8_epi16(__intrin) : _mm512_cvtepu8_epi16(__intrin));
         } else if constexpr (__y_to_z) {
-            __assert_unreachable<_T>();
+            __assert_unreachable<_Tp>();
         }
     } else if constexpr (__f32_to_s64) {  //{{{2
         if constexpr (__have_avx512dq_vl && __x_to_x) {
@@ -346,7 +346,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         if constexpr (__x_to_x || __y_to_y || __z_to_z) {
             // go to fallback, it does the right thing
         } else {
-            __assert_unreachable<_T>();
+            __assert_unreachable<_Tp>();
         }
     } else if constexpr (__f32_to_u32) {  //{{{2
         // the __builtin_constant_p hack enables constant propagation
@@ -375,7 +375,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             // 0x8000'0000 trick for f32->u32 because it would discard small input values
             // (only 24 mantissa bits)
         } else {
-            __assert_unreachable<_T>();
+            __assert_unreachable<_Tp>();
         }
     } else if constexpr (__f32_to_ibw) {  //{{{2
         return __convert_x86<_To>(__convert_x86<__vector_type_t<int, _N>>(__v));
@@ -474,25 +474,25 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             static_assert(__x_to_y);
             __m128i __a, __b;
             if constexpr (__have_sse4_1) {
-                __a = sizeof(_T) == 2
-                        ? (is_signed_v<_T> ? _mm_cvtepi16_epi32(__intrin) : _mm_cvtepu16_epi32(__intrin))
-                        : (is_signed_v<_T> ? _mm_cvtepi8_epi32(__intrin) : _mm_cvtepu8_epi32(__intrin));
-                const auto __w = _mm_shuffle_epi32(__intrin, sizeof(_T) == 2 ? 0xee : 0xe9);
-                __b = sizeof(_T) == 2
-                        ? (is_signed_v<_T> ? _mm_cvtepi16_epi32(__w) : _mm_cvtepu16_epi32(__w))
-                        : (is_signed_v<_T> ? _mm_cvtepi8_epi32(__w) : _mm_cvtepu8_epi32(__w));
+                __a = sizeof(_Tp) == 2
+                        ? (is_signed_v<_Tp> ? _mm_cvtepi16_epi32(__intrin) : _mm_cvtepu16_epi32(__intrin))
+                        : (is_signed_v<_Tp> ? _mm_cvtepi8_epi32(__intrin) : _mm_cvtepu8_epi32(__intrin));
+                const auto __w = _mm_shuffle_epi32(__intrin, sizeof(_Tp) == 2 ? 0xee : 0xe9);
+                __b = sizeof(_Tp) == 2
+                        ? (is_signed_v<_Tp> ? _mm_cvtepi16_epi32(__w) : _mm_cvtepu16_epi32(__w))
+                        : (is_signed_v<_Tp> ? _mm_cvtepi8_epi32(__w) : _mm_cvtepu8_epi32(__w));
             } else {
                 __m128i __tmp;
-                if constexpr (sizeof(_T) == 1) {
-                    __tmp = is_signed_v<_T> ? _mm_srai_epi16(_mm_unpacklo_epi8(__intrin, __intrin), 8):
+                if constexpr (sizeof(_Tp) == 1) {
+                    __tmp = is_signed_v<_Tp> ? _mm_srai_epi16(_mm_unpacklo_epi8(__intrin, __intrin), 8):
                         _mm_unpacklo_epi8(__intrin, __m128i());
                 } else {
-                    static_assert(sizeof(_T) == 2);
+                    static_assert(sizeof(_Tp) == 2);
                     __tmp = __intrin;
                 }
-                __a = is_signed_v<_T> ? _mm_srai_epi32(_mm_unpacklo_epi16(__tmp, __tmp), 16)
+                __a = is_signed_v<_Tp> ? _mm_srai_epi32(_mm_unpacklo_epi16(__tmp, __tmp), 16)
                                    : _mm_unpacklo_epi16(__tmp, __m128i());
-                __b = is_signed_v<_T> ? _mm_srai_epi32(_mm_unpackhi_epi16(__tmp, __tmp), 16)
+                __b = is_signed_v<_Tp> ? _mm_srai_epi32(_mm_unpackhi_epi16(__tmp, __tmp), 16)
                                    : _mm_unpackhi_epi16(__tmp, __m128i());
             }
             return __convert_x86<_To>(__vector_bitcast<int>(__a), __vector_bitcast<int>(__b));
@@ -566,7 +566,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             return __intrin_bitcast<_To>(_mm512_cvtpd_ps(__intrin));
         }
     } else {  //{{{2
-        __assert_unreachable<_T>();
+        __assert_unreachable<_Tp>();
     }
 
     // fallback:{{{2
@@ -576,10 +576,10 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
 // 2-arg __convert_x86 {{{1
 template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __convert_x86(_V __vv0, _V __vv1)
 {
-    using _T = typename _Traits::value_type;
+    using _Tp = typename _Traits::value_type;
     constexpr size_t _N = _Traits::_S_width;
-    __storage<_T, _N> __v0(__vv0);
-    __storage<_T, _N> __v1(__vv1);
+    __storage<_Tp, _N> __v0(__vv0);
+    __storage<_Tp, _N> __v1(__vv1);
     [[maybe_unused]] const auto __i0 = __to_intrin(__vv0);
     [[maybe_unused]] const auto __i1 = __to_intrin(__vv1);
     using _U = typename __vector_traits<_To>::value_type;
@@ -601,49 +601,49 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     [[maybe_unused]] constexpr bool __z_to_z = sizeof(__v0) == 64 && sizeof(_To) == 64;
 
     // iX_to_iX {{{2
-    [[maybe_unused]] constexpr bool __i_to_i = std::is_integral_v<_U> && std::is_integral_v<_T>;
-    [[maybe_unused]] constexpr bool __i8_to_i16  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 2;
-    [[maybe_unused]] constexpr bool __i8_to_i32  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __i8_to_i64  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __i16_to_i8  = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 1;
-    [[maybe_unused]] constexpr bool __i16_to_i32 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __i16_to_i64 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __i32_to_i8  = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 1;
-    [[maybe_unused]] constexpr bool __i32_to_i16 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 2;
-    [[maybe_unused]] constexpr bool __i32_to_i64 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __i64_to_i8  = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 1;
-    [[maybe_unused]] constexpr bool __i64_to_i16 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 2;
-    [[maybe_unused]] constexpr bool __i64_to_i32 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __i_to_i = std::is_integral_v<_U> && std::is_integral_v<_Tp>;
+    [[maybe_unused]] constexpr bool __i8_to_i16  = __i_to_i && sizeof(_Tp) == 1 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool __i8_to_i32  = __i_to_i && sizeof(_Tp) == 1 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __i8_to_i64  = __i_to_i && sizeof(_Tp) == 1 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __i16_to_i8  = __i_to_i && sizeof(_Tp) == 2 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool __i16_to_i32 = __i_to_i && sizeof(_Tp) == 2 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __i16_to_i64 = __i_to_i && sizeof(_Tp) == 2 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __i32_to_i8  = __i_to_i && sizeof(_Tp) == 4 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool __i32_to_i16 = __i_to_i && sizeof(_Tp) == 4 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool __i32_to_i64 = __i_to_i && sizeof(_Tp) == 4 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __i64_to_i8  = __i_to_i && sizeof(_Tp) == 8 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool __i64_to_i16 = __i_to_i && sizeof(_Tp) == 8 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool __i64_to_i32 = __i_to_i && sizeof(_Tp) == 8 && sizeof(_U) == 4;
 
     // [fsu]X_to_[fsu]X {{{2
     // ibw = integral && byte or word, i.e. char and short with any signedness
-    [[maybe_unused]] constexpr bool __i64_to_f32 = is_integral_v<_T> &&                     sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __s32_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __s16_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool  __s8_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __u32_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __u16_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool  __u8_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __s64_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __s32_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __s16_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool  __s8_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __u64_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __u32_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __u16_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool  __u8_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __f32_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    [[maybe_unused]] constexpr bool __f32_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    [[maybe_unused]] constexpr bool __f32_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    [[maybe_unused]] constexpr bool __f32_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    [[maybe_unused]] constexpr bool __f64_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    [[maybe_unused]] constexpr bool __f64_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    [[maybe_unused]] constexpr bool __f64_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    [[maybe_unused]] constexpr bool __f64_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    [[maybe_unused]] constexpr bool __f32_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    [[maybe_unused]] constexpr bool __f64_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    [[maybe_unused]] constexpr bool __f32_to_f64 = is_floating_point_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __f64_to_f32 = is_floating_point_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __i64_to_f32 = is_integral_v<_Tp> &&                     sizeof(_Tp) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __s32_to_f32 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __s16_to_f32 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool  __s8_to_f32 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __u32_to_f32 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __u16_to_f32 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool  __u8_to_f32 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __s64_to_f64 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __s32_to_f64 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __s16_to_f64 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool  __s8_to_f64 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 1 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __u64_to_f64 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __u32_to_f64 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __u16_to_f64 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool  __u8_to_f64 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 1 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __f32_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_Tp> && sizeof(_Tp) == 4;
+    [[maybe_unused]] constexpr bool __f32_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_Tp> && sizeof(_Tp) == 4;
+    [[maybe_unused]] constexpr bool __f32_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_Tp> && sizeof(_Tp) == 4;
+    [[maybe_unused]] constexpr bool __f32_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_Tp> && sizeof(_Tp) == 4;
+    [[maybe_unused]] constexpr bool __f64_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_Tp> && sizeof(_Tp) == 8;
+    [[maybe_unused]] constexpr bool __f64_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_Tp> && sizeof(_Tp) == 8;
+    [[maybe_unused]] constexpr bool __f64_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_Tp> && sizeof(_Tp) == 8;
+    [[maybe_unused]] constexpr bool __f64_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_Tp> && sizeof(_Tp) == 8;
+    [[maybe_unused]] constexpr bool __f32_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_Tp> && sizeof(_Tp) == 4;
+    [[maybe_unused]] constexpr bool __f64_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_Tp> && sizeof(_Tp) == 8;
+    [[maybe_unused]] constexpr bool __f32_to_f64 = is_floating_point_v<_Tp> && sizeof(_Tp) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __f64_to_f32 = is_floating_point_v<_Tp> && sizeof(_Tp) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
 
     if constexpr (__i_to_i && __y_to_x && !__have_avx2) {  //{{{2
         // <double, 4>, <double, 4> => <short, 8>
@@ -651,7 +651,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     } else if constexpr (__i_to_i) {  // assert ISA {{{2
         static_assert(__x_to_x || __have_avx2,
                       "integral conversions with ymm registers require AVX2");
-        static_assert(__have_avx512bw || ((sizeof(_T) >= 4 || sizeof(__v0) < 64) &&
+        static_assert(__have_avx512bw || ((sizeof(_Tp) >= 4 || sizeof(__v0) < 64) &&
                                         (sizeof(_U) >= 4 || sizeof(_To) < 64)),
                       "8/16-bit integers in zmm registers require AVX512BW");
         static_assert((sizeof(__v0) < 64 && sizeof(_To) < 64) || __have_avx512f,
@@ -659,16 +659,16 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     }
     // concat => use 1-arg __convert_x86 {{{2
     if constexpr ((sizeof(__v0) == 16 && __have_avx2) ||
-                  (sizeof(__v0) == 16 && __have_avx && std::is_floating_point_v<_T>) ||
-                  (sizeof(__v0) == 32 && __have_avx512f && (sizeof(_T) >= 4 || __have_avx512bw))) {
+                  (sizeof(__v0) == 16 && __have_avx && std::is_floating_point_v<_Tp>) ||
+                  (sizeof(__v0) == 32 && __have_avx512f && (sizeof(_Tp) >= 4 || __have_avx512bw))) {
         // The ISA can handle wider input registers, so concat and use one-arg
         // implementation. This reduces code duplication considerably.
         return __convert_x86<_To>(__concat(__v0, __v1));
     } else {  //{{{2
         // conversion using bit reinterpretation (or no conversion at all) should all go
         // through the concat branch above:
-        static_assert(!(std::is_floating_point_v<_T> == std::is_floating_point_v<_U> &&
-                        sizeof(_T) == sizeof(_U)));
+        static_assert(!(std::is_floating_point_v<_Tp> == std::is_floating_point_v<_U> &&
+                        sizeof(_Tp) == sizeof(_U)));
         if constexpr (2 * _N < _M && sizeof(_To) > 16) {  // handle all zero extension{{{2
             constexpr size_t Min = 16 / sizeof(_U);
             return __zero_extend(
@@ -827,7 +827,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 const auto __b = _mm256_unpackhi_epi32(__i0, __i1);   // bfBF dhDH
                 const auto __lo32 = _mm256_unpacklo_epi32(__a, __b);  // abef cdgh
                 const auto __hi32 =
-                    __vector_bitcast<conditional_t<is_signed_v<_T>, int, __uint>>(
+                    __vector_bitcast<conditional_t<is_signed_v<_Tp>, int, __uint>>(
                         _mm256_unpackhi_epi32(__a, __b));  // ABEF CDGH
                 const auto __hi = 0x100000000LL * __convert_x86<__vector_type_t<float, 8>>(__hi32);
                 const auto __mid =
@@ -835,11 +835,11 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 const auto __lo = _mm256_cvtepi32_ps(_mm256_set1_epi32(0x0000ffffu) & __lo32);
                 return __xzyw((__hi + __mid) + __lo);
             } else if constexpr (__z_to_z && __have_avx512dq) {
-                return std::is_signed_v<_T> ? __concat(_mm512_cvtepi64_ps(__i0),
+                return std::is_signed_v<_Tp> ? __concat(_mm512_cvtepi64_ps(__i0),
                                                             _mm512_cvtepi64_ps(__i1))
                                            : __concat(_mm512_cvtepu64_ps(__i0),
                                                             _mm512_cvtepu64_ps(__i1));
-            } else if constexpr (__z_to_z && std::is_signed_v<_T>) {
+            } else if constexpr (__z_to_z && std::is_signed_v<_Tp>) {
                 const __m512 __hi32 = _mm512_cvtepi32_ps(
                     __concat(_mm512_cvtepi64_epi32(__to_intrin(__vv0 >> 32)),
                                    _mm512_cvtepi64_epi32(__to_intrin(__vv1 >> 32))));
@@ -853,7 +853,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 const __m512 __lo16 =
                     _mm512_cvtepi32_ps(_mm512_set1_epi32(0x0000ffffu) & __lo32);
                 return (__hi32 * 0x100000000LL + __hi16) + __lo16;
-            } else if constexpr (__z_to_z && std::is_unsigned_v<_T>) {
+            } else if constexpr (__z_to_z && std::is_unsigned_v<_Tp>) {
                 return __intrin_bitcast<_To>(
                     _mm512_cvtepu32_ps(
                         __concat(_mm512_cvtepi64_epi32(_mm512_srai_epi64(__i0, 32)),
@@ -915,7 +915,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             } else if constexpr (sizeof(_U) * _N == 2) {
                 return __intrin_bitcast<_To>(_mm_unpacklo_epi16(__lo, __hi));
             } else {
-                __assert_unreachable<_T>();
+                __assert_unreachable<_Tp>();
             }
         } else {
             return __vector_convert<_To>(__vv0, __vv1, make_index_sequence<_N>());
@@ -925,12 +925,12 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
 // 4-arg __convert_x86 {{{1
 template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __convert_x86(_V __vv0, _V __vv1,_V __vv2,_V __vv3)
 {
-    using _T = typename _Traits::value_type;
+    using _Tp = typename _Traits::value_type;
     constexpr size_t _N = _Traits::_S_width;
-    __storage<_T, _N> __v0(__vv0);
-    __storage<_T, _N> __v1(__vv1);
-    __storage<_T, _N> __v2(__vv2);
-    __storage<_T, _N> __v3(__vv3);
+    __storage<_Tp, _N> __v0(__vv0);
+    __storage<_Tp, _N> __v1(__vv1);
+    __storage<_Tp, _N> __v2(__vv2);
+    __storage<_Tp, _N> __v3(__vv3);
     [[maybe_unused]] const auto __i0 = __to_intrin(__vv0);
     [[maybe_unused]] const auto __i1 = __to_intrin(__vv1);
     [[maybe_unused]] const auto __i2 = __to_intrin(__vv2);
@@ -954,49 +954,49 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     [[maybe_unused]] constexpr bool __z_to_z = sizeof(__v0) == 64 && sizeof(_To) == 64;
 
     // iX_to_iX {{{2
-    [[maybe_unused]] constexpr bool __i_to_i = std::is_integral_v<_U> && std::is_integral_v<_T>;
-    [[maybe_unused]] constexpr bool __i8_to_i16  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 2;
-    [[maybe_unused]] constexpr bool __i8_to_i32  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __i8_to_i64  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __i16_to_i8  = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 1;
-    [[maybe_unused]] constexpr bool __i16_to_i32 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __i16_to_i64 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __i32_to_i8  = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 1;
-    [[maybe_unused]] constexpr bool __i32_to_i16 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 2;
-    [[maybe_unused]] constexpr bool __i32_to_i64 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __i64_to_i8  = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 1;
-    [[maybe_unused]] constexpr bool __i64_to_i16 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 2;
-    [[maybe_unused]] constexpr bool __i64_to_i32 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __i_to_i = std::is_integral_v<_U> && std::is_integral_v<_Tp>;
+    [[maybe_unused]] constexpr bool __i8_to_i16  = __i_to_i && sizeof(_Tp) == 1 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool __i8_to_i32  = __i_to_i && sizeof(_Tp) == 1 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __i8_to_i64  = __i_to_i && sizeof(_Tp) == 1 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __i16_to_i8  = __i_to_i && sizeof(_Tp) == 2 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool __i16_to_i32 = __i_to_i && sizeof(_Tp) == 2 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __i16_to_i64 = __i_to_i && sizeof(_Tp) == 2 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __i32_to_i8  = __i_to_i && sizeof(_Tp) == 4 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool __i32_to_i16 = __i_to_i && sizeof(_Tp) == 4 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool __i32_to_i64 = __i_to_i && sizeof(_Tp) == 4 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __i64_to_i8  = __i_to_i && sizeof(_Tp) == 8 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool __i64_to_i16 = __i_to_i && sizeof(_Tp) == 8 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool __i64_to_i32 = __i_to_i && sizeof(_Tp) == 8 && sizeof(_U) == 4;
 
     // [fsu]X_to_[fsu]X {{{2
     // ibw = integral && byte or word, i.e. char and short with any signedness
-    [[maybe_unused]] constexpr bool __i64_to_f32 = is_integral_v<_T> &&                     sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __s32_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __s16_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool  __s8_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __u32_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __u16_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool  __u8_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    [[maybe_unused]] constexpr bool __s64_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __s32_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __s16_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool  __s8_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __u64_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __u32_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __u16_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool  __u8_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __f32_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    [[maybe_unused]] constexpr bool __f32_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    [[maybe_unused]] constexpr bool __f32_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    [[maybe_unused]] constexpr bool __f32_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    [[maybe_unused]] constexpr bool __f64_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    [[maybe_unused]] constexpr bool __f64_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    [[maybe_unused]] constexpr bool __f64_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    [[maybe_unused]] constexpr bool __f64_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    [[maybe_unused]] constexpr bool __f32_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    [[maybe_unused]] constexpr bool __f64_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    [[maybe_unused]] constexpr bool __f32_to_f64 = is_floating_point_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    [[maybe_unused]] constexpr bool __f64_to_f32 = is_floating_point_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __i64_to_f32 = is_integral_v<_Tp> &&                     sizeof(_Tp) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __s32_to_f32 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __s16_to_f32 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool  __s8_to_f32 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __u32_to_f32 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __u16_to_f32 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool  __u8_to_f32 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __s64_to_f64 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __s32_to_f64 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __s16_to_f64 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool  __s8_to_f64 = is_integral_v<_Tp> &&   is_signed_v<_Tp> && sizeof(_Tp) == 1 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __u64_to_f64 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __u32_to_f64 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __u16_to_f64 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool  __u8_to_f64 = is_integral_v<_Tp> && is_unsigned_v<_Tp> && sizeof(_Tp) == 1 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __f32_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_Tp> && sizeof(_Tp) == 4;
+    [[maybe_unused]] constexpr bool __f32_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_Tp> && sizeof(_Tp) == 4;
+    [[maybe_unused]] constexpr bool __f32_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_Tp> && sizeof(_Tp) == 4;
+    [[maybe_unused]] constexpr bool __f32_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_Tp> && sizeof(_Tp) == 4;
+    [[maybe_unused]] constexpr bool __f64_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_Tp> && sizeof(_Tp) == 8;
+    [[maybe_unused]] constexpr bool __f64_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_Tp> && sizeof(_Tp) == 8;
+    [[maybe_unused]] constexpr bool __f64_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_Tp> && sizeof(_Tp) == 8;
+    [[maybe_unused]] constexpr bool __f64_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_Tp> && sizeof(_Tp) == 8;
+    [[maybe_unused]] constexpr bool __f32_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_Tp> && sizeof(_Tp) == 4;
+    [[maybe_unused]] constexpr bool __f64_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_Tp> && sizeof(_Tp) == 8;
+    [[maybe_unused]] constexpr bool __f32_to_f64 = is_floating_point_v<_Tp> && sizeof(_Tp) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool __f64_to_f32 = is_floating_point_v<_Tp> && sizeof(_Tp) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
 
     if constexpr (__i_to_i && __y_to_x && !__have_avx2) {  //{{{2
         // <double, 4>, <double, 4>, <double, 4>, <double, 4> => <char, 16>
@@ -1005,7 +1005,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     } else if constexpr (__i_to_i) {  // assert ISA {{{2
         static_assert(__x_to_x || __have_avx2,
                       "integral conversions with ymm registers require AVX2");
-        static_assert(__have_avx512bw || ((sizeof(_T) >= 4 || sizeof(__v0) < 64) &&
+        static_assert(__have_avx512bw || ((sizeof(_Tp) >= 4 || sizeof(__v0) < 64) &&
                                         (sizeof(_U) >= 4 || sizeof(_To) < 64)),
                       "8/16-bit integers in zmm registers require AVX512BW");
         static_assert((sizeof(__v0) < 64 && sizeof(_To) < 64) || __have_avx512f,
@@ -1013,7 +1013,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     }
     // concat => use 2-arg __convert_x86 {{{2
     if constexpr ((sizeof(__v0) == 16 && __have_avx2) ||
-                  (sizeof(__v0) == 16 && __have_avx && std::is_floating_point_v<_T>) ||
+                  (sizeof(__v0) == 16 && __have_avx && std::is_floating_point_v<_Tp>) ||
                   (sizeof(__v0) == 32 && __have_avx512f)) {
         // The ISA can handle wider input registers, so concat and use two-arg
         // implementation. This reduces code duplication considerably.
@@ -1021,8 +1021,8 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     } else {  //{{{2
         // conversion using bit reinterpretation (or no conversion at all) should all go
         // through the concat branch above:
-        static_assert(!(std::is_floating_point_v<_T> == std::is_floating_point_v<_U> &&
-                        sizeof(_T) == sizeof(_U)));
+        static_assert(!(std::is_floating_point_v<_Tp> == std::is_floating_point_v<_U> &&
+                        sizeof(_Tp) == sizeof(_U)));
         if constexpr (4 * _N < _M && sizeof(_To) > 16) {  // handle all zero extension{{{2
             constexpr size_t Min = 16 / sizeof(_U);
             return __zero_extend(
@@ -1130,7 +1130,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 const auto __lo32a = _mm_unpacklo_epi32(__a, __b);  // abcd
                 const auto __lo32b = _mm_unpacklo_epi32(__c, __d);  // efgh
                 const auto __hi32 =
-                    __vector_bitcast<conditional_t<is_signed_v<_T>, int, __uint>>(
+                    __vector_bitcast<conditional_t<is_signed_v<_Tp>, int, __uint>>(
                         __concat(_mm_unpackhi_epi32(__a, __b),
                                  _mm_unpackhi_epi32(__c, __d)));  // ABCD EFGH
                 const auto __hi =
@@ -1174,7 +1174,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                     return __intrin_bitcast<_To>(_mm_unpacklo_epi32(__lo, __hi));
                 }
             } else {
-                __assert_unreachable<_T>();
+                __assert_unreachable<_Tp>();
             }
         } else {
             return __vector_convert<_To>(__v0._M_data, __v1._M_data, __v2._M_data, __v3._M_data,
@@ -1185,16 +1185,16 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
 // 8-arg __convert_x86 {{{1
 template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __convert_x86(_V __vv0, _V __vv1,_V __vv2,_V __vv3,_V __vv4,_V __vv5, _V __vv6, _V __vv7)
 {
-    using _T = typename _Traits::value_type;
+    using _Tp = typename _Traits::value_type;
     constexpr size_t _N = _Traits::_S_width;
-    __storage<_T, _N> __v0(__vv0);
-    __storage<_T, _N> __v1(__vv1);
-    __storage<_T, _N> __v2(__vv2);
-    __storage<_T, _N> __v3(__vv3);
-    __storage<_T, _N> __v4(__vv4);
-    __storage<_T, _N> __v5(__vv5);
-    __storage<_T, _N> __v6(__vv6);
-    __storage<_T, _N> __v7(__vv7);
+    __storage<_Tp, _N> __v0(__vv0);
+    __storage<_Tp, _N> __v1(__vv1);
+    __storage<_Tp, _N> __v2(__vv2);
+    __storage<_Tp, _N> __v3(__vv3);
+    __storage<_Tp, _N> __v4(__vv4);
+    __storage<_Tp, _N> __v5(__vv5);
+    __storage<_Tp, _N> __v6(__vv6);
+    __storage<_Tp, _N> __v7(__vv7);
     [[maybe_unused]] const auto __i0 = __to_intrin(__vv0);
     [[maybe_unused]] const auto __i1 = __to_intrin(__vv1);
     [[maybe_unused]] const auto __i2 = __to_intrin(__vv2);
@@ -1221,14 +1221,14 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     [[maybe_unused]] constexpr bool __z_to_z = sizeof(__v0) == 64 && sizeof(_To) == 64;
 
     // [if]X_to_i8 {{{2
-    [[maybe_unused]] constexpr bool __i_to_i = std::is_integral_v<_U> && std::is_integral_v<_T>;
-    [[maybe_unused]] constexpr bool __i64_to_i8 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 1;
-    [[maybe_unused]] constexpr bool __f64_to_i8 = is_integral_v<_U> && sizeof(_U) == 1 && is_floating_point_v<_T> && sizeof(_T) == 8;
+    [[maybe_unused]] constexpr bool __i_to_i = std::is_integral_v<_U> && std::is_integral_v<_Tp>;
+    [[maybe_unused]] constexpr bool __i64_to_i8 = __i_to_i && sizeof(_Tp) == 8 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool __f64_to_i8 = is_integral_v<_U> && sizeof(_U) == 1 && is_floating_point_v<_Tp> && sizeof(_Tp) == 8;
 
     if constexpr (__i_to_i) {  // assert ISA {{{2
         static_assert(__x_to_x || __have_avx2,
                       "integral conversions with ymm registers require AVX2");
-        static_assert(__have_avx512bw || ((sizeof(_T) >= 4 || sizeof(__v0) < 64) &&
+        static_assert(__have_avx512bw || ((sizeof(_Tp) >= 4 || sizeof(__v0) < 64) &&
                                         (sizeof(_U) >= 4 || sizeof(_To) < 64)),
                       "8/16-bit integers in zmm registers require AVX512BW");
         static_assert((sizeof(__v0) < 64 && sizeof(_To) < 64) || __have_avx512f,
@@ -1236,7 +1236,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     }
     // concat => use 4-arg __convert_x86 {{{2
     if constexpr ((sizeof(__v0) == 16 && __have_avx2) ||
-                  (sizeof(__v0) == 16 && __have_avx && std::is_floating_point_v<_T>) ||
+                  (sizeof(__v0) == 16 && __have_avx && std::is_floating_point_v<_Tp>) ||
                   (sizeof(__v0) == 32 && __have_avx512f)) {
         // The ISA can handle wider input registers, so concat and use two-arg
         // implementation. This reduces code duplication considerably.
@@ -1245,8 +1245,8 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     } else {  //{{{2
         // conversion using bit reinterpretation (or no conversion at all) should all go
         // through the concat branch above:
-        static_assert(!(std::is_floating_point_v<_T> == std::is_floating_point_v<_U> &&
-                        sizeof(_T) == sizeof(_U)));
+        static_assert(!(std::is_floating_point_v<_Tp> == std::is_floating_point_v<_U> &&
+                        sizeof(_Tp) == sizeof(_U)));
         static_assert(!(8 * _N < _M && sizeof(_To) > 16),
                       "zero extension should be impossible");
         if constexpr (__i64_to_i8) {  //{{{2
@@ -1307,7 +1307,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                                      __convert_x86<__vector_type_t<int, _N * 2>>(__v4, __v5),
                                      __convert_x86<__vector_type_t<int, _N * 2>>(__v6, __v7));
         } else { // unreachable {{{2
-            __assert_unreachable<_T>();
+            __assert_unreachable<_Tp>();
         }  //}}}
 
         // fallback: {{{2
@@ -1321,7 +1321,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             static_assert(sizeof(_U) == 1 && _N == 2);
             return __intrin_bitcast<_To>(_mm_unpacklo_epi64(__lo, __hi));
         } else {
-            __assert_unreachable<_T>();
+            __assert_unreachable<_Tp>();
             //return __vector_convert<_To>(__v0._M_data, __v1._M_data, __v2._M_data, __v3._M_data, __v4._M_data, __v5._M_data, __v6._M_data, __v7._M_data,
             //                             make_index_sequence<_N>());
         }  //}}}2
