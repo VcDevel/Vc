@@ -30,8 +30,6 @@ elseif("${IMPL}" STREQUAL AVX OR "${IMPL}" STREQUAL AVX2)
    if(x86_32 AND COMPILER_IS_CLANG AND "${SYSTEM_NAME}" STREQUAL "Linux")
       set(expect_failure TRUE)
    endif()
-elseif("${IMPL}" STREQUAL MIC)
-   set(reference "^vaddps %zmm(0,%zmm1|1,%zmm0),%zmm0 retq")
 elseif("${IMPL}" STREQUAL AVX512 OR "${IMPL}" STREQUAL KNL)
    set(reference "^vaddps %zmm(0,%zmm1|1,%zmm0),%zmm0 retq")
 else()
@@ -51,12 +49,8 @@ else()
 endif()
 
 #######################################################################
-# test Mask<T> ABI
+# test native_simd_mask<T> ABI
 #######################################################################
-if("${IMPL}" STREQUAL MIC)
-   set(reference "%di,.*%si,") # needs to read from %di and %si
-endif()
-
 execute_process(
    COMMAND ${OBJDUMP} --no-show-raw-insn -dC -j .text ${BINARY}
    COMMAND grep -A3 " <mask_test"
@@ -66,7 +60,7 @@ execute_process(
    OUTPUT_VARIABLE asm)
 string(STRIP "${asm}" asm)
 if("${IMPL}" STREQUAL AVX512 OR "${IMPL}" STREQUAL KNL)
-   set(reference "^(and %e[sd]i,%e[sd]i mov %e[sd]i|mov %e[sd]i,%eax and %e[sd]i),%eax ret")
+   set(reference "^(and %e[sd]i,%e[sd]i mov %e[sd]i,%eax ret|mov %e[sd]i,%eax and %e[sd]i,%eax ret|kmovw %e[sd]i,%k[1-7] kmovw %e[sd]i,%k[1-7] kandw )")
 else()
    string(REPLACE "add" "and" reference "${reference}")
 endif()
