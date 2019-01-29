@@ -302,7 +302,6 @@ function(vc_add_test name) #{{{
          set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "${_DEFINITIONS}")
          set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS "${flags}")
          set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS "${link_flags}")
-         set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "NO_ISA_CHECK")
          if(NOT _NO_TESTTYPES)
             set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "TESTTYPES=${types}")
          endif()
