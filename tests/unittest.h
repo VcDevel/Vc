@@ -27,23 +27,49 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <experimental/simd>
 #include <vir/test.h>
+#include <iostream>
 #include <iomanip>
 
 _GLIBCXX_SIMD_BEGIN_NAMESPACE
-template <class T, class A> ostream& operator<<(ostream& s, const simd<T, A>& v) {
+template <typename T, typename Abi>
+inline std::ostream &operator<<(std::ostream &out, const simd<T, Abi> &v)
+{
+    using namespace vir::detail::color;
     if constexpr (std::is_floating_point_v<T>) {
-        s << "\n(" << v[0] << " == " << std::hexfloat << v[0] << std::defaultfloat << ')';
-        for (unsigned i = 1; i < v.size(); ++i) {
-            s << (i % 4 == 0 ? ",\n(" : ", (") << v[i] << " == " << std::hexfloat << v[i]
-              << std::defaultfloat << ')';
+        out << green << '[';
+        out << v[0] << blue << " (" << std::hexfloat << v[0] << std::defaultfloat << ')';
+        for (size_t i = 1; i < v.size(); ++i) {
+            out << green << ", " << v[i] << blue << " (" << std::hexfloat << v[i]
+                << std::defaultfloat << ')';
         }
+        return out << ']' << normal;
     } else {
-        s << v[0];
-        for (unsigned i = 1; i < v.size(); ++i) {
-            s << ", " << v[i];
+        using TT = std::conditional_t<(sizeof(T) < sizeof(int)), int, T>;
+        out << green << '[';
+        out << TT(v[0]);
+        for (size_t i = 1; i < v.size(); ++i) {
+            out << ", " << TT(v[i]);
+        }
+        return out << ']' << normal;
+    }
+}
+
+template <typename T, typename Abi>
+inline std::ostream &operator<<(std::ostream &out, const simd_mask<T, Abi> &v)
+{
+    using namespace vir::detail::color;
+    out << blue << "m[";
+    for (size_t i = 0; i < v.size(); ++i) {
+        if (i > 0 && (i % 4) == 0) {
+            out << ' ';
+        }
+        if (v[i]) {
+            out << yellow << '1';
+        } else {
+            out << blue << '0';
         }
     }
-    return s;
+    return out << blue << ']' << normal;
 }
 _GLIBCXX_SIMD_END_NAMESPACE
 
