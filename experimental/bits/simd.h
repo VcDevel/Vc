@@ -1064,7 +1064,19 @@ inline constexpr _V __allbits =
 template <class _Tp, class _TVT = __vector_traits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __xor(_Tp __a, typename _TVT::type __b) noexcept
 {
-    return reinterpret_cast<_Tp>(__vector_bitcast<unsigned>(__a) ^ __vector_bitcast<unsigned>(__b));
+  if constexpr (_TVT::template is<float, 4>)
+    {
+      return _mm_xor_ps(__a, __b);
+    }
+  else if constexpr (_TVT::template is<double, 2>)
+    {
+      return _mm_xor_pd(__a, __b);
+    }
+  else
+    {
+      return reinterpret_cast<_Tp>(__vector_bitcast<unsigned>(__a) ^
+				   __vector_bitcast<unsigned>(__b));
+    }
 }
 
 // }}}
@@ -1072,7 +1084,19 @@ _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __xor(_Tp __a, typename _TVT::type __b) no
 template <class _Tp, class _TVT = __vector_traits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __or(_Tp __a, typename _TVT::type __b) noexcept
 {
-    return reinterpret_cast<_Tp>(__vector_bitcast<unsigned>(__a) | __vector_bitcast<unsigned>(__b));
+  if constexpr (_TVT::template is<float, 4>)
+    {
+      return _mm_or_ps(__a, __b);
+    }
+  else if constexpr (_TVT::template is<double, 2>)
+    {
+      return _mm_or_pd(__a, __b);
+    }
+  else
+    {
+      return reinterpret_cast<_Tp>(__vector_bitcast<unsigned>(__a) |
+				   __vector_bitcast<unsigned>(__b));
+    }
 }
 
 // }}}
@@ -1080,7 +1104,19 @@ _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __or(_Tp __a, typename _TVT::type __b) noe
 template <class _Tp, class _TVT = __vector_traits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __and(_Tp __a, typename _TVT::type __b) noexcept
 {
-    return reinterpret_cast<_Tp>(__vector_bitcast<unsigned>(__a) & __vector_bitcast<unsigned>(__b));
+  if constexpr (_TVT::template is<float, 4>)
+    {
+      return _mm_and_ps(__a, __b);
+    }
+  else if constexpr (_TVT::template is<double, 2>)
+    {
+      return _mm_and_pd(__a, __b);
+    }
+  else
+    {
+      return reinterpret_cast<_Tp>(__vector_bitcast<unsigned>(__a) &
+				   __vector_bitcast<unsigned>(__b));
+    }
 }
 
 // }}}
@@ -1088,7 +1124,19 @@ _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __and(_Tp __a, typename _TVT::type __b) no
 template <class _Tp, class _TVT = __vector_traits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __andnot(_Tp __a, typename _TVT::type __b) noexcept
 {
-    return reinterpret_cast<_Tp>(~__vector_bitcast<unsigned>(__a) & __vector_bitcast<unsigned>(__b));
+  if constexpr (_TVT::template is<float, 4>)
+    {
+      return _mm_andnot_ps(__a, __b);
+    }
+  else if constexpr (_TVT::template is<double, 2>)
+    {
+      return _mm_andnot_pd(__a, __b);
+    }
+  else
+    {
+      return reinterpret_cast<_Tp>(~__vector_bitcast<unsigned>(__a) &
+				   __vector_bitcast<unsigned>(__b));
+    }
 }
 
 // }}}
