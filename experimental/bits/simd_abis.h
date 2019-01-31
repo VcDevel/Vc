@@ -1491,22 +1491,26 @@ _GLIBCXX_SIMD_INTRINSIC constexpr __storage<_Tp, _N> __multiplies(__storage<_Tp,
 template <class _Tp, size_t _N>
 _GLIBCXX_SIMD_INTRINSIC constexpr __storage<_Tp, _N> __abs(__storage<_Tp, _N> __v)
 {
-//X   if (__builtin_is_constant_evaluated())
-//X     {
-//X       return __v._M_data < 0 ? -__v._M_data : __v._M_data;
-//X     }
-if constexpr (std::is_floating_point_v<_Tp>)
-  {
-    // `v < 0 ? -v : v` cannot compile to the efficient implementation of
-    // masking the signbit off because it must consider v == -0
-    using _I = std::make_unsigned_t<__int_for_sizeof_t<_Tp>>;
-    return __vector_bitcast<_Tp>(__vector_bitcast<_I>(__v._M_data) &
-				 __vector_broadcast<_N, _I>(~_I() >> 1));
-  }
-else
-  {
-    return __v._M_data < 0 ? -__v._M_data : __v._M_data;
-  }
+  // if (__builtin_is_constant_evaluated())
+  //  {
+  //    return __v._M_data < 0 ? -__v._M_data : __v._M_data;
+  //  }
+  if constexpr (std::is_floating_point_v<_Tp>)
+    {
+      // `v < 0 ? -v : v` cannot compile to the efficient implementation of
+      // masking the signbit off because it must consider v == -0
+
+      // ~(-0.) & v would be easy, but breaks with fno-signed-zeros
+      // return __andnot(__vector_broadcast<_N, _Tp>(-0.), __v._M_data);
+
+      using _I = std::make_unsigned_t<__int_for_sizeof_t<_Tp>>;
+      return __and(__v._M_data, __vector_bitcast<_Tp>(
+				  __vector_broadcast<_N, _I>(~_I() >> 1)));
+    }
+  else
+    {
+      return __v._M_data < 0 ? -__v._M_data : __v._M_data;
+    }
 }
 
 //}}}
@@ -3850,6 +3854,10 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     template <class _Tp, size_t _N>
     _GLIBCXX_SIMD_INTRINSIC static _Mask_member_type<_Tp> __isnan(__storage<_Tp, _N> __x)
     {
+#if __FINITE_MATH_ONLY__
+      __unused(__x);
+      return {}; // false
+#else
              if constexpr (__is_sse_ps   <_Tp, _N>()) { return _mm_cmpunord_ps(__x, __x); }
         else if constexpr (__is_avx_ps   <_Tp, _N>()) { return _mm256_cmp_ps(__x, __x, _CMP_UNORD_Q); }
         else if constexpr (__is_avx512_ps<_Tp, _N>()) { return _mm512_cmp_ps_mask(__x, __x, _CMP_UNORD_Q); }
@@ -3857,6 +3865,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
         else if constexpr (__is_avx_pd   <_Tp, _N>()) { return _mm256_cmp_pd(__x, __x, _CMP_UNORD_Q); }
         else if constexpr (__is_avx512_pd<_Tp, _N>()) { return _mm512_cmp_pd_mask(__x, __x, _CMP_UNORD_Q); }
         else { __assert_unreachable<_Tp>(); }
+#endif
     }
 
     // isfinite {{{3
@@ -4026,6 +4035,10 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     template <class _Tp, size_t _N>
     _GLIBCXX_SIMD_INTRINSIC static _Mask_member_type<_Tp> __isinf(__storage<_Tp, _N> __x)
     {
+#if __FINITE_MATH_ONLY__
+      __unused(__x);
+      return {}; // false
+#else
       if constexpr (__is_avx512_pd<_Tp, _N>() && __have_avx512dq)
 	return _mm512_fpclass_pd_mask(__x, 0x18);
       else if constexpr (__is_avx512_ps<_Tp, _N>() && __have_avx512dq)
@@ -4049,8 +4062,9 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
 	}
       else
 	{
-	  return equal_to(__abs(__x), __storage<_Tp, _N>(__vector_broadcast<_N>(
-					std::numeric_limits<_Tp>::infinity())));
+	  return equal_to<_Tp, _N>(
+	    __abs(__x),
+	    __vector_broadcast<_N>(std::numeric_limits<_Tp>::infinity()));
 	  // alternative:
 	  // compare to inf using the corresponding integer type
 	  /*
@@ -4061,10 +4075,13 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
 				     std::numeric_limits<_Tp>::infinity())));
 				     */
 	}
+#endif
     }
+
     // isnormal {{{3
     template <class _Tp, size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static _Mask_member_type<_Tp> __isnormal(__storage<_Tp, _N> __x)
+    _GLIBCXX_SIMD_INTRINSIC static _Mask_member_type<_Tp>
+      __isnormal(__storage<_Tp, _N> __x)
     {
       if constexpr (__have_avx512dq)
 	{
@@ -4089,15 +4106,18 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
 	}
       else
 	{
-	  // subnormals -> 0
-	  // 0 -> 0
-	  // inf -> inf
-	  // -inf -> inf
-	  // nan -> inf
-	  // normal value -> positive value / not 0
-	  return isnonzerovalue(__and(
-	    __x._M_data,
-	    __vector_broadcast<_N>(std::numeric_limits<_Tp>::infinity())));
+#if __FINITE_MATH_ONLY__
+	  return less_equal<_Tp, _N>(
+	    __vector_broadcast<_N>(std::numeric_limits<_Tp>::min()),
+	    __abs(__x));
+#else
+	  return __and(
+	    less_equal<_Tp, _N>(
+	      __vector_broadcast<_N>(std::numeric_limits<_Tp>::min()),
+	      __abs(__x)),
+	    less<_Tp, _N>(__abs(__x), __vector_broadcast<_N>(
+					std::numeric_limits<_Tp>::infinity())));
+#endif
 	}
     }
 

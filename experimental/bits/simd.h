@@ -1105,8 +1105,9 @@ _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __or(_Tp __a, typename _TVT::type __b) noe
 
 // }}}
 // __and{{{
-template <class _Tp, class _TVT = __vector_traits<_Tp>>
-_GLIBCXX_SIMD_INTRINSIC constexpr _Tp __and(_Tp __a, typename _TVT::type __b) noexcept
+template <class _Tp, class _TVT = __vector_traits<_Tp>, typename... _Dummy>
+_GLIBCXX_SIMD_INTRINSIC constexpr _Tp
+  __and(_Tp __a, typename _TVT::type __b, _Dummy...) noexcept
 {
   static_assert(sizeof...(_Dummy) == 0);
   if constexpr (_TVT::template is<float, 4> && __have_sse)
@@ -1124,6 +1125,12 @@ _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __and(_Tp __a, typename _TVT::type __b) no
   else
     return reinterpret_cast<typename _TVT::type>(
       __vector_bitcast<unsigned>(__a) & __vector_bitcast<unsigned>(__b));
+}
+
+template <class _Tp, class = decltype(_Tp() & _Tp())>
+_GLIBCXX_SIMD_INTRINSIC constexpr _Tp __and(_Tp __a, _Tp __b) noexcept
+{
+  return __a & __b;
 }
 
 // }}}
