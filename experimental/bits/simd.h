@@ -1064,19 +1064,21 @@ inline constexpr _V __allbits =
 template <class _Tp, class _TVT = __vector_traits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __xor(_Tp __a, typename _TVT::type __b) noexcept
 {
-  if constexpr (_TVT::template is<float, 4>)
-    {
-      return _mm_xor_ps(__a, __b);
-    }
-  else if constexpr (_TVT::template is<double, 2>)
-    {
-      return _mm_xor_pd(__a, __b);
-    }
+  if constexpr (_TVT::template is<float, 4> && __have_sse)
+    return _mm_xor_ps(__a, __b);
+  else if constexpr (_TVT::template is<double, 2> && __have_sse2)
+    return _mm_xor_pd(__a, __b);
+  else if constexpr (_TVT::template is<float, 8> && __have_avx)
+    return _mm256_xor_ps(__a, __b);
+  else if constexpr (_TVT::template is<double, 4> && __have_avx)
+    return _mm256_xor_pd(__a, __b);
+  else if constexpr (_TVT::template is<float, 16> && __have_avx512dq)
+    return _mm512_xor_ps(__a, __b);
+  else if constexpr (_TVT::template is<double, 8> && __have_avx512dq)
+    return _mm512_xor_pd(__a, __b);
   else
-    {
-      return reinterpret_cast<_Tp>(__vector_bitcast<unsigned>(__a) ^
-				   __vector_bitcast<unsigned>(__b));
-    }
+    return reinterpret_cast<typename _TVT::type>(
+      __vector_bitcast<unsigned>(__a) ^ __vector_bitcast<unsigned>(__b));
 }
 
 // }}}
@@ -1084,19 +1086,21 @@ _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __xor(_Tp __a, typename _TVT::type __b) no
 template <class _Tp, class _TVT = __vector_traits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __or(_Tp __a, typename _TVT::type __b) noexcept
 {
-  if constexpr (_TVT::template is<float, 4>)
-    {
-      return _mm_or_ps(__a, __b);
-    }
-  else if constexpr (_TVT::template is<double, 2>)
-    {
-      return _mm_or_pd(__a, __b);
-    }
+  if constexpr (_TVT::template is<float, 4> && __have_sse)
+    return _mm_or_ps(__a, __b);
+  else if constexpr (_TVT::template is<double, 2> && __have_sse2)
+    return _mm_or_pd(__a, __b);
+  else if constexpr (_TVT::template is<float, 8> && __have_avx)
+    return _mm256_or_ps(__a, __b);
+  else if constexpr (_TVT::template is<double, 4> && __have_avx)
+    return _mm256_or_pd(__a, __b);
+  else if constexpr (_TVT::template is<float, 16> && __have_avx512dq)
+    return _mm512_or_ps(__a, __b);
+  else if constexpr (_TVT::template is<double, 8> && __have_avx512dq)
+    return _mm512_or_pd(__a, __b);
   else
-    {
-      return reinterpret_cast<_Tp>(__vector_bitcast<unsigned>(__a) |
-				   __vector_bitcast<unsigned>(__b));
-    }
+    return reinterpret_cast<typename _TVT::type>(
+      __vector_bitcast<unsigned>(__a) | __vector_bitcast<unsigned>(__b));
 }
 
 // }}}
@@ -1104,19 +1108,22 @@ _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __or(_Tp __a, typename _TVT::type __b) noe
 template <class _Tp, class _TVT = __vector_traits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __and(_Tp __a, typename _TVT::type __b) noexcept
 {
-  if constexpr (_TVT::template is<float, 4>)
-    {
-      return _mm_and_ps(__a, __b);
-    }
-  else if constexpr (_TVT::template is<double, 2>)
-    {
-      return _mm_and_pd(__a, __b);
-    }
+  static_assert(sizeof...(_Dummy) == 0);
+  if constexpr (_TVT::template is<float, 4> && __have_sse)
+    return _mm_and_ps(__a, __b);
+  else if constexpr (_TVT::template is<double, 2> && __have_sse2)
+    return _mm_and_pd(__a, __b);
+  else if constexpr (_TVT::template is<float, 8> && __have_avx)
+    return _mm256_and_ps(__a, __b);
+  else if constexpr (_TVT::template is<double, 4> && __have_avx)
+    return _mm256_and_pd(__a, __b);
+  else if constexpr (_TVT::template is<float, 16> && __have_avx512dq)
+    return _mm512_and_ps(__a, __b);
+  else if constexpr (_TVT::template is<double, 8> && __have_avx512dq)
+    return _mm512_and_pd(__a, __b);
   else
-    {
-      return reinterpret_cast<_Tp>(__vector_bitcast<unsigned>(__a) &
-				   __vector_bitcast<unsigned>(__b));
-    }
+    return reinterpret_cast<typename _TVT::type>(
+      __vector_bitcast<unsigned>(__a) & __vector_bitcast<unsigned>(__b));
 }
 
 // }}}
@@ -1124,19 +1131,21 @@ _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __and(_Tp __a, typename _TVT::type __b) no
 template <class _Tp, class _TVT = __vector_traits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __andnot(_Tp __a, typename _TVT::type __b) noexcept
 {
-  if constexpr (_TVT::template is<float, 4>)
-    {
-      return _mm_andnot_ps(__a, __b);
-    }
-  else if constexpr (_TVT::template is<double, 2>)
-    {
-      return _mm_andnot_pd(__a, __b);
-    }
+  if constexpr (_TVT::template is<float, 4> && __have_sse)
+    return _mm_andnot_ps(__a, __b);
+  else if constexpr (_TVT::template is<double, 2> && __have_sse2)
+    return _mm_andnot_pd(__a, __b);
+  else if constexpr (_TVT::template is<float, 8> && __have_avx)
+    return _mm256_andnot_ps(__a, __b);
+  else if constexpr (_TVT::template is<double, 4> && __have_avx)
+    return _mm256_andnot_pd(__a, __b);
+  else if constexpr (_TVT::template is<float, 16> && __have_avx512dq)
+    return _mm512_andnot_ps(__a, __b);
+  else if constexpr (_TVT::template is<double, 8> && __have_avx512dq)
+    return _mm512_andnot_pd(__a, __b);
   else
-    {
-      return reinterpret_cast<_Tp>(~__vector_bitcast<unsigned>(__a) &
-				   __vector_bitcast<unsigned>(__b));
-    }
+    return reinterpret_cast<typename _TVT::type>(
+      ~__vector_bitcast<unsigned>(__a) & __vector_bitcast<unsigned>(__b));
 }
 
 // }}}
