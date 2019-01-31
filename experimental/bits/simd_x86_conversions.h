@@ -506,7 +506,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             return __intrin_bitcast<_To>(_mm512_cvtepi64_pd(__intrin));
         } else if constexpr (__z_to_z) {
             return __intrin_bitcast<_To>(
-                _mm512_cvtepi32_pd(_mm512_cvtepi64_epi32(__to_intrin(__vv >> 32))) *
+                _mm512_cvtepi32_pd(_mm512_cvtepi64_epi32(__to_intrin(__vv._M_data >> 32))) *
                     0x100000000LL +
                 _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(__intrin)));
         }
