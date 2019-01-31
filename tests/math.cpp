@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2017 Matthias Kretz <kretz@kde.org>
+Copyright © 2017-2019 Matthias Kretz <kretz@kde.org>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -511,16 +511,20 @@ TEST_TYPES(V, test1Arg, real_test_types)  //{{{1
 
 TEST_TYPES(V, test2Arg, real_test_types)  //{{{1
 {
-    using limits = std::numeric_limits<typename V::value_type>;
+    using T = typename V::value_type;
+    using limits = std::numeric_limits<T>;
 
     vir::test::setFuzzyness<float>(1);
     vir::test::setFuzzyness<double>(1);
     test_values_2arg<V>(
         {limits::quiet_NaN(), limits::infinity(), -limits::infinity(), +0., -0.,
          limits::denorm_min(), limits::min(), limits::max(), limits::min() / 3},
-        {10000, -limits::max()/2, limits::max()/2},
+        {100000, -limits::max(), limits::max()},
         MAKE_TESTER(hypot)
         );
+    COMPARE(hypot(V(limits::max()), V(limits::max())), V(limits::infinity()));
+    COMPARE(hypot(V(limits::min()), V(limits::min())),
+            V(limits::min() * std::sqrt(T(2))));
     VERIFY((sfinae_is_callable<V, V>(
         [](auto a, auto b) -> decltype(hypot(a, b)) { return {}; })));
     VERIFY((sfinae_is_callable<typename V::value_type, V>(
@@ -577,8 +581,14 @@ TEST_TYPES(V, hypot3_fma, real_test_types)  //{{{1
     test_values_3arg<V>({limits::quiet_NaN(), limits::infinity(), -limits::infinity(),
                          +0., -0., 1., -1., limits::denorm_min(), limits::min(),
                          limits::max(), -limits::max(), limits::min() / 3},
-                        {10000, -limits::max() / 2, limits::max() / 2},
+                        {100000, -limits::max(), limits::max()},
                         MAKE_TESTER_2(hypot, hypot3));
+    COMPARE(hypot(V(limits::max()), V(limits::max()), V()), V(limits::infinity()));
+    COMPARE(hypot(V(limits::max()), V(), V(limits::max())), V(limits::infinity()));
+    COMPARE(hypot(V(), V(limits::max()), V(limits::max())), V(limits::infinity()));
+    COMPARE(hypot(V(limits::min()), V(limits::min()), V(limits::min())),
+            V(limits::min() * std::sqrt(T(3))));
+
     vir::test::setFuzzyness<float>(0);
     vir::test::setFuzzyness<double>(0);
     test_values_3arg<V>(
