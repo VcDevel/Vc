@@ -25,7 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#include <experimental/simd>
+#include "../experimental/simd"
 #include <vir/test.h>
 #include <iostream>
 #include <iomanip>
