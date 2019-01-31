@@ -896,13 +896,13 @@ template <class _Tp, class _Abi>
 enable_if_t<!std::is_floating_point_v<_Tp> && std::is_signed_v<_Tp>, simd<_Tp, _Abi>> abs(
     const simd<_Tp, _Abi> &__x)
 {
-    return {__private_init, _Abi::_Simd_impl_type::__abs(__data(__x))};
+    return {__private_init, _Abi::_SimdImpl::__abs(__data(__x))};
 }
 template <class _Tp, class _Abi>
 enable_if_t<!std::is_floating_point_v<_Tp> && std::is_signed_v<_Tp>, simd<_Tp, _Abi>> fabs(
     const simd<_Tp, _Abi> &__x)
 {
-    return {__private_init, _Abi::_Simd_impl_type::__abs(__data(__x))};
+    return {__private_init, _Abi::_SimdImpl::__abs(__data(__x))};
 }
 
 // the following are overloads for functions in <cstdlib> and not covered by
@@ -910,11 +910,11 @@ enable_if_t<!std::is_floating_point_v<_Tp> && std::is_signed_v<_Tp>, simd<_Tp, _
 /*
 template <class _Abi> simd<long, _Abi> labs(const simd<long, _Abi> &__x)
 {
-    return {__private_init, _Abi::_Simd_impl_type::abs(__data(__x))};
+    return {__private_init, _Abi::_SimdImpl::abs(__data(__x))};
 }
 template <class _Abi> simd<long long, _Abi> llabs(const simd<long long, _Abi> &__x)
 {
-    return {__private_init, _Abi::_Simd_impl_type::abs(__data(__x))};
+    return {__private_init, _Abi::_SimdImpl::abs(__data(__x))};
 }
 */
 
