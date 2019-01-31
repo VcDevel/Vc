@@ -1017,52 +1017,59 @@ template <typename _VV> __remove_cvref_t<_VV> __hypot(_VV __x, _VV __y)
       // round __hi down to the next power-of-2:
       constexpr _V __inf(_Limits::infinity());
 
-#if 1
-      // if __hi is subnormal, avoid scaling by inf & final mul by 0 (which
-      // yields NaN) by using min()
-      _V __scale = _V(1 / _Limits::min());
-      // invert exponent w/o error and w/o using the slow divider unit:
-      // xor inverts the exponent but off by 1. 2*__hi adjusts for the
-      // discrepancy. Note that overflow into infinity produces the correct
-      // result. The potential trap is non-conforming, though. The trap can be
-      // avoided by multiplying with .5 after xor. The multiplication increases
-      // the latency of the function by 2 cycles, though.
-      // slower but avoids trap: ((__hi & __inf) ^ __inf) * .5f;
-      where(__hi > _Limits::min(), __scale) = ((__hi + __hi) & __inf) ^ __inf;
-      // adjust final exponent for subnormal inputs
-      _V __hi_exp                            = _Limits::min();
-      where(__hi > _Limits::min(), __hi_exp) = __hi & __inf; // no error
-#else
-      _V           __hi_exp  = __hi & __inf;          // no error
-      where(__hi < _Limits::min(), __hi_exp) = std::numeric_limits<_Tp>::min();
-      _V __scale = 1 / __hi_exp;   // no error
-#endif
-      constexpr _V __mant_mask = _Limits::min() - _Limits::lowest();
-      _V           __h1                     = (__hi & __mant_mask) | _V(1);
-      //_V __h1 = __hi * __scale; // no error
-      _V __l1 = __lo * __scale; // no error
+      if (_GLIBCXX_SIMD_IS_LIKELY(all_of(isnormal(__x)) &&
+				  all_of(isnormal(__y))))
+	{
+	  const _V     __hi_exp    = __hi & __inf;
+	  //((__hi + __hi) & __inf) ^ __inf almost works for computing __scale, except
+	  //when (__hi + __hi) & __inf == __inf, in which case __scale becomes 0 (should
+	  //be min/2 instead) and thus loses the information from __lo.
+	  const _V     __scale     = (__hi_exp ^ __inf) * _Tp(.5);
+	  constexpr _V __mant_mask = _Limits::min() - _Limits::denorm_min();
+	  const _V     __h1        = (__hi & __mant_mask) | _V(1);
+	  const _V     __l1        = __lo * __scale;
+	  return __hi_exp * sqrt(__h1 * __h1 + __l1 * __l1);
+	}
+      else
+	{
+	  // slower path to support subnormals
+	  // if __hi is subnormal, avoid scaling by inf & final mul by 0 (which
+	  // yields NaN) by using min()
+	  _V __scale = _V(1 / _Limits::min());
+	  // invert exponent w/o error and w/o using the slow divider unit:
+	  // xor inverts the exponent but off by 1. Multiplication with .5
+	  // adjusts for the discrepancy.
+	  where(__hi >= _Limits::min(), __scale) =
+	    ((__hi & __inf) ^ __inf) * _Tp(.5);
+	  // adjust final exponent for subnormal inputs
+	  _V __hi_exp                             = _Limits::min();
+	  where(__hi >= _Limits::min(), __hi_exp) = __hi & __inf; // no error
+	  _V __h1 = __hi * __scale; // no error
+	  _V __l1 = __lo * __scale; // no error
 
-      // sqrt(x²+y²) = e*sqrt((x/e)²+(y/e)²):
-      // this ensures no overflow in the argument to sqrt
-      _V __r = __hi_exp * sqrt(__h1 * __h1 + __l1 * __l1);
-
+	  // sqrt(x²+y²) = e*sqrt((x/e)²+(y/e)²):
+	  // this ensures no overflow in the argument to sqrt
+	  _V __r = __hi_exp * sqrt(__h1 * __h1 + __l1 * __l1);
 #ifdef __STDC_IEC_559__
-      // fixup for Annex F requirements
-#if 1
-      _V __fixup                                     = __hi; // __lo == 0
-      where(isunordered(__x, __y), __fixup)          = _Limits::quiet_NaN();
-      where(isinf(__absx) || isinf(__absy), __fixup) = __inf;
-      where(
-	!(__lo == 0 || isunordered(__x, __y) || isinf(__absx) || isinf(__absy)),
-	__fixup) = __r;
-      __r = __fixup;
-#else
-      where(__l1 == 0, __r) = __hi;
-      where(isunordered(__x, __y), __r)          = _Limits::quiet_NaN();
-      where(isinf(__absx) || isinf(__absy), __r) = __inf;
+	  // fixup for Annex F requirements
+	  // the naive fixup goes like this:
+	  //
+	  // where(__l1 == 0, __r)                      = __hi;
+	  // where(isunordered(__x, __y), __r)          = _Limits::quiet_NaN();
+	  // where(isinf(__absx) || isinf(__absy), __r) = __inf;
+	  //
+	  // The fixup can be prepared in parallel with the sqrt, requiring a single blend
+	  // step after hi_exp * sqrt, reducing latency and throughput:
+	  _V __fixup                                     = __hi; // __lo == 0
+	  where(isunordered(__x, __y), __fixup)          = _Limits::quiet_NaN();
+	  where(isinf(__absx) || isinf(__absy), __fixup) = __inf;
+	  where(!(__lo == 0 || isunordered(__x, __y) ||
+		  (isinf(__absx) || isinf(__absy))),
+		__fixup)                                 = __r;
+	  __r                                            = __fixup;
 #endif
-#endif
-      return __r;
+	  return __r;
+	}
     }
 }
 
@@ -1076,12 +1083,11 @@ _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi>
 }
 _GLIBCXX_SIMD_CVTING2(hypot)
 
-template <typename _Tp, typename _Abi>
-simd<_Tp, _Abi> hypot(const simd<_Tp, _Abi>& __x,
-		      const simd<_Tp, _Abi>& __y,
-		      const simd<_Tp, _Abi>& __z)
+template <typename _VV> __remove_cvref_t<_VV> __hypot(_VV __x, _VV __y, _VV __z)
 {
-  using _V  = simd<_Tp, _Abi>;
+  using _V = __remove_cvref_t<_VV>;
+  using _Abi = typename _V::abi_type;
+  using _Tp = typename _V::value_type;
   /* FIXME: enable after PR77776 is resolved
   if constexpr (_V::size() == 1)
     {
@@ -1108,35 +1114,70 @@ simd<_Tp, _Abi> hypot(const simd<_Tp, _Abi>& __x,
 
       // round __hi down to the next power-of-2:
       constexpr _V __inf(_Limits::infinity());
-      _V           __hi_exp = __hi & __inf; // no error
 
-      // if __hi is subnormal, avoid scaling by inf & final mul by 0 (which
-      // yields NaN) by using min()
-      _V __scale = _V(1 / _Limits::min());
-      // invert exponent w/o error and w/o using the slow divider unit
-      where(__hi >= _Limits::min(), __scale) = .5f * (__hi_exp ^ __inf);
-      // adjust final exponent for subnormal inputs
-      where(!(__hi >= _Limits::min()), __hi_exp) = _Limits::min();
-
-      // scale __hi to 0x1.???p0 and __l[01] by the same factor
-      _V __h1 = __hi * __scale;            // no error
-      __l0 *= __scale;                     // no error
-      __l1 *= __scale;                     // no error
-      _V __lo = __l0 * __l0 + __l1 * __l1; // add the two smaller values first
-      _V __r  = __hi_exp * sqrt(__lo + __h1 * __h1);
+      if (_GLIBCXX_SIMD_IS_LIKELY(all_of(isnormal(__x)) &&
+				  all_of(isnormal(__y)) &&
+				  all_of(isnormal(__z))))
+	{
+	  const _V __hi_exp = __hi & __inf;
+	  //((__hi + __hi) & __inf) ^ __inf almost works for computing __scale,
+	  //except when (__hi + __hi) & __inf == __inf, in which case __scale
+	  // becomes 0 (should be min/2 instead) and thus loses the information
+	  // from __lo.
+	  const _V     __scale     = (__hi_exp ^ __inf) * _Tp(.5);
+	  constexpr _V __mant_mask = _Limits::min() - _Limits::denorm_min();
+	  const _V     __h1        = (__hi & __mant_mask) | _V(1);
+	  __l0 *= __scale;
+	  __l1 *= __scale;
+	  const _V __lo =
+	    __l0 * __l0 + __l1 * __l1; // add the two smaller values first
+	  return __hi_exp * sqrt(__lo + __h1 * __h1);
+	}
+      else
+	{
+	  // slower path to support subnormals
+	  // if __hi is subnormal, avoid scaling by inf & final mul by 0 (which
+	  // yields NaN) by using min()
+	  _V __scale = _V(1 / _Limits::min());
+	  // invert exponent w/o error and w/o using the slow divider unit:
+	  // xor inverts the exponent but off by 1. Multiplication with .5
+	  // adjusts for the discrepancy.
+	  where(__hi >= _Limits::min(), __scale) =
+	    ((__hi & __inf) ^ __inf) * _Tp(.5);
+	  // adjust final exponent for subnormal inputs
+	  _V __hi_exp                             = _Limits::min();
+	  where(__hi >= _Limits::min(), __hi_exp) = __hi & __inf;   // no error
+	  _V __h1                                 = __hi * __scale; // no error
+	  __l0 *= __scale;                                          // no error
+	  __l1 *= __scale;                                          // no error
+	  _V __lo =
+	    __l0 * __l0 + __l1 * __l1; // add the two smaller values first
+	  _V __r = __hi_exp * sqrt(__lo + __h1 * __h1);
 #ifdef __STDC_IEC_559__
-      // fixup for Annex F requirements
-      _V __fixup                                  = __hi; // __lo == 0
-      //where(__lo == 0, __fixup)                   = __hi;
-      where(isunordered(__x, __y + __z), __fixup) = _Limits::quiet_NaN();
-      where(isinf(__absx) || isinf(__absy) || isinf(__absz), __fixup) = __inf;
-      where(!(__lo == 0 || isunordered(__x, __y + __z) || isinf(__absx) ||
-	      isinf(__absy) || isinf(__absz)),
-	    __fixup)                                                  = __r;
-      __r = __fixup;
+	  // fixup for Annex F requirements
+	  _V __fixup = __hi; // __lo == 0
+	  // where(__lo == 0, __fixup)                   = __hi;
+	  where(isunordered(__x, __y + __z), __fixup) = _Limits::quiet_NaN();
+	  where(isinf(__absx) || isinf(__absy) || isinf(__absz), __fixup) =
+	    __inf;
+	  where(!(__lo == 0 || isunordered(__x, __y + __z) || isinf(__absx) ||
+		  isinf(__absy) || isinf(__absz)),
+		__fixup) = __r;
+	  __r            = __fixup;
 #endif
-      return __r;
+	  return __r;
+	}
     }
+}
+
+template <typename _Tp, typename _Abi>
+_GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> hypot(const simd<_Tp, _Abi>& __x,
+					      const simd<_Tp, _Abi>& __y,
+					      const simd<_Tp, _Abi>& __z)
+{
+  return __hypot<conditional_t<__is_fixed_size_abi_v<_Abi>,
+			       const simd<_Tp, _Abi>&, simd<_Tp, _Abi>>>(
+    __x, __y, __z);
 }
 _GLIBCXX_SIMD_CVTING3(hypot)
 
