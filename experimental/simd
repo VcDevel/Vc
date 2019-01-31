@@ -39,10 +39,19 @@
 #if defined __GNUC__ && __GNUC__ < 9
 #define __gnu__ gnu
 #endif
+
+#pragma GCC diagnostic push
+// Many [[gnu::vector_size(N)]] types might lead to a -Wpsabi warning which is
+// irrelevant as those functions never appear on ABI borders
+#pragma GCC diagnostic ignored "-Wpsabi"
+
 #include "bits/simd_detail.h"
 #include "bits/simd.h"
 #include "bits/simd_abis.h"
 #include "bits/simd_math.h"
+
+#pragma GCC diagnostic pop
+
 #if defined __GNUC__ && __GNUC__ < 9
 #undef __gnu__
 #endif
