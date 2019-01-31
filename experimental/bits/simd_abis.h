@@ -255,7 +255,8 @@ template <typename _Tp, typename _Abi0> struct __simd_tuple<_Tp, _Abi0> {
     static constexpr _Second_type second = {};
 
     template <size_t _Offset = 0, typename _F>
-    _GLIBCXX_SIMD_INTRINSIC static __simd_tuple generate(_F &&__gen, _SizeConstant<_Offset> = {})
+    _GLIBCXX_SIMD_INTRINSIC static constexpr __simd_tuple
+      generate(_F&& __gen, _SizeConstant<_Offset> = {})
     {
         return {__gen(__tuple_element_meta<_Tp, _Abi0, _Offset>())};
     }
