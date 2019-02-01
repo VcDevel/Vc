@@ -47,7 +47,7 @@ _GLIBCXX_SIMD_INTRINSIC _Tp __divides(_Tp __a, _Tp __b)
 }
 // __bit_shift_left{{{1
 template <class _Tp, size_t _N>
-_GLIBCXX_SIMD_INTRINSIC __storage<_Tp, _N> constexpr __bit_shift_left(__storage<_Tp, _N> __a, int __b)
+_GLIBCXX_SIMD_INTRINSIC _SimdWrapper<_Tp, _N> constexpr __bit_shift_left(_SimdWrapper<_Tp, _N> __a, int __b)
 {
     static_assert(std::is_integral<_Tp>::value, "__bit_shift_left is only supported for integral types");
     if constexpr (sizeof(_Tp) == 1) {
@@ -100,7 +100,7 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_Tp, _N> constexpr __bit_shift_left(__storage<
 }
 
 template <class _Tp, size_t _N>
-_GLIBCXX_SIMD_INTRINSIC __storage<_Tp, _N> __bit_shift_left(__storage<_Tp, _N> __a, __storage<_Tp, _N> __b)
+_GLIBCXX_SIMD_INTRINSIC _SimdWrapper<_Tp, _N> __bit_shift_left(_SimdWrapper<_Tp, _N> __a, _SimdWrapper<_Tp, _N> __b)
 {
     static_assert(std::is_integral<_Tp>::value,
                   "__bit_shift_left is only supported for integral types");
@@ -108,12 +108,12 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_Tp, _N> __bit_shift_left(__storage<_Tp, _N> _
         __vector_type_t<int, 4> shift = __storage_bitcast<int>(__b)._M_data + (0x03f8'03f8 >> 3);
         return multiplies(
             __a,
-            __storage<_Tp, _N>(
+            _SimdWrapper<_Tp, _N>(
                 _mm_cvttps_epi32(reinterpret_cast<__m128>(shift << 23)) |
                 (_mm_cvttps_epi32(reinterpret_cast<__m128>(shift >> 16 << 23)) << 16)));
     } else if constexpr (sizeof(_Tp) == 4 && sizeof(__a) == 16 && !__have_avx2) {
         return __storage_bitcast<_Tp>(
-            multiplies(__a, __storage<_Tp, _N>(_mm_cvttps_epi32(
+            multiplies(__a, _SimdWrapper<_Tp, _N>(_mm_cvttps_epi32(
                               reinterpret_cast<__m128>((__b._M_data << 23) + 0x3f80'0000)))));
     } else if constexpr (sizeof(_Tp) == 8 && sizeof(__a) == 16 && !__have_avx2) {
         const auto __lo = _mm_sll_epi64(__a, __b);

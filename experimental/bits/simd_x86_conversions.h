@@ -12,7 +12,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     using _Tp = typename _Traits::value_type;
     constexpr size_t _N = _Traits::_S_width;
     [[maybe_unused]] const auto __intrin = __to_intrin(__vv);
-    __storage<_Tp, _N> __v(__vv);
+    _SimdWrapper<_Tp, _N> __v(__vv);
     using _U = typename __vector_traits<_To>::value_type;
     constexpr size_t _M = __vector_traits<_To>::_S_width;
 
@@ -578,8 +578,8 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
 {
     using _Tp = typename _Traits::value_type;
     constexpr size_t _N = _Traits::_S_width;
-    __storage<_Tp, _N> __v0(__vv0);
-    __storage<_Tp, _N> __v1(__vv1);
+    _SimdWrapper<_Tp, _N> __v0(__vv0);
+    _SimdWrapper<_Tp, _N> __v1(__vv1);
     [[maybe_unused]] const auto __i0 = __to_intrin(__vv0);
     [[maybe_unused]] const auto __i1 = __to_intrin(__vv1);
     using _U = typename __vector_traits<_To>::value_type;
@@ -878,8 +878,8 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                        0x8000'0000u;
             } // __z_to_z uses fallback
         } else if constexpr (__f64_to_ibw) {  //{{{2
-            // one-arg __f64_to_ibw goes via __storage<int, ?>. The fallback would go via two
-            // independet conversions to __storage<_To> and subsequent interleaving. This is
+            // one-arg __f64_to_ibw goes via _SimdWrapper<int, ?>. The fallback would go via two
+            // independet conversions to _SimdWrapper<_To> and subsequent interleaving. This is
             // better, because f64->__i32 allows to combine __v0 and __v1 into one register:
             //if constexpr (__z_to_x || __y_to_x) {
             return __convert_x86<_To>(__convert_x86<__vector_type_t<int, _N * 2>>(__v0, __v1));
@@ -892,7 +892,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
 
         // fallback: {{{2
         if constexpr (sizeof(_To) >= 32) {
-            // if _To is ymm or zmm, then __storage<_U, _M / 2> is xmm or ymm
+            // if _To is ymm or zmm, then _SimdWrapper<_U, _M / 2> is xmm or ymm
             return __concat(__convert_x86<__vector_type_t<_U, _M / 2>>(__v0),
                             __convert_x86<__vector_type_t<_U, _M / 2>>(__v1));
         } else if constexpr (sizeof(_To) == 16) {
@@ -927,10 +927,10 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
 {
     using _Tp = typename _Traits::value_type;
     constexpr size_t _N = _Traits::_S_width;
-    __storage<_Tp, _N> __v0(__vv0);
-    __storage<_Tp, _N> __v1(__vv1);
-    __storage<_Tp, _N> __v2(__vv2);
-    __storage<_Tp, _N> __v3(__vv3);
+    _SimdWrapper<_Tp, _N> __v0(__vv0);
+    _SimdWrapper<_Tp, _N> __v1(__vv1);
+    _SimdWrapper<_Tp, _N> __v2(__vv2);
+    _SimdWrapper<_Tp, _N> __v3(__vv3);
     [[maybe_unused]] const auto __i0 = __to_intrin(__vv0);
     [[maybe_unused]] const auto __i1 = __to_intrin(__vv1);
     [[maybe_unused]] const auto __i2 = __to_intrin(__vv2);
@@ -1155,7 +1155,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
 
         // fallback: {{{2
         if constexpr (sizeof(_To) >= 32) {
-            // if _To is ymm or zmm, then __storage<_U, _M / 2> is xmm or ymm
+            // if _To is ymm or zmm, then _SimdWrapper<_U, _M / 2> is xmm or ymm
             return __concat(__convert_x86<__vector_type_t<_U, _M / 2>>(__v0, __v1),
                             __convert_x86<__vector_type_t<_U, _M / 2>>(__v2, __v3));
         } else if constexpr (sizeof(_To) == 16) {
@@ -1187,14 +1187,14 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
 {
     using _Tp = typename _Traits::value_type;
     constexpr size_t _N = _Traits::_S_width;
-    __storage<_Tp, _N> __v0(__vv0);
-    __storage<_Tp, _N> __v1(__vv1);
-    __storage<_Tp, _N> __v2(__vv2);
-    __storage<_Tp, _N> __v3(__vv3);
-    __storage<_Tp, _N> __v4(__vv4);
-    __storage<_Tp, _N> __v5(__vv5);
-    __storage<_Tp, _N> __v6(__vv6);
-    __storage<_Tp, _N> __v7(__vv7);
+    _SimdWrapper<_Tp, _N> __v0(__vv0);
+    _SimdWrapper<_Tp, _N> __v1(__vv1);
+    _SimdWrapper<_Tp, _N> __v2(__vv2);
+    _SimdWrapper<_Tp, _N> __v3(__vv3);
+    _SimdWrapper<_Tp, _N> __v4(__vv4);
+    _SimdWrapper<_Tp, _N> __v5(__vv5);
+    _SimdWrapper<_Tp, _N> __v6(__vv6);
+    _SimdWrapper<_Tp, _N> __v7(__vv7);
     [[maybe_unused]] const auto __i0 = __to_intrin(__vv0);
     [[maybe_unused]] const auto __i1 = __to_intrin(__vv1);
     [[maybe_unused]] const auto __i2 = __to_intrin(__vv2);
@@ -1312,7 +1312,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
 
         // fallback: {{{2
         if constexpr (sizeof(_To) >= 32) {
-            // if _To is ymm or zmm, then __storage<_U, _M / 2> is xmm or ymm
+            // if _To is ymm or zmm, then _SimdWrapper<_U, _M / 2> is xmm or ymm
             return __concat(__convert_x86<__vector_type_t<_U, _M / 2>>(__v0, __v1, __v2, __v3),
                             __convert_x86<__vector_type_t<_U, _M / 2>>(__v4, __v5, __v6, __v7));
         } else if constexpr (sizeof(_To) == 16) {

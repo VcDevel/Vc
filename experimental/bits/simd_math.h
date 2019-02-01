@@ -631,7 +631,7 @@ _GLIBCXX_SIMD_MATH_CALL_(exp2)
 _GLIBCXX_SIMD_MATH_CALL_(expm1)
 // }}}
 // frexp {{{
-template <class _Tp, size_t _N> __storage<_Tp, _N> __getexp(__storage<_Tp, _N> __x)
+template <class _Tp, size_t _N> _SimdWrapper<_Tp, _N> __getexp(_SimdWrapper<_Tp, _N> __x)
 {
     if constexpr (__have_avx512vl && __is_sse_ps<_Tp, _N>()) {
         return _mm_getexp_ps(__x);
@@ -658,7 +658,7 @@ template <class _Tp, size_t _N> __storage<_Tp, _N> __getexp(__storage<_Tp, _N> _
     }
 }
 
-template <class _Tp, size_t _N> __storage<_Tp, _N> __getmant(__storage<_Tp, _N> __x)
+template <class _Tp, size_t _N> _SimdWrapper<_Tp, _N> __getmant(_SimdWrapper<_Tp, _N> __x)
 {
     if constexpr (__have_avx512vl && __is_sse_ps<_Tp, _N>()) {
         return _mm_getmant_ps(__x, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
@@ -714,12 +714,12 @@ enable_if_t<std::is_floating_point_v<_Tp>, simd<_Tp, _Abi>> frexp(
         const auto isnonzero = __get_impl_t<simd<_Tp, _Abi>>::isnonzerovalue_mask(__v._M_data);
         const auto __e =
             __to_intrin(__blend(isnonzero, __vector_type_t<int, NI>(),
-                                1 + __convert<__storage<int, NI>>(__getexp(__v))._M_data));
+                                1 + __convert<_SimdWrapper<int, NI>>(__getexp(__v))._M_data));
         _GLIBCXX_SIMD_DEBUG(_Frexp)
         (std::hex, _GLIBCXX_SIMD_PRETTY_PRINT(int(isnonzero)), std::dec,
          _GLIBCXX_SIMD_PRETTY_PRINT(__e), _GLIBCXX_SIMD_PRETTY_PRINT(__getexp(__v)),
          _GLIBCXX_SIMD_PRETTY_PRINT(
-             __to_intrin(1 + __convert<__storage<int, NI>>(__getexp(__v))._M_data)));
+             __to_intrin(1 + __convert<_SimdWrapper<int, NI>>(__getexp(__v))._M_data)));
         __vector_store<_N * sizeof(int)>(__e, __exp, overaligned<alignof(_IV)>);
         return {__private_init, __blend(isnonzero, __v, __getmant(__v))};
     } else {

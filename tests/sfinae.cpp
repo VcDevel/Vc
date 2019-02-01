@@ -57,30 +57,30 @@ using std::experimental::simd_abi::scalar;
 using std::experimental::simd_abi::__sse;
 using std::experimental::simd_abi::__avx;
 using std::experimental::simd_abi::__avx512;
-using std::experimental::__fixed_size_storage;
-using std::experimental::__simd_tuple;
+using std::experimental::__fixed_size_storage_t;
+using std::experimental::_SimdTuple;
 
-static_assert(std::is_same_v<__fixed_size_storage<float, 1>, __simd_tuple<float, scalar>>);
-static_assert(std::is_same_v<__fixed_size_storage<int, 1>, __simd_tuple<int, scalar>>);
-static_assert(std::is_same_v<__fixed_size_storage<char16_t, 1>, __simd_tuple<char16_t, scalar>>);
+static_assert(std::is_same_v<__fixed_size_storage_t<float, 1>, _SimdTuple<float, scalar>>);
+static_assert(std::is_same_v<__fixed_size_storage_t<int, 1>, _SimdTuple<int, scalar>>);
+static_assert(std::is_same_v<__fixed_size_storage_t<char16_t, 1>, _SimdTuple<char16_t, scalar>>);
 
-static_assert(std::is_same_v<__fixed_size_storage<float, 2>, __simd_tuple<float, scalar, scalar>>);
-static_assert(std::is_same_v<__fixed_size_storage<float, 3>, __simd_tuple<float, scalar, scalar, scalar>>);
+static_assert(std::is_same_v<__fixed_size_storage_t<float, 2>, _SimdTuple<float, scalar, scalar>>);
+static_assert(std::is_same_v<__fixed_size_storage_t<float, 3>, _SimdTuple<float, scalar, scalar, scalar>>);
 #if _GLIBCXX_SIMD_HAVE_SSE_ABI
-static_assert(std::is_same_v<__fixed_size_storage<float, 4>, __simd_tuple<float, __sse>>);
-static_assert(std::is_same_v<__fixed_size_storage<float, 5>, __simd_tuple<float, __sse, scalar>>);
+static_assert(std::is_same_v<__fixed_size_storage_t<float, 4>, _SimdTuple<float, __sse>>);
+static_assert(std::is_same_v<__fixed_size_storage_t<float, 5>, _SimdTuple<float, __sse, scalar>>);
 #endif  // _GLIBCXX_SIMD_HAVE_SSE_ABI
 #if _GLIBCXX_SIMD_HAVE_AVX_ABI
-static_assert(std::is_same_v<__fixed_size_storage<float,  8>, __simd_tuple<float, __avx>>);
-static_assert(std::is_same_v<__fixed_size_storage<float, 12>, __simd_tuple<float, __avx, __sse>>);
-static_assert(std::is_same_v<__fixed_size_storage<float, 13>, __simd_tuple<float, __avx, __sse, scalar>>);
+static_assert(std::is_same_v<__fixed_size_storage_t<float,  8>, _SimdTuple<float, __avx>>);
+static_assert(std::is_same_v<__fixed_size_storage_t<float, 12>, _SimdTuple<float, __avx, __sse>>);
+static_assert(std::is_same_v<__fixed_size_storage_t<float, 13>, _SimdTuple<float, __avx, __sse, scalar>>);
 #endif
 #if _GLIBCXX_SIMD_HAVE_AVX512_ABI
-static_assert(std::is_same_v<__fixed_size_storage<float, 16>, __simd_tuple<float, __avx512>>);
-static_assert(std::is_same_v<__fixed_size_storage<float, 20>, __simd_tuple<float, __avx512, __sse>>);
-static_assert(std::is_same_v<__fixed_size_storage<float, 24>, __simd_tuple<float, __avx512, __avx>>);
-static_assert(std::is_same_v<__fixed_size_storage<float, 28>, __simd_tuple<float, __avx512, __avx, __sse>>);
-static_assert(std::is_same_v<__fixed_size_storage<float, 29>, __simd_tuple<float, __avx512, __avx, __sse, scalar>>);
+static_assert(std::is_same_v<__fixed_size_storage_t<float, 16>, _SimdTuple<float, __avx512>>);
+static_assert(std::is_same_v<__fixed_size_storage_t<float, 20>, _SimdTuple<float, __avx512, __sse>>);
+static_assert(std::is_same_v<__fixed_size_storage_t<float, 24>, _SimdTuple<float, __avx512, __avx>>);
+static_assert(std::is_same_v<__fixed_size_storage_t<float, 28>, _SimdTuple<float, __avx512, __avx, __sse>>);
+static_assert(std::is_same_v<__fixed_size_storage_t<float, 29>, _SimdTuple<float, __avx512, __avx, __sse, scalar>>);
 #endif
 }  // namespace assertions
 
