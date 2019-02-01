@@ -60,8 +60,8 @@ _GLIBCXX_SIMD_INTRINSIC _SimdWrapper<_Tp, _N> constexpr __bit_shift_left(_SimdWr
             } else if (__b > 1 && __b < 8) {
                 const _UChar mask = (0xff << __b) & 0xff;
                 using _V = decltype(__a);
-                using In = typename _V::__intrin_type;
-                return reinterpret_cast<In>(__storage_bitcast<ushort>(__a)._M_data << __b) &
+                using In = typename _V::_IntrinType;
+                return reinterpret_cast<In>(__wrapper_bitcast<ushort>(__a)._M_data << __b) &
                        _V::broadcast(mask).__intrin();
             } else {
                 __builtin_unreachable();
@@ -75,7 +75,7 @@ _GLIBCXX_SIMD_INTRINSIC _SimdWrapper<_Tp, _N> constexpr __bit_shift_left(_SimdWr
             } else {
                 using vshort = __vector_type_t<ushort, 8>;
                 const auto mask = ((~vshort() >> 8) << __b) ^ (~vshort() << 8);
-                return _To_storage((reinterpret_cast<vshort>(__a._M_data) << __b) & mask);
+                return _ToWrapper((reinterpret_cast<vshort>(__a._M_data) << __b) & mask);
             }
         } else if constexpr (_N == 32 && __have_avx2) {
             if constexpr(__have_avx512bw) {
@@ -85,12 +85,12 @@ _GLIBCXX_SIMD_INTRINSIC _SimdWrapper<_Tp, _N> constexpr __bit_shift_left(_SimdWr
             } else {
                 using vshort = __vector_type_t<ushort, 16>;
                 const auto mask = ((~vshort() >> 8) << __b) ^ (~vshort() << 8);
-                return _To_storage((reinterpret_cast<vshort>(__a._M_data) << __b) & mask);
+                return _ToWrapper((reinterpret_cast<vshort>(__a._M_data) << __b) & mask);
             }
         } else if constexpr (_N == 64 && __have_avx512bw) {
             using vshort = __vector_type_t<ushort, 32>;
             const auto mask = ((~vshort() >> 8) << __b) ^ (~vshort() << 8);
-            return _To_storage((reinterpret_cast<vshort>(__a._M_data) << __b) & mask);
+            return _ToWrapper((reinterpret_cast<vshort>(__a._M_data) << __b) & mask);
         } else {
             static_assert(!std::is_same_v<_Tp, _Tp>);
         }
@@ -105,14 +105,14 @@ _GLIBCXX_SIMD_INTRINSIC _SimdWrapper<_Tp, _N> __bit_shift_left(_SimdWrapper<_Tp,
     static_assert(std::is_integral<_Tp>::value,
                   "__bit_shift_left is only supported for integral types");
     if constexpr (sizeof(_Tp) == 2 && sizeof(__a) == 16 && !__have_avx2) {
-        __vector_type_t<int, 4> shift = __storage_bitcast<int>(__b)._M_data + (0x03f8'03f8 >> 3);
+        __vector_type_t<int, 4> shift = __wrapper_bitcast<int>(__b)._M_data + (0x03f8'03f8 >> 3);
         return multiplies(
             __a,
             _SimdWrapper<_Tp, _N>(
                 _mm_cvttps_epi32(reinterpret_cast<__m128>(shift << 23)) |
                 (_mm_cvttps_epi32(reinterpret_cast<__m128>(shift >> 16 << 23)) << 16)));
     } else if constexpr (sizeof(_Tp) == 4 && sizeof(__a) == 16 && !__have_avx2) {
-        return __storage_bitcast<_Tp>(
+        return __wrapper_bitcast<_Tp>(
             multiplies(__a, _SimdWrapper<_Tp, _N>(_mm_cvttps_epi32(
                               reinterpret_cast<__m128>((__b._M_data << 23) + 0x3f80'0000)))));
     } else if constexpr (sizeof(_Tp) == 8 && sizeof(__a) == 16 && !__have_avx2) {
@@ -121,9 +121,9 @@ _GLIBCXX_SIMD_INTRINSIC _SimdWrapper<_Tp, _N> __bit_shift_left(_SimdWrapper<_Tp,
         if constexpr (__have_sse4_1) {
             return _mm_blend_epi16(__lo, __hi, 0xf0);
         } else {
-            // return __make_storage<_LLong>(reinterpret_cast<__vector_type_t<_LLong,
+            // return __make_wrapper<_LLong>(reinterpret_cast<__vector_type_t<_LLong,
             // 2>>(__lo)[0], reinterpret_cast<__vector_type_t<_LLong, 2>>(__hi)[1]);
-            return _To_storage(
+            return _ToWrapper(
                 _mm_move_sd(__intrin_bitcast<__m128d>(__hi), __intrin_bitcast<__m128d>(__lo)));
         }
     } else if constexpr (__have_avx512f && sizeof(_Tp) == 8 && _N == 8) {

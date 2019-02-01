@@ -732,18 +732,16 @@ enable_if_t<std::is_floating_point_v<_Tp>, simd<_Tp, _Abi>> frexp(
         using namespace std::experimental::__proposed;
         using namespace std::experimental::__proposed::float_bitwise_operators;
 
-        constexpr int __exp_shift = sizeof(_Tp) == 4 ? 23 : 20;
-        constexpr int __exp_adjust = sizeof(_Tp) == 4 ? 0x7e : 0x3fe;
-        constexpr int __exp_offset = sizeof(_Tp) == 4 ? 0x70 : 0x200;
-        constexpr _Tp __subnorm_scale =
-            __double_const<1, 0, __exp_offset>;  // double->float converts as intended
-        constexpr _V __exponent_mask =
-            _Limits::infinity();  // 0x7f800000 or 0x7ff0000000000000
-        constexpr _V __p5_1_exponent =
-            _Tp(sizeof(_Tp) == 4 ? __float_const<-1, 0x007fffffu, -1>
-                             : __double_const<-1, 0x000fffffffffffffull, -1>);
+	constexpr int __exp_shift     = sizeof(_Tp) == 4 ? 23 : 20;
+	constexpr int __exp_adjust    = sizeof(_Tp) == 4 ? 0x7e : 0x3fe;
+	constexpr int __exp_offset    = sizeof(_Tp) == 4 ? 0x70 : 0x200;
+	constexpr _Tp __subnorm_scale = sizeof(_Tp) == 4 ? 0x1p112 : 0x1p512;
+	constexpr _V  __exponent_mask =
+	  _Limits::infinity(); // 0x7f800000 or 0x7ff0000000000000
+	constexpr _V __p5_1_exponent =
+	  _Tp(sizeof(_Tp) == 4 ? -0x1.fffffep-1 : -0x1.fffffffffffffp-1);
 
-        _V __mant = __p5_1_exponent & (__exponent_mask | __x);
+	_V __mant = __p5_1_exponent & (__exponent_mask | __x);
         const _IV __exponent_bits = __extract_exponent_bits(__x);
         if (_GLIBCXX_SIMD_IS_LIKELY(all_of(isnormal(__x)))) {
             *__exp = simd_cast<__samesize<int, _V>>((__exponent_bits >> __exp_shift) -
@@ -868,12 +866,10 @@ enable_if_t<std::is_floating_point<_Tp>::value, simd<_Tp, _Abi>> logb(
 	    return __r;
 	  }
 	// subnormals repeat the exponent extraction after multiplication of the
-	// input with __a floating point value that has 0x70 in its exponent
+	// input with __a floating point value that has 112 (0x70) in its exponent
 	// (not too big for sp and large enough for dp)
-	const _V __scaled = abs_x * _Tp(std::is_same<_Tp, float>::value
-					  ? __float_const<1, 0, 0x70>
-					  : __double_const<1, 0, 0x70>);
-	_V __scaled_exp   = static_simd_cast<_V>(__exponent(__scaled) - 0x70);
+	const _V __scaled = abs_x * _Tp(0x1p112);
+	_V __scaled_exp   = static_simd_cast<_V>(__exponent(__scaled) - 112);
 	_GLIBCXX_SIMD_DEBUG(_Logarithm)
 	(__x, __scaled)(__is_normal)(__r, __scaled_exp);
 	where(__is_normal, __scaled_exp) = __r;

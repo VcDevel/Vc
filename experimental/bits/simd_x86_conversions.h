@@ -820,7 +820,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             } // __z_to_z uses concat fallback
         } else if constexpr (__i64_to_f32) {  //{{{2
             if constexpr (__x_to_x) {
-                return __make_storage<float>(__v0[0], __v0[1], __v1[0], __v1[1]);
+                return __make_wrapper<float>(__v0[0], __v0[1], __v1[0], __v1[1]);
             } else if constexpr (__y_to_y) {
                 static_assert(__y_to_y && __have_avx2);
                 const auto __a = _mm256_unpacklo_epi32(__i0, __i1);   // aeAE cgCG
@@ -1121,7 +1121,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         } else if constexpr (__i64_to_f32) {  //{{{2
             // this branch is only relevant with AVX and w/o AVX2 (i.e. no ymm integers)
             if constexpr (__x_to_y) {
-                return __make_storage<float>(__v0[0], __v0[1], __v1[0], __v1[1], __v2[0], __v2[1], __v3[0], __v3[1]);
+                return __make_wrapper<float>(__v0[0], __v0[1], __v1[0], __v1[1], __v2[0], __v2[1], __v3[0], __v3[1]);
 
                 const auto __a = _mm_unpacklo_epi32(__i0, __i1);   // acAC
                 const auto __b = _mm_unpackhi_epi32(__i0, __i1);   // bdBD
