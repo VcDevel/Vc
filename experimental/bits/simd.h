@@ -2111,108 +2111,141 @@ struct _SimdWrapperBase<_Tp, _Width, _RegisterType, false>
 // }}}
 // _SimdWrapper{{{
 template <typename _Tp, size_t _Width>
-struct _SimdWrapper<_Tp, _Width,
-               std::void_t<__vector_type_t<_Tp, _Width>, __intrinsic_type_t<_Tp, _Width>>>
-    : _SimdWrapperBase<_Tp, _Width> {
-    static_assert(__is_vectorizable_v<_Tp>);
-    static_assert(_Width >= 2);  // 1 doesn't make sense, use _Tp directly then
-    using _BuiltinType = __vector_type_t<_Tp, _Width>;
-    using value_type = _Tp;
-    static constexpr size_t _S_width = _Width;
+struct _SimdWrapper<
+  _Tp,
+  _Width,
+  std::void_t<__vector_type_t<_Tp, _Width>, __intrinsic_type_t<_Tp, _Width>>>
+: _SimdWrapperBase<_Tp, _Width>
+{
+  static_assert(__is_vectorizable_v<_Tp>);
+  static_assert(_Width >= 2); // 1 doesn't make sense, use _Tp directly then
+  using _BuiltinType               = __vector_type_t<_Tp, _Width>;
+  using value_type                 = _Tp;
+  static constexpr size_t _S_width = _Width;
 
-    _GLIBCXX_SIMD_INTRINSIC constexpr _SimdWrapper() = default;
-    template <typename _U, typename = decltype(_SimdWrapperBase<_Tp, _Width>(std::declval<_U>()))>
-    _GLIBCXX_SIMD_INTRINSIC constexpr _SimdWrapper(_U &&__x) : _SimdWrapperBase<_Tp, _Width>(std::forward<_U>(__x))
-    {
-    }
-    // I want to use ctor inheritance, but it breaks always_inline. Having a function that
-    // does a single movaps is stupid.
-    //using _SimdWrapperBase<_Tp, _Width>::_SimdWrapperBase;
-    using _SimdWrapperBase<_Tp, _Width>::_M_data;
+  _GLIBCXX_SIMD_INTRINSIC constexpr _SimdWrapper() = default;
+  template <
+    typename _U,
+    typename = decltype(_SimdWrapperBase<_Tp, _Width>(std::declval<_U>()))>
+  _GLIBCXX_SIMD_INTRINSIC constexpr _SimdWrapper(_U&& __x)
+  : _SimdWrapperBase<_Tp, _Width>(std::forward<_U>(__x))
+  {
+  }
+  // I want to use ctor inheritance, but it breaks always_inline. Having a
+  // function that does a single movaps is stupid.
+  // using _SimdWrapperBase<_Tp, _Width>::_SimdWrapperBase;
+  using _SimdWrapperBase<_Tp, _Width>::_M_data;
 
-    template <typename... _As,
-              typename = enable_if_t<((std::is_same_v<simd_abi::scalar, _As> && ...) &&
-                                        sizeof...(_As) <= _Width)>>
-    _GLIBCXX_SIMD_INTRINSIC constexpr operator _SimdTuple<_Tp, _As...>() const
-    {
-        const auto &dd = _M_data;  // workaround for GCC7 ICE
-        return __generate_from_n_evaluations<sizeof...(_As), _SimdTuple<_Tp, _As...>>(
-            [&](auto __i) { return dd[int(__i)]; });
-    }
+  template <
+    typename... _As,
+    typename = enable_if_t<((std::is_same_v<simd_abi::scalar, _As> && ...) &&
+			    sizeof...(_As) <= _Width)>>
+  _GLIBCXX_SIMD_INTRINSIC constexpr operator _SimdTuple<_Tp, _As...>() const
+  {
+    const auto& dd = _M_data; // workaround for GCC7 ICE
+    return __generate_from_n_evaluations<sizeof...(_As),
+					 _SimdTuple<_Tp, _As...>>(
+      [&](auto __i) { return dd[int(__i)]; });
+  }
 
-    _GLIBCXX_SIMD_INTRINSIC constexpr operator const _BuiltinType &() const { return _M_data; }
-    _GLIBCXX_SIMD_INTRINSIC constexpr operator _BuiltinType &() { return _M_data; }
+  _GLIBCXX_SIMD_INTRINSIC constexpr operator const _BuiltinType&() const
+  {
+    return _M_data;
+  }
+  _GLIBCXX_SIMD_INTRINSIC constexpr operator _BuiltinType&() { return _M_data; }
 
-    _GLIBCXX_SIMD_INTRINSIC constexpr _Tp operator[](size_t __i) const { return _M_data[__i]; }
+  _GLIBCXX_SIMD_INTRINSIC constexpr _Tp operator[](size_t __i) const
+  {
+    return _M_data[__i];
+  }
 
-    _GLIBCXX_SIMD_INTRINSIC void set(size_t __i, _Tp __x) { _M_data[__i] = __x; }
+  _GLIBCXX_SIMD_INTRINSIC void set(size_t __i, _Tp __x) { _M_data[__i] = __x; }
 };
 
 // }}}
 // _ToWrapper {{{
-template <typename _Tp> class _ToWrapper
+template <typename _Tp>
+class _ToWrapper
 {
-    _Tp _M_data;
+  _Tp _M_data;
 
 public:
-    constexpr _ToWrapper(_Tp __x) : _M_data(__x) {}
+  constexpr _ToWrapper(_Tp __x)
+  : _M_data(__x)
+  {
+  }
 
-    template <size_t _N> constexpr operator _SimdWrapper<bool, _N>() const
-    {
-        static_assert(std::is_integral_v<_Tp>);
-        return static_cast<__bool_storage_member_type_t<_N>>(_M_data);
-    }
+  template <size_t _N>
+  constexpr operator _SimdWrapper<bool, _N>() const
+  {
+    static_assert(std::is_integral_v<_Tp>);
+    return static_cast<__bool_storage_member_type_t<_N>>(_M_data);
+  }
 
-    template <typename _U, size_t _N> constexpr operator _SimdWrapper<_U, _N>() const
-    {
-        static_assert(__is_vector_type_v<_Tp>);
-        static_assert(sizeof(__vector_type_t<_U, _N>) == sizeof(_Tp));
-        return {reinterpret_cast<__vector_type_t<_U, _N>>(_M_data)};
-    }
+  template <typename _U, size_t _N>
+  constexpr operator _SimdWrapper<_U, _N>() const
+  {
+    static_assert(__is_vector_type_v<_Tp>);
+    static_assert(sizeof(__vector_type_t<_U, _N>) == sizeof(_Tp));
+    return {reinterpret_cast<__vector_type_t<_U, _N>>(_M_data)};
+  }
 };
 
 // }}}
 // __wrapper_bitcast{{{
-template <typename _Tp, typename _U, size_t _M, size_t _N = sizeof(_U) * _M / sizeof(_Tp)>
-_GLIBCXX_SIMD_INTRINSIC constexpr _SimdWrapper<_Tp, _N> __wrapper_bitcast(_SimdWrapper<_U, _M> __x)
+template <typename _Tp,
+	  typename _U,
+	  size_t _M,
+	  size_t _N = sizeof(_U) * _M / sizeof(_Tp)>
+_GLIBCXX_SIMD_INTRINSIC constexpr _SimdWrapper<_Tp, _N>
+  __wrapper_bitcast(_SimdWrapper<_U, _M> __x)
 {
-    static_assert(sizeof(__vector_type_t<_Tp, _N>) == sizeof(__vector_type_t<_U, _M>));
-    return reinterpret_cast<__vector_type_t<_Tp, _N>>(__x._M_data);
+  static_assert(sizeof(__vector_type_t<_Tp, _N>) ==
+		sizeof(__vector_type_t<_U, _M>));
+  return reinterpret_cast<__vector_type_t<_Tp, _N>>(__x._M_data);
 }
 
 // }}}
 // __make_wrapper{{{
 template <typename _Tp, typename... _Args>
-_GLIBCXX_SIMD_INTRINSIC constexpr _SimdWrapper<_Tp, sizeof...(_Args)> __make_wrapper(_Args &&... args)
+_GLIBCXX_SIMD_INTRINSIC constexpr _SimdWrapper<_Tp, sizeof...(_Args)>
+  __make_wrapper(_Args&&... args)
 {
-    return {typename _SimdWrapper<_Tp, sizeof...(_Args)>::_BuiltinType{static_cast<_Tp>(args)...}};
+  return {typename _SimdWrapper<_Tp, sizeof...(_Args)>::_BuiltinType{
+    static_cast<_Tp>(args)...}};
 }
 
 // }}}
 // __generate_wrapper{{{
 template <typename _Tp, size_t _N, typename _G>
-_GLIBCXX_SIMD_INTRINSIC constexpr _SimdWrapper<_Tp, _N> __generate_wrapper(_G &&__gen)
+_GLIBCXX_SIMD_INTRINSIC constexpr _SimdWrapper<_Tp, _N>
+  __generate_wrapper(_G&& __gen)
 {
-    return __generate_builtin<_Tp, _N>(std::forward<_G>(__gen));
+  return __generate_builtin<_Tp, _N>(std::forward<_G>(__gen));
 }
 
 //}}}
 // __fallback_abi_for_long_double {{{
-template <typename _Tp, typename _A0, typename _A1> struct __fallback_abi_for_long_double {
-    using type = _A0;
+template <typename _Tp, typename _A0, typename _A1>
+struct __fallback_abi_for_long_double
+{
+  using type = _A0;
 };
-template <typename _A0, typename _A1> struct __fallback_abi_for_long_double<long double, _A0, _A1> {
-    using type = _A1;
+template <typename _A0, typename _A1>
+struct __fallback_abi_for_long_double<long double, _A0, _A1>
+{
+  using type = _A1;
 };
 template <typename _Tp, typename _A0, typename _A1>
 using __fallback_abi_for_long_double_t =
-    typename __fallback_abi_for_long_double<_Tp, _A0, _A1>::type;
+  typename __fallback_abi_for_long_double<_Tp, _A0, _A1>::type;
 // }}}
 
 namespace simd_abi
 {
 // most of simd_abi is defined in simd_detail.h
-template <typename _Tp> inline constexpr int max_fixed_size = 32;
+template <typename _Tp>
+inline constexpr int max_fixed_size = 32;
 // compatible {{{
 #if defined __x86_64__
 template <typename _Tp>
@@ -2221,125 +2254,171 @@ using compatible = __fallback_abi_for_long_double_t<_Tp, __sse, scalar>;
 template <typename _Tp>
 using compatible = __fallback_abi_for_long_double_t<_Tp, __neon, scalar>;
 #else
-template <typename> using compatible = scalar;
+template <typename>
+using compatible = scalar;
 #endif
 
 // }}}
 // native {{{
 #if _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
-template <typename _Tp> using native = __fallback_abi_for_long_double_t<_Tp, __avx512, scalar>;
+template <typename _Tp>
+using native = __fallback_abi_for_long_double_t<_Tp, __avx512, scalar>;
 #elif _GLIBCXX_SIMD_HAVE_AVX512_ABI
 template <typename _Tp>
 using native =
-    std::conditional_t<(sizeof(_Tp) >= 4),
-                       __fallback_abi_for_long_double_t<_Tp, __avx512, scalar>, __avx>;
+  std::conditional_t<(sizeof(_Tp) >= 4),
+		     __fallback_abi_for_long_double_t<_Tp, __avx512, scalar>,
+		     __avx>;
 #elif _GLIBCXX_SIMD_HAVE_FULL_AVX_ABI
-template <typename _Tp> using native = __fallback_abi_for_long_double_t<_Tp, __avx, scalar>;
+template <typename _Tp>
+using native = __fallback_abi_for_long_double_t<_Tp, __avx, scalar>;
 #elif _GLIBCXX_SIMD_HAVE_AVX_ABI
 template <typename _Tp>
 using native =
-    std::conditional_t<std::is_floating_point<_Tp>::value,
-                       __fallback_abi_for_long_double_t<_Tp, __avx, scalar>, __sse>;
+  std::conditional_t<std::is_floating_point<_Tp>::value,
+		     __fallback_abi_for_long_double_t<_Tp, __avx, scalar>,
+		     __sse>;
 #elif _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
-template <typename _Tp> using native = __fallback_abi_for_long_double_t<_Tp, __sse, scalar>;
+template <typename _Tp>
+using native = __fallback_abi_for_long_double_t<_Tp, __sse, scalar>;
 #elif _GLIBCXX_SIMD_HAVE_SSE_ABI
 template <typename _Tp>
-using native = std::conditional_t<std::is_same<float, _Tp>::value, __sse, scalar>;
+using native =
+  std::conditional_t<std::is_same<float, _Tp>::value, __sse, scalar>;
 #elif defined _GLIBCXX_SIMD_HAVE_FULL_NEON_ABI
-template <typename _Tp> using native = __fallback_abi_for_long_double_t<_Tp, __neon, scalar>;
+template <typename _Tp>
+using native = __fallback_abi_for_long_double_t<_Tp, __neon, scalar>;
 #else
-template <typename> using native = scalar;
+template <typename>
+using native = scalar;
 #endif
 
 // }}}
 // __default_abi {{{
 #if defined _GLIBCXX_SIMD_DEFAULT_ABI
-template <typename _Tp> using __default_abi = _GLIBCXX_SIMD_DEFAULT_ABI<_Tp>;
+template <typename _Tp>
+using __default_abi = _GLIBCXX_SIMD_DEFAULT_ABI<_Tp>;
 #else
-template <typename _Tp> using __default_abi = compatible<_Tp>;
+template <typename _Tp>
+using __default_abi = compatible<_Tp>;
 #endif
 
 // }}}
-}  // namespace simd_abi
+} // namespace simd_abi
 
 // traits {{{1
 // is_abi_tag {{{2
-template <typename _Tp, typename = std::void_t<>> struct is_abi_tag : false_type {
+template <typename _Tp, typename = std::void_t<>>
+struct is_abi_tag : false_type
+{
 };
 template <typename _Tp>
 struct is_abi_tag<_Tp, std::void_t<typename _Tp::is_valid_abi_tag>>
-    : public _Tp::is_valid_abi_tag {
+: public _Tp::is_valid_abi_tag
+{
 };
-template <typename _Tp> inline constexpr bool is_abi_tag_v = is_abi_tag<_Tp>::value;
+template <typename _Tp>
+inline constexpr bool is_abi_tag_v = is_abi_tag<_Tp>::value;
 
 // is_simd(_mask) {{{2
-template <typename _Tp> struct is_simd : public false_type {};
-template <typename _Tp> inline constexpr bool is_simd_v = is_simd<_Tp>::value;
+template <typename _Tp>
+struct is_simd : public false_type
+{
+};
+template <typename _Tp>
+inline constexpr bool is_simd_v = is_simd<_Tp>::value;
 
-template <typename _Tp> struct is_simd_mask : public false_type {};
-template <typename _Tp> inline constexpr bool is_simd_mask_v = is_simd_mask<_Tp>::value;
+template <typename _Tp>
+struct is_simd_mask : public false_type
+{
+};
+template <typename _Tp>
+inline constexpr bool is_simd_mask_v = is_simd_mask<_Tp>::value;
 
 // simd_size {{{2
-template <typename _Tp, typename _Abi, typename = void> struct __simd_size_impl {
+template <typename _Tp, typename _Abi, typename = void>
+struct __simd_size_impl
+{
 };
 template <typename _Tp, typename _Abi>
-struct __simd_size_impl<_Tp, _Abi,
-                        enable_if_t<std::conjunction_v<
-                            __is_vectorizable<_Tp>, std::experimental::is_abi_tag<_Abi>>>>
-    : _SizeConstant<_Abi::template size<_Tp>> {
+struct __simd_size_impl<
+  _Tp,
+  _Abi,
+  enable_if_t<std::conjunction_v<__is_vectorizable<_Tp>,
+				 std::experimental::is_abi_tag<_Abi>>>>
+: _SizeConstant<_Abi::template size<_Tp>>
+{
 };
 
 template <typename _Tp, typename _Abi = simd_abi::__default_abi<_Tp>>
-struct simd_size : __simd_size_impl<_Tp, _Abi> {
+struct simd_size : __simd_size_impl<_Tp, _Abi>
+{
 };
 template <typename _Tp, typename _Abi = simd_abi::__default_abi<_Tp>>
 inline constexpr size_t simd_size_v = simd_size<_Tp, _Abi>::value;
 
 // simd_abi::deduce {{{2
-template <typename _Tp, std::size_t _N, typename = void> struct __deduce_impl;
+template <typename _Tp, std::size_t _N, typename = void>
+struct __deduce_impl;
 namespace simd_abi
 {
 /**
- * \tparam _Tp    The requested `value_type` for the elements.
+ * \tparam _Tp   The requested `value_type` for the elements.
  * \tparam _N    The requested number of elements.
- * \tparam _Abis This parameter is ignored, since this implementation cannot make any use
- *              of it. Either __a good native ABI is matched and used as `type` alias, or
- *              the `fixed_size<_N>` ABI is used, which internally is built from the best
- *              matching native ABIs.
+ * \tparam _Abis This parameter is ignored, since this implementation cannot
+ * make any use of it. Either __a good native ABI is matched and used as `type`
+ * alias, or the `fixed_size<_N>` ABI is used, which internally is built from
+ * the best matching native ABIs.
  */
 template <typename _Tp, std::size_t _N, typename...>
-struct deduce : std::experimental::__deduce_impl<_Tp, _N> {};
+struct deduce : std::experimental::__deduce_impl<_Tp, _N>
+{
+};
 
 template <typename _Tp, size_t _N, typename... _Abis>
 using deduce_t = typename deduce<_Tp, _N, _Abis...>::type;
-}  // namespace simd_abi
+} // namespace simd_abi
 
 // }}}2
 // rebind_simd {{{2
-template <typename _Tp, typename _V> struct rebind_simd;
-template <typename _Tp, typename _U, typename _Abi> struct rebind_simd<_Tp, simd<_U, _Abi>> {
-    using type = simd<_Tp, simd_abi::deduce_t<_Tp, simd_size_v<_U, _Abi>, _Abi>>;
+template <typename _Tp, typename _V>
+struct rebind_simd;
+template <typename _Tp, typename _U, typename _Abi>
+struct rebind_simd<_Tp, simd<_U, _Abi>>
+{
+  using type = simd<_Tp, simd_abi::deduce_t<_Tp, simd_size_v<_U, _Abi>, _Abi>>;
 };
-template <typename _Tp, typename _U, typename _Abi> struct rebind_simd<_Tp, simd_mask<_U, _Abi>> {
-    using type = simd_mask<_Tp, simd_abi::deduce_t<_Tp, simd_size_v<_U, _Abi>, _Abi>>;
+template <typename _Tp, typename _U, typename _Abi>
+struct rebind_simd<_Tp, simd_mask<_U, _Abi>>
+{
+  using type =
+    simd_mask<_Tp, simd_abi::deduce_t<_Tp, simd_size_v<_U, _Abi>, _Abi>>;
 };
-template <typename _Tp, typename _V> using rebind_simd_t = typename rebind_simd<_Tp, _V>::type;
+template <typename _Tp, typename _V>
+using rebind_simd_t = typename rebind_simd<_Tp, _V>::type;
 
 // resize_simd {{{2
-template <int _N, typename _V> struct resize_simd;
-template <int _N, typename _Tp, typename _Abi> struct resize_simd<_N, simd<_Tp, _Abi>> {
-    using type = simd<_Tp, simd_abi::deduce_t<_Tp, _N, _Abi>>;
+template <int _N, typename _V>
+struct resize_simd;
+template <int _N, typename _Tp, typename _Abi>
+struct resize_simd<_N, simd<_Tp, _Abi>>
+{
+  using type = simd<_Tp, simd_abi::deduce_t<_Tp, _N, _Abi>>;
 };
-template <int _N, typename _Tp, typename _Abi> struct resize_simd<_N, simd_mask<_Tp, _Abi>> {
-    using type = simd_mask<_Tp, simd_abi::deduce_t<_Tp, _N, _Abi>>;
+template <int _N, typename _Tp, typename _Abi>
+struct resize_simd<_N, simd_mask<_Tp, _Abi>>
+{
+  using type = simd_mask<_Tp, simd_abi::deduce_t<_Tp, _N, _Abi>>;
 };
-template <int _N, typename _V> using resize_simd_t = typename resize_simd<_N, _V>::type;
+template <int _N, typename _V>
+using resize_simd_t = typename resize_simd<_N, _V>::type;
 
 // }}}2
 // memory_alignment {{{2
 template <typename _Tp, typename _U = typename _Tp::value_type>
 struct memory_alignment
-    : public _SizeConstant<__next_power_of_2(sizeof(_U) * _Tp::size())> {
+: public _SizeConstant<__next_power_of_2(sizeof(_U) * _Tp::size())>
+{
 };
 template <typename _Tp, typename _U = typename _Tp::value_type>
 inline constexpr size_t memory_alignment_v = memory_alignment<_Tp, _U>::value;
@@ -2359,6 +2438,7 @@ template <typename _Tp, int _N> using fixed_size_simd_mask = simd_mask<_Tp, simd
 template <typename _Tp, size_t _N>
 using __deduced_simd_mask = simd_mask<_Tp, simd_abi::deduce_t<_Tp, _N>>;
 
+// __get_impl/traits specializations for simd(_mask) {{{1
 template <typename _Tp, typename _Abi>
 struct __get_impl<std::experimental::simd_mask<_Tp, _Abi>>
 {
