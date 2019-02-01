@@ -13,8 +13,8 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     constexpr size_t _N = _Traits::_S_width;
     [[maybe_unused]] const auto __intrin = __to_intrin(__vv);
     _SimdWrapper<_Tp, _N> __v(__vv);
-    using _U = typename __vector_traits<_To>::value_type;
-    constexpr size_t _M = __vector_traits<_To>::_S_width;
+    using _U = typename _VectorTraits<_To>::value_type;
+    constexpr size_t _M = _VectorTraits<_To>::_S_width;
 
     // [xyz]_to_[xyz] {{{2
     [[maybe_unused]] constexpr bool __x_to_x = sizeof(__v) == 16 && sizeof(_To) == 16;
@@ -352,22 +352,22 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         // the __builtin_constant_p hack enables constant propagation
         if constexpr (__have_avx512vl && __x_to_x) {
             const __vector_type_t<float, 4> __x = __v._M_data;
-            return __builtin_constant_p(__x) ? __make_builtin<_U>(__x[0], __x[1], __x[2], __x[3])
+            return __builtin_constant_p(__x) ? __make_vector<_U>(__x[0], __x[1], __x[2], __x[3])
                                            : __vector_bitcast<_U>(_mm_cvttps_epu32(__intrin));
         } else if constexpr (__have_avx512f && __x_to_x) {
             const __vector_type_t<float, 4> __x = __v._M_data;
             return __builtin_constant_p(__x)
-                       ? __make_builtin<_U>(__x[0], __x[1], __x[2], __x[3])
+                       ? __make_vector<_U>(__x[0], __x[1], __x[2], __x[3])
                        : __vector_bitcast<_U>(__lo128(_mm512_cvttps_epu32(__auto_bitcast(__v))));
         } else if constexpr (__have_avx512vl && __y_to_y) {
             const __vector_type_t<float, 8> __x = __v._M_data;
-            return __builtin_constant_p(__x) ? __make_builtin<_U>(__x[0], __x[1], __x[2], __x[3],
+            return __builtin_constant_p(__x) ? __make_vector<_U>(__x[0], __x[1], __x[2], __x[3],
                                                                 __x[4], __x[5], __x[6], __x[7])
                                            : __vector_bitcast<_U>(_mm256_cvttps_epu32(__intrin));
         } else if constexpr (__have_avx512f && __y_to_y) {
             const __vector_type_t<float, 8> __x = __v._M_data;
             return __builtin_constant_p(__x)
-                       ? __make_builtin<_U>(__x[0], __x[1], __x[2], __x[3], __x[4], __x[5], __x[6],
+                       ? __make_vector<_U>(__x[0], __x[1], __x[2], __x[3], __x[4], __x[5], __x[6],
                                             __x[7])
                        : __vector_bitcast<_U>(__lo256(_mm512_cvttps_epu32(__auto_bitcast(__v))));
         } else if constexpr (__x_to_x || __y_to_y || __z_to_z) {
@@ -582,8 +582,8 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     _SimdWrapper<_Tp, _N> __v1(__vv1);
     [[maybe_unused]] const auto __i0 = __to_intrin(__vv0);
     [[maybe_unused]] const auto __i1 = __to_intrin(__vv1);
-    using _U = typename __vector_traits<_To>::value_type;
-    constexpr size_t _M = __vector_traits<_To>::_S_width;
+    using _U = typename _VectorTraits<_To>::value_type;
+    constexpr size_t _M = _VectorTraits<_To>::_S_width;
 
     static_assert(
         2 * _N <= _M,
@@ -935,8 +935,8 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     [[maybe_unused]] const auto __i1 = __to_intrin(__vv1);
     [[maybe_unused]] const auto __i2 = __to_intrin(__vv2);
     [[maybe_unused]] const auto __i3 = __to_intrin(__vv3);
-    using _U = typename __vector_traits<_To>::value_type;
-    constexpr size_t _M = __vector_traits<_To>::_S_width;
+    using _U = typename _VectorTraits<_To>::value_type;
+    constexpr size_t _M = _VectorTraits<_To>::_S_width;
 
     static_assert(
         4 * _N <= _M,
@@ -1203,8 +1203,8 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     [[maybe_unused]] const auto __i5 = __to_intrin(__vv5);
     [[maybe_unused]] const auto __i6 = __to_intrin(__vv6);
     [[maybe_unused]] const auto __i7 = __to_intrin(__vv7);
-    using _U = typename __vector_traits<_To>::value_type;
-    constexpr size_t _M = __vector_traits<_To>::_S_width;
+    using _U = typename _VectorTraits<_To>::value_type;
+    constexpr size_t _M = _VectorTraits<_To>::_S_width;
 
     static_assert(8 * _N <= _M, "__v4-__v7 would be discarded; use the four/two/one-argument "
                               "__convert_x86 overload instead");

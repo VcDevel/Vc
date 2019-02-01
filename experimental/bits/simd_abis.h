@@ -892,7 +892,7 @@ _GLIBCXX_SIMD_INTRINSIC void _mm512_mask_cvtepi16_storeu_epi8(void *p, __mmask32
 // }}}
 // __shift16_right{{{
 // if (__shift % 2ⁿ == 0) => the low n Bytes are correct
-template <unsigned __shift, class _Tp, class _TVT = __vector_traits<_Tp>>
+template <unsigned __shift, class _Tp, class _TVT = _VectorTraits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC _Tp __shift16_right(_Tp __v)
 {
     static_assert(__shift <= sizeof(_Tp));
@@ -959,7 +959,7 @@ _GLIBCXX_SIMD_INTRINSIC _Tp __shift16_right(_Tp __v)
 
 // }}}
 // __cmpord{{{
-template <class _Tp, class _TVT = __vector_traits<_Tp>>
+template <class _Tp, class _TVT = _VectorTraits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC auto __cmpord(_Tp __x, _Tp __y)
 {
     static_assert(is_floating_point_v<typename _TVT::value_type>);
@@ -985,7 +985,7 @@ _GLIBCXX_SIMD_INTRINSIC auto __cmpord(_Tp __x, _Tp __y)
 
 // }}}
 // __cmpunord{{{
-template <class _Tp, class _TVT = __vector_traits<_Tp>>
+template <class _Tp, class _TVT = _VectorTraits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC auto __cmpunord(_Tp __x, _Tp __y)
 {
     static_assert(is_floating_point_v<typename _TVT::value_type>);
@@ -1211,7 +1211,7 @@ _GLIBCXX_SIMD_INTRINSIC void __maskstore(_SimdWrapper16<_Tp> __v, _Tp* __mem, _F
 // __xzyw{{{
 // shuffles the complete vector, swapping the inner two quarters. Often useful for AVX for
 // fixing up a shuffle result.
-template <class _Tp, class _TVT = __vector_traits<_Tp>>
+template <class _Tp, class _TVT = _VectorTraits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC _Tp __xzyw(_Tp __a)
 {
     if constexpr (sizeof(_Tp) == 16) {
@@ -1380,7 +1380,7 @@ _GLIBCXX_SIMD_INTRINSIC auto __convert(_From __v0, _More... __vs)
     static_assert((true && ... && is_same_v<_From, _More>));
     if constexpr (__is_vectorizable_v<_From>) {
         if constexpr (__is_vector_type_v<_To>) {
-            return __make_builtin(__v0, __vs...);
+            return __make_vector(__v0, __vs...);
         } else {
             using _Tp = typename _To::value_type;
             return __make_wrapper<_Tp>(__v0, __vs...);
@@ -1390,13 +1390,13 @@ _GLIBCXX_SIMD_INTRINSIC auto __convert(_From __v0, _More... __vs)
     } else if constexpr (!__is_vector_type_v<_To>) {
         return _To(__convert<typename _To::_BuiltinType>(__v0, __vs...));
     } else if constexpr (__is_vectorizable_v<_To>) {
-        return __convert<__vector_type_t<_To, (__vector_traits<_From>::_S_width *
+        return __convert<__vector_type_t<_To, (_VectorTraits<_From>::_S_width *
                                             (1 + sizeof...(_More)))>>(__v0, __vs...)
             ._M_data;
     } else {
         static_assert(sizeof...(_More) == 0 ||
-                          __vector_traits<_To>::_S_width >=
-                              (1 + sizeof...(_More)) * __vector_traits<_From>::_S_width,
+                          _VectorTraits<_To>::_S_width >=
+                              (1 + sizeof...(_More)) * _VectorTraits<_From>::_S_width,
                       "__convert(...) requires the input to fit into the output");
         return __vector_convert<_To>(__v0, __vs...);
     }
@@ -1408,11 +1408,11 @@ template <typename _To, typename _From> _GLIBCXX_SIMD_INTRINSIC auto __convert_a
 {
     static_assert(__is_vector_type_v<_To>);
     if constexpr (__is_vector_type_v<_From>) {
-        using _Trait = __vector_traits<_From>;
+        using _Trait = _VectorTraits<_From>;
         using _S = _SimdWrapper<typename _Trait::value_type, _Trait::_S_width>;
         return __convert_all<_To>(_S(__v));
-    } else if constexpr (_From::_S_width > __vector_traits<_To>::_S_width) {
-        constexpr size_t _N = _From::_S_width / __vector_traits<_To>::_S_width;
+    } else if constexpr (_From::_S_width > _VectorTraits<_To>::_S_width) {
+        constexpr size_t _N = _From::_S_width / _VectorTraits<_To>::_S_width;
         return __generate_from_n_evaluations<_N, std::array<_To, _N>>([&](auto __i) {
             auto part = __extract_part<decltype(__i)::value, _N>(__v);
             return __convert<_To>(part);
@@ -1517,7 +1517,7 @@ _GLIBCXX_SIMD_INTRINSIC constexpr _SimdWrapper<_Tp, _N> __abs(_SimdWrapper<_Tp, 
 //}}}
 // interleave (__lo/__hi/128) {{{
 template <class _A, class _B, class _Tp = std::common_type_t<_A, _B>,
-          class _Trait = __vector_traits<_Tp>>
+          class _Trait = _VectorTraits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __interleave_lo(_A _a, _B _b)
 {
 #if defined __GNUC__ && __GNUC__ < 9
@@ -1580,7 +1580,7 @@ _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __interleave_lo(_A _a, _B _b)
 }
 
 template <class _A, class _B, class _Tp = std::common_type_t<_A, _B>,
-          class _Trait = __vector_traits<_Tp>>
+          class _Trait = _VectorTraits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __interleave_hi(_A _a, _B _b)
 {
 #if defined __GNUC__ && __GNUC__ < 9
@@ -1644,7 +1644,7 @@ _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __interleave_hi(_A _a, _B _b)
 }
 
 template <class _A, class _B, class _Tp = std::common_type_t<_A, _B>,
-          class _Trait = __vector_traits<_Tp>>
+          class _Trait = _VectorTraits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __interleave128_lo(_A _a, _B _b)
 {
 #if defined __GNUC__ && __GNUC__ < 9
@@ -1735,7 +1735,7 @@ _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __interleave128_lo(_A _a, _B _b)
 }
 
 template <class _A, class _B, class _Tp = std::common_type_t<_A, _B>,
-          class _Trait = __vector_traits<_Tp>>
+          class _Trait = _VectorTraits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __interleave128_hi(_A _a, _B _b)
 {
 #if defined __GNUC__ && __GNUC__ < 9
@@ -1830,14 +1830,14 @@ template <class _Tp> struct __interleaved_pair {
 };
 
 template <class _A, class _B, class _Tp = std::common_type_t<_A, _B>,
-          class _Trait = __vector_traits<_Tp>>
+          class _Trait = _VectorTraits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC constexpr __interleaved_pair<_Tp> interleave(_A __a, _B __b)
 {
     return {__interleave_lo(__a, __b), __interleave_hi(__a, __b)};
 }
 
 template <class _A, class _B, class _Tp = std::common_type_t<_A, _B>,
-          class _Trait = __vector_traits<_Tp>>
+          class _Trait = _VectorTraits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC constexpr __interleaved_pair<_Tp> interleave128(_A __a, _B __b)
 {
     return {__interleave128_lo(__a, __b), __interleave128_hi(__a, __b)};
@@ -1886,7 +1886,7 @@ template <class _To, class _From> inline _To __convert_mask(_From __k) {
         return __convert_mask<typename _To::_BuiltinType>(__k);
     } else if constexpr (std::is_unsigned_v<_From> && __is_vector_type_v<_To>) {
         // bits -> vector {{{
-        using _Trait = __vector_traits<_To>;
+        using _Trait = _VectorTraits<_To>;
         constexpr size_t _N_in = sizeof(_From) * CHAR_BIT;
         using _ToT = typename _Trait::value_type;
         constexpr size_t _N_out = _Trait::_S_width;
@@ -2028,12 +2028,12 @@ template <class _To, class _From> inline _To __convert_mask(_From __k) {
                     __assert_unreachable<_To>();
                 }
             } else if constexpr (bits_per_element >= _N) {
-                constexpr auto bitmask = __generate_builtin<__vector_type_t<_U, _N>>(
+                constexpr auto bitmask = __generate_vector<__vector_type_t<_U, _N>>(
                     [](auto __i) -> _U { return 1ull << __i; });
                 return __vector_bitcast<_ToT>(
                     (__vector_broadcast<_N, _U>(__k) & bitmask) != 0);
             } else if constexpr (sizeof(_V) == 16 && sizeof(_ToT) == 1 && __have_ssse3) {
-                const auto bitmask = __to_intrin(__make_builtin<_UChar>(
+                const auto bitmask = __to_intrin(__make_vector<_UChar>(
                     1, 2, 4, 8, 16, 32, 64, 128, 1, 2, 4, 8, 16, 32, 64, 128));
                 return __vector_bitcast<_ToT>(
                     __vector_bitcast<_ToT>(
@@ -2044,7 +2044,7 @@ template <class _To, class _From> inline _To __convert_mask(_From __k) {
                         bitmask) != 0);
             } else if constexpr (sizeof(_V) == 32 && sizeof(_ToT) == 1 && __have_avx2) {
                 const auto bitmask =
-                    _mm256_broadcastsi128_si256(__to_intrin(__make_builtin<_UChar>(
+                    _mm256_broadcastsi128_si256(__to_intrin(__make_vector<_UChar>(
                         1, 2, 4, 8, 16, 32, 64, 128, 1, 2, 4, 8, 16, 32, 64, 128)));
                 return __vector_bitcast<_ToT>(
                     __vector_bitcast<_ToT>(_mm256_shuffle_epi8(
@@ -2065,11 +2065,11 @@ template <class _To, class _From> inline _To __convert_mask(_From __k) {
                 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3)) & bitmask) != 0;
                 */
             } else {
-                const _V tmp = __generate_builtin<_V>([&](auto __i) {
+                const _V tmp = __generate_vector<_V>([&](auto __i) {
                                   return static_cast<_U>(
                                       __k >> (bits_per_element * (__i / bits_per_element)));
                               }) &
-                              __generate_builtin<_V>([](auto __i) {
+                              __generate_vector<_V>([](auto __i) {
                                   return static_cast<_U>(1ull << (__i % bits_per_element));
                               });  // mask bit index
                 return __vector_bitcast<_ToT>(tmp != _V());
@@ -2079,7 +2079,7 @@ template <class _To, class _From> inline _To __convert_mask(_From __k) {
         } // }}}
     } else if constexpr (__is_vector_type_v<_From> && std::is_unsigned_v<_To>) {
         // vector -> bits {{{
-        using _Trait = __vector_traits<_From>;
+        using _Trait = _VectorTraits<_From>;
         using _Tp = typename _Trait::value_type;
         constexpr size_t _FromN = _Trait::_S_width;
         constexpr size_t cvt_id = _FromN * 10 + sizeof(_Tp);
@@ -2129,8 +2129,8 @@ template <class _To, class _From> inline _To __convert_mask(_From __k) {
         // }}}
     } else if constexpr (__is_vector_type_v<_From> && __is_vector_type_v<_To>) {
         // vector -> vector {{{
-        using _ToTrait = __vector_traits<_To>;
-        using _FromTrait = __vector_traits<_From>;
+        using _ToTrait = _VectorTraits<_To>;
+        using _FromTrait = _VectorTraits<_From>;
         using _ToT = typename _ToTrait::value_type;
         using _Tp = typename _FromTrait::value_type;
         constexpr size_t _FromN = _FromTrait::_S_width;
@@ -3429,13 +3429,13 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
             constexpr bool prefer_bitmask =
                 (__have_avx512f && sizeof(_U) >= 4) || __have_avx512bw;
             using _M = _SimdWrapper<std::conditional_t<prefer_bitmask, bool, _U>, _VV::_S_width>;
-            constexpr size_t _VN = __vector_traits<_V>::_S_width;
+            constexpr size_t _VN = _VectorTraits<_V>::_S_width;
 
             if constexpr (_VN >= _N) {
                 __maskstore(_VV(__convert<_V>(__v)), __mem,
                                // careful, if _V has more elements than the input __v (_N),
                                // vector_aligned is incorrect:
-                               std::conditional_t<(__vector_traits<_V>::_S_width > _N),
+                               std::conditional_t<(_VectorTraits<_V>::_S_width > _N),
                                                   overaligned_tag<sizeof(_U) * _N>, _F>(),
                                __convert_mask<_M>(__k));
             } else if constexpr (_VN * 2 == _N) {
@@ -3918,7 +3918,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     // isnonzerovalue (isnormal | is subnormal == !isinf & !isnan & !is zero) {{{3
     template <class _Tp> _GLIBCXX_SIMD_INTRINSIC static auto isnonzerovalue(_Tp __x)
     {
-      using _Traits = __vector_traits<_Tp>;
+      using _Traits = _VectorTraits<_Tp>;
       if constexpr (__have_avx512dq)
 	{
 	  if constexpr (__have_avx512vl && _Traits::template __is<float, 4>)
@@ -3953,7 +3953,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     template <class _Tp>
     _GLIBCXX_SIMD_INTRINSIC static auto isnonzerovalue_mask(_Tp __x)
     {
-      using _Traits = __vector_traits<_Tp>;
+      using _Traits = _VectorTraits<_Tp>;
       if constexpr (__have_avx512dq_vl)
 	{
 	  if constexpr (_Traits::template __is<float, 4>)

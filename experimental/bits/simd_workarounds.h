@@ -7,7 +7,7 @@
 
 _GLIBCXX_SIMD_BEGIN_NAMESPACE
 // __divides {{{1
-template <class _Tp, class = __vector_traits<_Tp>>
+template <class _Tp, class = _VectorTraits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC _Tp __divides(_Tp __a, _Tp __b)
 {
     using _U = typename Traits::value_type;
@@ -217,7 +217,7 @@ _GLIBCXX_SIMD_INTRINSIC _SimdWrapper<_Tp, _N> __bit_shift_left(_SimdWrapper<_Tp,
 
 // }}}
 // __bit_shift_right{{{1
-template <class _Tp, class Traits = __vector_traits<_Tp>> _Tp __bit_shift_right(_Tp __a, _Tp __b)
+template <class _Tp, class Traits = _VectorTraits<_Tp>> _Tp __bit_shift_right(_Tp __a, _Tp __b)
 {
     using _U = typename Traits::value_type;
     constexpr bool is_byte = sizeof(_U) == 1;
