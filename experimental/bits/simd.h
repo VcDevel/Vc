@@ -411,17 +411,13 @@ struct _SimdTraits : _InvalidTraits
 };
 
 // }}}
-// __get_impl(_t){{{
-template <typename _Tp> struct __get_impl;
+// __get_impl_t/traits_t{{{
 template <typename _Tp>
-using __get_impl_t = typename __get_impl<__remove_cvref_t<_Tp>>::type;
-
-// }}}
-// __get_traits(_t){{{
+struct __get_impl;
 template <typename _Tp>
-struct __get_traits;
+using __get_impl_t = typename __get_impl<__remove_cvref_t<_Tp>>::_Impl;
 template <typename _Tp>
-using __get_traits_t = typename __get_traits<__remove_cvref_t<_Tp>>::type;
+using __get_traits_t = typename __get_impl<__remove_cvref_t<_Tp>>::_Traits;
 
 // }}}
 // __next_power_of_2{{{
@@ -2438,27 +2434,18 @@ template <typename _Tp, int _N> using fixed_size_simd_mask = simd_mask<_Tp, simd
 template <typename _Tp, size_t _N>
 using __deduced_simd_mask = simd_mask<_Tp, simd_abi::deduce_t<_Tp, _N>>;
 
-// __get_impl/traits specializations for simd(_mask) {{{1
+// __get_impl specializations for simd(_mask) {{{1
 template <typename _Tp, typename _Abi>
 struct __get_impl<std::experimental::simd_mask<_Tp, _Abi>>
 {
-  using type = typename _SimdTraits<_Tp, _Abi>::_MaskImpl;
+  using _Traits = _SimdTraits<_Tp, _Abi>;
+  using _Impl = typename _Traits::_MaskImpl;
 };
 template <typename _Tp, typename _Abi>
 struct __get_impl<std::experimental::simd<_Tp, _Abi>>
 {
-  using type = typename _SimdTraits<_Tp, _Abi>::_SimdImpl;
-};
-
-template <typename _Tp, typename _Abi>
-struct __get_traits<std::experimental::simd_mask<_Tp, _Abi>>
-{
-  using type = _SimdTraits<_Tp, _Abi>;
-};
-template <typename _Tp, typename _Abi>
-struct __get_traits<std::experimental::simd<_Tp, _Abi>>
-{
-  using type = _SimdTraits<_Tp, _Abi>;
+  using _Traits = _SimdTraits<_Tp, _Abi>;
+  using _Impl = typename _Traits::_SimdImpl;
 };
 
 // casts [simd.casts] {{{1
