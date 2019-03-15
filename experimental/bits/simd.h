@@ -1678,7 +1678,7 @@ _GLIBCXX_SIMD_INTRINSIC std::bitset<_TVT::_S_width> __vector_to_bitset(_Tp __x)
 #if _GLIBCXX_SIMD_X86INTRIN // {{{
   constexpr bool __is_sse = __have_sse && sizeof(_Tp) == 16;
   constexpr bool __is_avx = __have_avx && sizeof(_Tp) == 32;
-  auto           __intrin = __to_intrin(__x);
+  [[maybe_unused]] auto __intrin = __to_intrin(__x);
   if constexpr (__is_sse && __w == 1)
     {
       return _mm_movemask_epi8(__intrin);
@@ -2220,7 +2220,7 @@ _Tp __vector_permute(_Tp __x)
 {
   static_assert(sizeof...(_Indices) == _TVT::_S_width);
   return __make_vector<typename _TVT::value_type>(
-    (_Indices == -1 ? 0 : __x[_Indices])...);
+    (_Indices == -1 ? 0 : __x[_Indices == -1 ? 0 : _Indices])...);
 }
 
 // }}}

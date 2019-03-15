@@ -2846,6 +2846,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     template <class _Tp>
     using _MaskMember = typename _Abi::template __traits<_Tp>::_MaskMember;
     template <class _Tp> static constexpr size_t full_size = _SimdMember<_Tp>::_S_width;
+    using _SuperImpl = typename _Abi::_SimdImpl;
 
     // make_simd(_SimdWrapper/__intrinsic_type_t) {{{2
     template <class _Tp, size_t _N>
@@ -3193,7 +3194,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
 	{
 	  using _A = simd_abi::deduce_t<_Tp, _N / 2>;
 	  using _V = std::experimental::simd<_Tp, _A>;
-	  return _SimdTraits<_Tp, _A>::_SimdImpl::reduce(
+	  return _A::_SimdImpl::reduce(
 	    __binary_op(
 	      _V(__private_init, __extract<0, 2>(__data(__x)._M_data)),
 	      _V(__private_init, __extract<1, 2>(__data(__x)._M_data))),
@@ -3295,7 +3296,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     template <class _Tp, size_t _N>
     _GLIBCXX_SIMD_INTRINSIC static _SimdWrapper<_Tp, _N> __floor(_SimdWrapper<_Tp, _N> __x)
     {
-      const auto __y = __trunc(__x)._M_data;
+      const auto __y = _SuperImpl::__trunc(__x)._M_data;
       const auto negative_input = __vector_bitcast<_Tp>(__x._M_data < __vector_broadcast<_N, _Tp>(0));
       const auto mask = __andnot(__vector_bitcast<_Tp>(__y == __x._M_data), negative_input);
       return __or(__andnot(mask, __y), __and(mask, __y - __vector_broadcast<_N, _Tp>(1)));
@@ -3304,7 +3305,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     // ceil {{{3
     template <class _Tp, size_t _N> _GLIBCXX_SIMD_INTRINSIC static _SimdWrapper<_Tp, _N> __ceil(_SimdWrapper<_Tp, _N> __x)
     {
-      const auto __y = __trunc(__x)._M_data;
+      const auto __y = _SuperImpl::__trunc(__x)._M_data;
       const auto negative_input = __vector_bitcast<_Tp>(__x._M_data < __vector_broadcast<_N, _Tp>(0));
       const auto inv_mask = __or(__vector_bitcast<_Tp>(__y == __x._M_data), negative_input);
       return __or(__and(inv_mask, __y),
@@ -3365,7 +3366,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
       __unused(__x);
       return {}; // false
 #else
-      return _Abi::_SimdImpl::template equal_to<_Tp, _N>(
+      return _SuperImpl::template equal_to<_Tp, _N>(
 	__abs(__x),
 	__vector_broadcast<_N>(std::numeric_limits<_Tp>::infinity()));
       // alternative:
@@ -3386,12 +3387,15 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
       __isnormal(_SimdWrapper<_Tp, _N> __x)
     {
 #if __FINITE_MATH_ONLY__
-      return less_equal<_Tp, _N>(__vector_broadcast<_N>(std::numeric_limits<_Tp>::min()),
-				 __abs(__x));
+      return _SuperImpl::template less_equal<_Tp, _N>(
+	__vector_broadcast<_N>(std::numeric_limits<_Tp>::min()), __abs(__x));
 #else
-      return __and(less_equal<_Tp, _N>(__vector_broadcast<_N>(std::numeric_limits<_Tp>::min()),
-				       __abs(__x)),
-		   less<_Tp, _N>(__abs(__x), __vector_broadcast<_N>(std::numeric_limits<_Tp>::infinity())));
+      return __and(
+	_SuperImpl::template less_equal<_Tp, _N>(
+	  __vector_broadcast<_N>(std::numeric_limits<_Tp>::min()), __abs(__x)),
+	_SuperImpl::template less<_Tp, _N>(
+	  __abs(__x),
+	  __vector_broadcast<_N>(std::numeric_limits<_Tp>::infinity())));
 #endif
     }
 
