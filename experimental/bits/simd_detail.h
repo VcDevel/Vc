@@ -1,47 +1,37 @@
+// Internal macros for the simd implementation -*- C++ -*-
+
+// Copyright © 2015-2019 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH
+//                       Matthias Kretz <m.kretz@gsi.de>
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the names of contributing organizations nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #ifndef _GLIBCXX_EXPERIMENTAL_SIMD_DETAIL_H_
 #define _GLIBCXX_EXPERIMENTAL_SIMD_DETAIL_H_
-
-//#pragma GCC system_header
 
 #if __cplusplus >= 201703L
 
 #include <cstddef>
 #include <cstdint>
-
-// workaround macros {{{
-// vector conversions not optimized:
-#define _GLIBCXX_SIMD_WORKAROUND_PR85048 1
-
-// zero extension from xmm to zmm not optimized:
-//#define _GLIBCXX_SIMD_WORKAROUND_PR85480 1
-
-// incorrect use of k0 register for _kortestc_mask64_u8 and _kortestc_mask32_u8:
-#define _GLIBCXX_SIMD_WORKAROUND_PR85538 1
-
-// missed optimization for __abs(__vector_type_t<_LLong, 2>):
-#define _GLIBCXX_SIMD_WORKAROUND_PR85572 1
-
-// very bad codegen for extraction and concatenation of 128/256 "subregisters" with
-// sizeof(element type) < 8: https://godbolt.org/g/mqUsgM
-#define _GLIBCXX_SIMD_WORKAROUND_XXX_1 1
-
-// bad codegen for 8 Byte memcpy to __vector_type_t<char, 16>
-#define _GLIBCXX_SIMD_WORKAROUND_XXX_2 1
-
-// bad codegen for zero-extend using simple concat(__x, 0)
-#define _GLIBCXX_SIMD_WORKAROUND_XXX_3 1
-
-// bad codegen for integer division
-#define _GLIBCXX_SIMD_WORKAROUND_XXX_4 1
-
-// https://github.com/cplusplus/parallelism-ts/issues/65 (incorrect return type of
-// static_simd_cast)
-#define _GLIBCXX_SIMD_FIX_P2TS_ISSUE65 1
-
-// https://github.com/cplusplus/parallelism-ts/issues/66 (incorrect SFINAE constraint on
-// (static)_simd_cast)
-#define _GLIBCXX_SIMD_FIX_P2TS_ISSUE66 1
-// }}}
 
 #define _GLIBCXX_SIMD_BEGIN_NAMESPACE                                                    \
     namespace std _GLIBCXX_VISIBILITY(default)                                           \
@@ -311,6 +301,53 @@ template <class _Tp, class Abi> struct simd_size;
 #undef _GLIBCXX_SIMD_INTRINSIC
 #define _GLIBCXX_SIMD_INTRINSIC inline
 #endif
+
+#if _GLIBCXX_SIMD_HAVE_SSE || _GLIBCXX_SIMD_HAVE_MMX
+#define _GLIBCXX_SIMD_X86INTRIN 1
+#else
+#define _GLIBCXX_SIMD_X86INTRIN 0
+#endif
+
+// workaround macros {{{
+// vector conversions on x86 not optimized:
+#if _GLIBCXX_SIMD_X86INTRIN
+#define _GLIBCXX_SIMD_WORKAROUND_PR85048 1
+#endif
+
+// zero extension from xmm to zmm not optimized:
+//#define _GLIBCXX_SIMD_WORKAROUND_PR85480 1
+
+// incorrect use of k0 register for _kortestc_mask64_u8 and _kortestc_mask32_u8:
+#define _GLIBCXX_SIMD_WORKAROUND_PR85538 1
+
+// missed optimization for __abs(__vector_type_t<_LLong, 2>):
+#define _GLIBCXX_SIMD_WORKAROUND_PR85572 1
+
+// very bad codegen for extraction and concatenation of 128/256 "subregisters" with
+// sizeof(element type) < 8: https://godbolt.org/g/mqUsgM
+#if _GLIBCXX_SIMD_X86INTRIN
+#define _GLIBCXX_SIMD_WORKAROUND_XXX_1 1
+#endif
+
+// bad codegen for 8 Byte memcpy to __vector_type_t<char, 16>
+#define _GLIBCXX_SIMD_WORKAROUND_XXX_2 1
+
+// bad codegen for zero-extend using simple concat(__x, 0)
+#if _GLIBCXX_SIMD_X86INTRIN
+#define _GLIBCXX_SIMD_WORKAROUND_XXX_3 1
+#endif
+
+// bad codegen for integer division
+#define _GLIBCXX_SIMD_WORKAROUND_XXX_4 1
+
+// https://github.com/cplusplus/parallelism-ts/issues/65 (incorrect return type of
+// static_simd_cast)
+#define _GLIBCXX_SIMD_FIX_P2TS_ISSUE65 1
+
+// https://github.com/cplusplus/parallelism-ts/issues/66 (incorrect SFINAE constraint on
+// (static)_simd_cast)
+#define _GLIBCXX_SIMD_FIX_P2TS_ISSUE66 1
+// }}}
 _GLIBCXX_SIMD_END_NAMESPACE
 
 #endif  // __cplusplus >= 201703L

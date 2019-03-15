@@ -1,7 +1,32 @@
+// Debug utilities for use in the simd implementation -*- C++ -*-
+
+// Copyright © 2015-2019 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH
+//                       Matthias Kretz <m.kretz@gsi.de>
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the names of contributing organizations nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #ifndef _GLIBCXX_EXPERIMENTAL_SIMD_DEBUG_H_
 #define _GLIBCXX_EXPERIMENTAL_SIMD_DEBUG_H_
-
-#pragma GCC system_header
 
 #if defined _GLIBCXX_SIMD_DEBUG && !defined _GLIBCXX_SIMD_ENABLE_DEBUG
 #define _GLIBCXX_SIMD_ENABLE_DEBUG 1
@@ -37,7 +62,7 @@ enum class __area : unsigned {
 #undef _Sine
 #undef _Cosine
 #undef _SIMD_TUPLE
-#undef simd_view
+#undef _Simd_view
 #undef _Logarithm
 #undef _Frexp
 
@@ -75,7 +100,7 @@ enum class __area : unsigned {
 
 _GLIBCXX_SIMD_ALWAYS_INLINE void *__debug_instr_ptr()
 {
-    void *__ip = nullptr;
+  void* __ip = nullptr;
 #if defined _GLIBCXX_SIMD_ENABLE_DEBUG
 #ifdef __x86_64__
     asm volatile("lea 0(%%rip),%0" : "=r"(__ip));
@@ -83,6 +108,8 @@ _GLIBCXX_SIMD_ALWAYS_INLINE void *__debug_instr_ptr()
     asm volatile("1: movl $1b,%0" : "=r"(__ip));
 #elif defined __arm__
     asm volatile("mov %0,pc" : "=r"(__ip));
+#elif defined __aarch64__
+    asm volatile("adr %0,." : "=r"(__ip));
 #endif
 #endif  //__GNUC__
     return __ip;
@@ -109,40 +136,53 @@ public:
         std::cout << __buffer.str() << std::flush;
     }
 
-    template <class... _Ts> __debug_stream &operator()(const _Ts &... __args)
-    {
-        __color = __color > 37 ? 30 : __color + 1;
-        __buffer << "\n\033[1;40;" << __color << "__m       ";
-        //__buffer << "\n        ";
-#if 0 // __cpp_fold_expressions
-        __buffer << ... << std::forward<_Ts>(__args);
-#else
-        [](const std::initializer_list<int> &) {}({(__print(__args, int()), 0)...});
-#endif
-        return *this;
-    }
+  template <class... _Ts>
+  __debug_stream& operator()(const _Ts&... __args)
+  {
+    __color = __color > 37 ? 30 : __color + 1;
+    __buffer << "\n\033[1;40;" << __color << "m      ";
+    [](const std::initializer_list<int>&) {}({(__print(__args, int()), 0)...});
+    return *this;
+  }
 
 private:
-    template <class _Tp, class = decltype(__buffer << std::declval<const _Tp &>())>
-    void __print(const _Tp &__x, int)
-    {
-        __buffer << __x;
-    }
+  template <class _Tp, class = decltype(__buffer << std::declval<const _Tp&>())>
+  void __print(const _Tp& __x, int)
+  {
+    __buffer << ' ' << __x;
+  }
 
-    static char hexChar(char __x) { return __x + (__x > 9 ? 87 : 48); }
-    template <class _Tp> void __print(const _Tp &__x, float)
-    {
-        using _Bytes = char[sizeof(_Tp)];
-        auto &&__bytes = reinterpret_cast<const _Bytes &>(__x);
-        int __i = -1;
-        for (const unsigned char __b : __bytes) {
-            if (++__i && (__i & 0x3) == 0) {
-                __buffer.put('\'');
-            }
-            __buffer.put(hexChar(__b >> 4));
-            __buffer.put(hexChar(__b & 0xf));
-        }
-    }
+  template <class _Tp,
+	    class = decltype(__buffer << std::declval<const _Tp&>()[0])>
+  void __print(const _Tp& __x, float)
+  {
+    using _U = __remove_cvref_t<decltype(__x[0])>;
+    __buffer << " {" << +__x[0];
+    for (size_t __i = 1; __i < sizeof(_Tp) / sizeof(_U); ++__i)
+      {
+	__buffer << ", " << +__x[__i];
+      }
+    __buffer << '}';
+  }
+
+  static char hexChar(char __x) { return __x + (__x > 9 ? 87 : 48); }
+  template <class _Tp>
+  void __print(const _Tp& __x, ...)
+  {
+    __buffer.put(' ');
+    using _Bytes   = char[sizeof(_Tp)];
+    auto&& __bytes = reinterpret_cast<const _Bytes&>(__x);
+    int    __i     = -1;
+    for (const unsigned char __b : __bytes)
+      {
+	if (++__i && (__i & 0x3) == 0)
+	  {
+	    __buffer.put('\'');
+	  }
+	__buffer.put(hexChar(__b >> 4));
+	__buffer.put(hexChar(__b & 0xf));
+      }
+  }
 };
 #endif  // _GLIBCXX_SIMD_ENABLE_DEBUGGING
 

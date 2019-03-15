@@ -1,7 +1,32 @@
+// Math overloads for simd -*- C++ -*-
+
+// Copyright © 2015-2019 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH
+//                       Matthias Kretz <m.kretz@gsi.de>
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the names of contributing organizations nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #ifndef _GLIBCXX_EXPERIMENTAL_SIMD_MATH_H_
 #define _GLIBCXX_EXPERIMENTAL_SIMD_MATH_H_
-
-//#pragma GCC system_header
 
 #if __cplusplus >= 201703L
 
@@ -145,7 +170,7 @@ template <class _U, class _Tp, class _Abi> struct __extra_argument_type {
             std::declval<enable_if_t<                                                      \
                 std::conjunction_v<                                                        \
                     std::is_same<arg2_, _Tp>,                                               \
-                    std::negation<std::is_same<std::decay_t<_U>,                           \
+                    std::negation<std::is_same<__remove_cvref_t<_U>,                       \
                                                std::experimental::simd<_Tp, _Abi>>>,        \
                     std::is_convertible<_U, std::experimental::simd<_Tp, _Abi>>,            \
                     std::is_floating_point<_Tp>>,                                           \
@@ -199,8 +224,8 @@ template <class _U, class _Tp, class _Abi> struct __extra_argument_type {
             },                                                                           \
             __xx, __yy, __zz);                                                           \
     }                                                                                    \
-    template <class _Tp, class _U, class _V, class..., class _TT = std::decay_t<_Tp>,    \
-              class _UU = std::decay_t<_U>, class _VV = std::decay_t<_V>,                \
+    template <class _Tp, class _U, class _V, class..., class _TT = __remove_cvref_t<_Tp>,\
+              class _UU = __remove_cvref_t<_U>, class _VV = __remove_cvref_t<_V>,        \
               class _Simd =                                                              \
                   std::conditional_t<std::experimental::is_simd_v<_UU>, _UU, _VV>>       \
     _GLIBCXX_SIMD_INTRINSIC decltype(                                                    \
@@ -658,7 +683,8 @@ template <class _Tp, size_t _N> _SimdWrapper<_Tp, _N> __getexp(_SimdWrapper<_Tp,
     }
 }
 
-template <class _Tp, size_t _N> _SimdWrapper<_Tp, _N> __getmant(_SimdWrapper<_Tp, _N> __x)
+#if _GLIBCXX_SIMD_X86INTRIN
+template <class _Tp, size_t _N> _SimdWrapper<_Tp, _N> __getmant_avx512(_SimdWrapper<_Tp, _N> __x)
 {
     if constexpr (__have_avx512vl && __is_sse_ps<_Tp, _N>()) {
         return _mm_getmant_ps(__x, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
@@ -688,6 +714,7 @@ template <class _Tp, size_t _N> _SimdWrapper<_Tp, _N> __getmant(_SimdWrapper<_Tp
         __assert_unreachable<_Tp>();
     }
 }
+#endif // _GLIBCXX_SIMD_X86INTRIN
 
 /**
  * splits \p __v into exponent and mantissa, the sign is kept with the mantissa
@@ -706,6 +733,7 @@ enable_if_t<std::is_floating_point_v<_Tp>, simd<_Tp, _Abi>> frexp(
         return __r;
     } else if constexpr (__is_fixed_size_abi_v<_Abi>) {
         return {__private_init, __get_impl_t<simd<_Tp, _Abi>>::__frexp(__data(__x), __data(*__exp))};
+#if _GLIBCXX_SIMD_X86INTRIN
     } else if constexpr (__have_avx512f) {
         using _IV = __samesize<int, simd<_Tp, _Abi>>;
         constexpr size_t _N = simd_size_v<_Tp, _Abi>;
@@ -721,7 +749,8 @@ enable_if_t<std::is_floating_point_v<_Tp>, simd<_Tp, _Abi>> frexp(
          _GLIBCXX_SIMD_PRETTY_PRINT(
              __to_intrin(1 + __convert<_SimdWrapper<int, NI>>(__getexp(__v))._M_data)));
         __vector_store<_N * sizeof(int)>(__e, __exp, overaligned<alignof(_IV)>);
-        return {__private_init, __blend(isnonzero, __v, __getmant(__v))};
+        return {__private_init, __blend(isnonzero, __v, __getmant_avx512(__v))};
+#endif // _GLIBCXX_SIMD_X86INTRIN
     } else {
         // fallback implementation
         static_assert(sizeof(_Tp) == 4 || sizeof(_Tp) == 8);
@@ -1101,67 +1130,97 @@ template <typename _VV> __remove_cvref_t<_VV> __hypot(_VV __x, _VV __y, _VV __z)
     {
       using namespace __proposed::float_bitwise_operators;
       using _Limits = std::numeric_limits<_Tp>;
-      _V __absx     = abs(__x);                         // no error
-      _V __absy     = abs(__y);                         // no error
-      _V __absz     = abs(__z);                         // no error
+      const _V __absx     = abs(__x);                         // no error
+      const _V __absy     = abs(__y);                         // no error
+      const _V __absz     = abs(__z);                         // no error
       _V __hi       = max(max(__absx, __absy), __absz); // no error
       _V __l0       = min(__absz, max(__absx, __absy)); // no error
       _V __l1       = min(__absy, __absx);              // no error
-
-      // round __hi down to the next power-of-2:
-      constexpr _V __inf(_Limits::infinity());
-
-      if (_GLIBCXX_SIMD_IS_LIKELY(all_of(isnormal(__x)) &&
-				  all_of(isnormal(__y)) &&
-				  all_of(isnormal(__z))))
-	{
-	  const _V __hi_exp = __hi & __inf;
-	  //((__hi + __hi) & __inf) ^ __inf almost works for computing __scale,
-	  //except when (__hi + __hi) & __inf == __inf, in which case __scale
-	  // becomes 0 (should be min/2 instead) and thus loses the information
-	  // from __lo.
-	  const _V     __scale     = (__hi_exp ^ __inf) * _Tp(.5);
-	  constexpr _V __mant_mask = _Limits::min() - _Limits::denorm_min();
-	  const _V     __h1        = (__hi & __mant_mask) | _V(1);
+      if constexpr (numeric_limits<_Tp>::digits == 64 &&
+		    numeric_limits<_Tp>::max_exponent == 0x4000 &&
+		    numeric_limits<_Tp>::min_exponent == -0x3FFD &&
+		    _V::size() == 1)
+	{ // Seems like x87 fp80, where bit 63 is always 1 unless subnormal or
+	  // NaN. In this case the bit-tricks don't work, they require IEC559
+	  // binary32 or binary64 format.
+#ifdef __STDC_IEC_559__
+	  // fixup for Annex F requirements
+	  if (isinf(__absx[0]) || isinf(__absy[0]) || isinf(__absz[0]))
+	    return _Limits::infinity();
+	  else if (isunordered(__absx[0], __absy[0]+__absz[0]))
+	    return _Limits::quiet_NaN();
+	  else if (__l0[0] == 0 && __l1[0] == 0)
+	    return __hi;
+#endif
+	  _V            __hi_exp = __hi;
+	  const _ULLong __tmp    = 0x8000'0000'0000'0000ull;
+	  std::memcpy(&__hi_exp, &__tmp, 8);
+	  const _V __scale = 1 / __hi_exp;
+	  __hi *= __scale;
 	  __l0 *= __scale;
 	  __l1 *= __scale;
-	  const _V __lo =
-	    __l0 * __l0 + __l1 * __l1; // add the two smaller values first
-	  return __hi_exp * sqrt(__lo + __h1 * __h1);
+	  return __hi_exp * sqrt((__l0 * __l0 + __l1 * __l1) + __hi * __hi);
 	}
       else
 	{
-	  // slower path to support subnormals
-	  // if __hi is subnormal, avoid scaling by inf & final mul by 0 (which
-	  // yields NaN) by using min()
-	  _V __scale = _V(1 / _Limits::min());
-	  // invert exponent w/o error and w/o using the slow divider unit:
-	  // xor inverts the exponent but off by 1. Multiplication with .5
-	  // adjusts for the discrepancy.
-	  where(__hi >= _Limits::min(), __scale) =
-	    ((__hi & __inf) ^ __inf) * _Tp(.5);
-	  // adjust final exponent for subnormal inputs
-	  _V __hi_exp                             = _Limits::min();
-	  where(__hi >= _Limits::min(), __hi_exp) = __hi & __inf;   // no error
-	  _V __h1                                 = __hi * __scale; // no error
-	  __l0 *= __scale;                                          // no error
-	  __l1 *= __scale;                                          // no error
-	  _V __lo =
-	    __l0 * __l0 + __l1 * __l1; // add the two smaller values first
-	  _V __r = __hi_exp * sqrt(__lo + __h1 * __h1);
+	  // round __hi down to the next power-of-2:
+	  constexpr _V __inf(_Limits::infinity());
+
+	  if (_GLIBCXX_SIMD_IS_LIKELY(all_of(isnormal(__x)) &&
+				      all_of(isnormal(__y)) &&
+				      all_of(isnormal(__z))))
+	    {
+	      const _V __hi_exp = __hi & __inf;
+	      //((__hi + __hi) & __inf) ^ __inf almost works for computing
+	      //__scale, except when (__hi + __hi) & __inf == __inf, in which
+	      // case __scale
+	      // becomes 0 (should be min/2 instead) and thus loses the
+	      // information from __lo.
+	      const _V     __scale     = (__hi_exp ^ __inf) * _Tp(.5);
+	      constexpr _V __mant_mask = _Limits::min() - _Limits::denorm_min();
+	      const _V     __h1        = (__hi & __mant_mask) | _V(1);
+	      __l0 *= __scale;
+	      __l1 *= __scale;
+	      const _V __lo =
+		__l0 * __l0 + __l1 * __l1; // add the two smaller values first
+	      return __hi_exp * sqrt(__lo + __h1 * __h1);
+	    }
+	  else
+	    {
+	      // slower path to support subnormals
+	      // if __hi is subnormal, avoid scaling by inf & final mul by 0
+	      // (which yields NaN) by using min()
+	      _V __scale = _V(1 / _Limits::min());
+	      // invert exponent w/o error and w/o using the slow divider unit:
+	      // xor inverts the exponent but off by 1. Multiplication with .5
+	      // adjusts for the discrepancy.
+	      where(__hi >= _Limits::min(), __scale) =
+		((__hi & __inf) ^ __inf) * _Tp(.5);
+	      // adjust final exponent for subnormal inputs
+	      _V __hi_exp = _Limits::min();
+	      where(__hi >= _Limits::min(), __hi_exp) =
+		__hi & __inf;           // no error
+	      _V __h1 = __hi * __scale; // no error
+	      __l0 *= __scale;          // no error
+	      __l1 *= __scale;          // no error
+	      _V __lo =
+		__l0 * __l0 + __l1 * __l1; // add the two smaller values first
+	      _V __r = __hi_exp * sqrt(__lo + __h1 * __h1);
 #ifdef __STDC_IEC_559__
-	  // fixup for Annex F requirements
-	  _V __fixup = __hi; // __lo == 0
-	  // where(__lo == 0, __fixup)                   = __hi;
-	  where(isunordered(__x, __y + __z), __fixup) = _Limits::quiet_NaN();
-	  where(isinf(__absx) || isinf(__absy) || isinf(__absz), __fixup) =
-	    __inf;
-	  where(!(__lo == 0 || isunordered(__x, __y + __z) || isinf(__absx) ||
-		  isinf(__absy) || isinf(__absz)),
-		__fixup) = __r;
-	  __r            = __fixup;
+	      // fixup for Annex F requirements
+	      _V __fixup = __hi; // __lo == 0
+	      // where(__lo == 0, __fixup)                   = __hi;
+	      where(isunordered(__x, __y + __z), __fixup) =
+		_Limits::quiet_NaN();
+	      where(isinf(__absx) || isinf(__absy) || isinf(__absz), __fixup) =
+		__inf;
+	      where(!(__lo == 0 || isunordered(__x, __y + __z) ||
+		      isinf(__absx) || isinf(__absy) || isinf(__absz)),
+		    __fixup) = __r;
+	      __r            = __fixup;
 #endif
-	  return __r;
+	      return __r;
+	    }
 	}
     }
 }
