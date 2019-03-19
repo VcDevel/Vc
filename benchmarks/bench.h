@@ -50,12 +50,15 @@ Times bench_lat_thr(const char* id, const Times ref = {})
 {
     const double lat = benchmark<true, T>();
     const double thr = benchmark<false, T>();
-    std::cout << id << std::setprecision(3)
-        << std::setw(15) << lat
-        << std::setw(12) << (ref.lat > 0 ? ref.lat * size_v<T> / lat : 0.)
-        << std::setw(15) << thr
-        << std::setw(12) << (ref.thr > 0 ? ref.thr * size_v<T> / thr : 0.)
-        << std::endl;
+    std::cout << id << std::setprecision(3) << std::setw(15) << lat << std::setw(12);
+    if (ref.lat > 0)
+        std::cout << ref.lat * size_v<T> / lat;
+    else
+        std::cout << ' ';
+    std::cout << std::setw(15) << thr;
+    if (ref.lat > 0)
+        std::cout << std::setw(12) << ref.thr * size_v<T> / thr;
+    std::cout << std::endl;
     return {lat, thr};
 }
 
