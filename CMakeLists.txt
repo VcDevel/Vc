@@ -192,6 +192,7 @@ install(FILES
    Vc/SimdArray
    Vc/Utils
    Vc/Vc
+   Vc/algorithm
    Vc/array
    Vc/iterators
    Vc/limits
