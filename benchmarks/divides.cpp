@@ -29,21 +29,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 template <bool Latency, class T> double benchmark()
 {
-    T a = 23;
-    T b = 7;
-    return time_mean<50'000'000>([&]() {
-        if constexpr (sizeof(T) >= 16) {
-            asm volatile("" : "+x"(a), "+x"(b));
-        } else {
-            asm volatile("" : "+g"(a), "+g"(b));
-        }
+    T a = T() + 23;
+    T b = T() + 7;
+    return time_mean<10'000'000>([&]() {
+        fake_modify(a, b);
         T r = a / b;
         if constexpr (Latency)
             a = r;
-        else if constexpr (sizeof(T) >= 16)
-            asm volatile("" :: "x"(r));
         else
-            asm volatile("" :: "g"(r));
+            fake_read(r);
     });
 }
 
@@ -55,4 +49,8 @@ int main()
     bench_all<unsigned short>();
     bench_all<signed int>();
     bench_all<unsigned int>();
+    bench_all<signed long>();
+    bench_all<unsigned long>();
+    bench_all<float>();
+    bench_all<double>();
 }

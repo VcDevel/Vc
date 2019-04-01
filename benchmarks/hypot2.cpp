@@ -27,20 +27,23 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "bench.h"
 
+MAKE_VECTORMATH_OVERLOAD(hypot)
+
 template <bool Latency, class T> double benchmark()
 {
-    T a = 0x1.fe8222p-10f;
-    T b = 0x1.82a4bcp-9f;
+    T a = T() + 0x1.fe8222p-10f;
+    T b = T() + 0x1.82a4bcp-9f;
     // b = std::numeric_limits<T>::quiet_NaN();
     return time_mean<50'000'000>([&]() {
+        using ::hypot;
         using std::hypot;
         using std::experimental::hypot;
-        asm volatile("" : "+x"(a), "+x"(b));
+        fake_modify(a, b);
         T r = hypot(a, b);
         if constexpr (Latency)
             a = r;
         else
-            asm volatile("" ::"x"(r));
+            fake_read(r);
     });
 }
 

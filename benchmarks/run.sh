@@ -41,6 +41,14 @@ while (($# > 0)); do
             flags=(${flags[@]} -ffinite-math-only)
             shift
             ;;
+        -D)
+            flags=(${flags[@]} -D$2)
+            shift 2
+            ;;
+        -D*)
+            flags=(${flags[@]} $1)
+            shift
+            ;;
         *)
             arch_list="$arch_list $1"
             shift
@@ -54,9 +62,9 @@ turn_on
 for arch in ${arch_list}; do
   CXXFLAGS="-g0 -O2 -std=gnu++17 -march=$arch"
 
-  $CXX $CXXFLAGS ${flags[@]} ${name}.cpp -o ${name} && \
+  ccache $CXX $CXXFLAGS ${flags[@]} ${name}.cpp -o "$name-$arch" && \
     echo "-march=$arch $flags:" && \
-    sudo chrt --fifo 50 ./${name}
+    sudo chrt --fifo 50 ./"$name-$arch"
 done
 turn_off
 

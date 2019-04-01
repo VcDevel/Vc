@@ -32,7 +32,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 
 template <class T> struct size {
-  static inline constexpr int value = 1;
+    static inline constexpr int value_impl() {
+        if constexpr(std::experimental::__is_vector_type_v<T>)
+            return std::experimental::_VectorTraits<T>::_S_width;
+        else
+            return 1;
+    }
+    static inline constexpr int value = value_impl();
 };
 template <class T, class Abi> struct size<std::experimental::simd<T, Abi>> {
   static inline constexpr int value = std::experimental::simd_size_v<T, Abi>;
@@ -40,29 +46,53 @@ template <class T, class Abi> struct size<std::experimental::simd<T, Abi>> {
 template <class T> constexpr inline int size_v = size<T>::value;
 
 template <bool Latency, class T> double benchmark();
+template <bool Latency, class T, class> double benchmark();
+template <bool Latency, class T, class, class> double benchmark();
+template <bool Latency, class T, class, class, class> double benchmark();
 
 struct Times {
     double lat, thr;
+    constexpr operator bool() const { return true; }
 };
 
-template <class T, class = decltype(T())>
+template <class T, class... ExtraFlags, class = decltype(T())>
 Times bench_lat_thr(const char* id, const Times ref = {})
 {
-    const double lat = benchmark<true, T>();
-    const double thr = benchmark<false, T>();
-    std::cout << id << std::setprecision(3) << std::setw(15) << lat << std::setw(12);
-    if (ref.lat > 0)
-        std::cout << ref.lat * size_v<T> / lat;
-    else
-        std::cout << ' ';
+    static constexpr char red[] = "\033[1;40;31m";
+    static constexpr char green[] = "\033[1;40;32m";
+    static constexpr char normal[] = "\033[0m";
+
+    const double lat = benchmark<true, T, ExtraFlags...>();
+    const double thr = benchmark<false, T, ExtraFlags...>();
+    std::cout << id << std::setprecision(3) << std::setw(15) << lat;
+    if (ref.lat > 0) {
+        const double speedup = ref.lat * size_v<T> / lat;
+        if (speedup >= size_v<T> * 0.95 && speedup >= 1.5) {
+            std::cout << green;
+        }
+        if (speedup < 0.95) {
+            std::cout << red;
+        }
+        std::cout << std::setw(12) << speedup << normal;
+    } else {
+        std::cout << "            ";
+    }
     std::cout << std::setw(15) << thr;
-    if (ref.lat > 0)
-        std::cout << std::setw(12) << ref.thr * size_v<T> / thr;
+    if (ref.lat > 0) {
+        const double speedup = ref.thr * size_v<T> / thr;
+        if (speedup >= size_v<T> * 0.95 && speedup >= 1.5) {
+            std::cout << green;
+        }
+        if (speedup < 0.95) {
+            std::cout << red;
+        }
+        std::cout << std::setw(12) << speedup << normal;
+    }
     std::cout << std::endl;
     return {lat, thr};
 }
 
-template <class> void bench_lat_thr(...) {}
+template <class, class...> bool bench_lat_thr(...) { return false; }
 
 template <std::size_t N> using cstr = char[N];
 
@@ -85,64 +115,139 @@ void print_header(const cstr<N> &id_name)
         << std::setw(12) << "" << '\n';
 }
 
-template <class T> void bench_all()
+template <class T, class... ExtraFlags> void bench_all()
 {
     using namespace std::experimental::simd_abi;
     using std::experimental::simd;
-    constexpr std::size_t N = 23;
+    constexpr std::size_t N = 8 + 18 + (1 + ... + sizeof(ExtraFlags::name));
     char id[N];
-    std::strncpy(id, "                  TYPE", N);
-    print_header(id);
     std::memset(id, ' ', N - 1);
+    id[N - 1] = '\0';
+    std::strncpy(id + 18, "TYPE", 4);
+    print_header(id);
+    std::strncpy(id + 18, "    ", 4);
+    char* const typestr = id;
+    char* const abistr  = id + 8;
+    id[6]         = ',';
+    char* extraflags = id + 8 + 18;
     if constexpr (std::is_same_v<T, float>) {
-        std::strncpy(id + 5, " float", 6);
+        std::strncpy(typestr, " float", 6);
     } else if constexpr (std::is_same_v<T, double>) {
-        std::strncpy(id + 5, "double", 6);
+        std::strncpy(typestr, "double", 6);
     } else if constexpr (std::is_same_v<T, long double>) {
-        std::strncpy(id + 5, "ldoubl", 6);
+        std::strncpy(typestr, "ldoubl", 6);
+    } else if constexpr (std::is_same_v<T, long long>) {
+        std::strncpy(typestr, " llong", 6);
+    } else if constexpr (std::is_same_v<T, unsigned long long>) {
+        std::strncpy(typestr, "ullong", 6);
+    } else if constexpr (std::is_same_v<T, long>) {
+        std::strncpy(typestr, "  long", 6);
+    } else if constexpr (std::is_same_v<T, unsigned long>) {
+        std::strncpy(typestr, " ulong", 6);
     } else if constexpr (std::is_same_v<T, int>) {
-        std::strncpy(id + 5, "   int", 6);
+        std::strncpy(typestr, "   int", 6);
     } else if constexpr (std::is_same_v<T, unsigned>) {
-        std::strncpy(id + 5, "  uint", 6);
+        std::strncpy(typestr, "  uint", 6);
     } else if constexpr (std::is_same_v<T, short>) {
-        std::strncpy(id + 5, " short", 6);
+        std::strncpy(typestr, " short", 6);
     } else if constexpr (std::is_same_v<T, unsigned short>) {
-        std::strncpy(id + 5, "ushort", 6);
+        std::strncpy(typestr, "ushort", 6);
     } else if constexpr (std::is_same_v<T, char>) {
-        std::strncpy(id + 5, "  char", 6);
+        std::strncpy(typestr, "  char", 6);
     } else if constexpr (std::is_same_v<T, signed char>) {
-        std::strncpy(id + 5, " schar", 6);
+        std::strncpy(typestr, " schar", 6);
     } else if constexpr (std::is_same_v<T, unsigned char>) {
-        std::strncpy(id + 5, " uchar", 6);
+        std::strncpy(typestr, " uchar", 6);
     } else {
-        std::strncpy(id + 5, "??????", 6);
+        std::strncpy(typestr, "??????", 6);
     }
-    const auto ref = bench_lat_thr<T>(id);
-    std::strncpy(id, "simd<", 5);
-    std::strncpy(id + 11, ",   scalar>", 11);
-    bench_lat_thr<simd<T, scalar>>(id, ref);
-    std::strncpy(id + 13, "   __sse>", 9);
-    bench_lat_thr<simd<T, __sse>>(id, ref);
-    std::strncpy(id + 13, "   __avx>", 9);
-    bench_lat_thr<simd<T, __avx>>(id, ref);
-    std::strncpy(id + 13, "__avx512>", 9);
-    bench_lat_thr<simd<T, __avx512>>(id, ref);
+    {
+        [&](const std::initializer_list<int>&) {}({[&]() {
+            std::strncpy(extraflags, ExtraFlags::name, sizeof(ExtraFlags::name) - 1);
+            extraflags += sizeof(ExtraFlags::name);
+            return 0;
+        }()...});
+    }
+    const auto ref = bench_lat_thr<T, ExtraFlags...>(id);
+    std::strncpy(abistr, "simd_abi::scalar  ", 18);
+    bench_lat_thr<simd<T, scalar>, ExtraFlags...>(id, ref);
+    std::strncpy(abistr, "simd_abi::__sse   ", 18);
+    if (bench_lat_thr<simd<T, __sse>, ExtraFlags...>(id, ref)) {
+        using V [[gnu::vector_size(16)]] = T;
+        if constexpr (alignof(V) == sizeof(V)) {
+            std::strncpy(abistr, "vector_size(16)   ", 18);
+            bench_lat_thr<V, ExtraFlags...>(id, ref);
+        }
+    }
+    std::strncpy(abistr, "simd_abi::__avx   ", 18);
+    if (bench_lat_thr<simd<T, __avx>, ExtraFlags...>(id, ref)) {
+        using V [[gnu::vector_size(32)]] = T;
+        if constexpr (alignof(V) == sizeof(V)) {
+            std::strncpy(abistr, "vector_size(32)   ", 18);
+            bench_lat_thr<V, ExtraFlags...>(id, ref);
+        }
+    }
+    std::strncpy(abistr, "simd_abi::__avx512", 18);
+    if (bench_lat_thr<simd<T, __avx512>, ExtraFlags...>(id, ref)) {
+        using V [[gnu::vector_size(64)]] = T;
+        if constexpr (alignof(V) == sizeof(V)) {
+            std::strncpy(abistr, "vector_size(64)   ", 18);
+            bench_lat_thr<V, ExtraFlags...>(id, ref);
+        }
+    }
     char sep[N + 2 * 15 + 2 * 12];
     std::memset(sep, '-', sizeof(sep) - 1);
     sep[sizeof(sep) - 1] = '\0';
     std::cout << sep << std::endl;
 }
 
-template <long Iterations, class F> double time_mean(F&& fun)
+template <long Iterations, class F, class... Args>
+double time_mean(F&& fun, Args&&... args)
 {
     unsigned int tmp;
+    long i = Iterations;
     const auto start = __rdtscp(&tmp);
-    for (int i = 0; i < Iterations; ++i) {
-        fun();
+    for (; i; --i) {
+        fun(std::forward<Args>(args)...);
     }
     const auto end       = __rdtscp(&tmp);
     const double elapsed = end - start;
     return elapsed / Iterations;
 }
+
+template <typename T, typename... Ts> void fake_modify(T& x, Ts&... more)
+{
+    if constexpr (sizeof(T) >= 16 || std::is_floating_point_v<T>) {
+        asm volatile("" : "+x"(x));
+    } else {
+        asm volatile("" : "+g"(x));
+    }
+    if constexpr (sizeof...(Ts) > 0) {
+        fake_modify(more...);
+    }
+}
+
+template <typename T, typename... Ts> void fake_read(const T& x, const Ts&... more)
+{
+    if constexpr (sizeof(T) >= 16 || std::is_floating_point_v<T>) {
+        asm volatile("" ::"x"(x));
+    } else {
+        asm volatile("" ::"g"(x));
+    }
+    if constexpr (sizeof...(Ts) > 0) {
+        fake_read(more...);
+    }
+}
+
+#define MAKE_VECTORMATH_OVERLOAD(name)                                                   \
+    template <class T, class... More, class VT = std::experimental::_VectorTraits<T>>    \
+    T hypot(T a, More... more)                                                           \
+    {                                                                                    \
+        T r;                                                                             \
+        for (int i = 0; i < VT::_S_width; ++i) {                                         \
+            r[i] = std::hypot(a[i], more[i]...);                                         \
+        }                                                                                \
+        return r;                                                                        \
+    }
 
 #endif  // VC_BENCHMARKS_BENCH_H_
