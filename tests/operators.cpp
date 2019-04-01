@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2017 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2019 Matthias Kretz <kretz@kde.org>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -33,6 +33,31 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 template <class... Ts> using base_template = std::experimental::simd<Ts...>;
 #include "testtypes.h"
 
+// make_value_unknown {{{1
+template <class T> T make_value_unknown(const T& x)
+{
+    if constexpr (std::is_constructible_v<T, const volatile T&>) {
+        const volatile T& y = x;
+        return y;
+    } else {
+        T y = x;
+        asm("" : "+m"(y));
+        return y;
+    }
+}
+
+// for_constexpr {{{1
+template <typename T, T Begin, T End, T Stride = 1, typename F>
+void for_constexpr(F&& fun)
+{
+    if constexpr (Begin <= End) {
+        fun(std::integral_constant<T, Begin>());
+        if constexpr (Begin < End) {
+            for_constexpr<T, Begin + Stride, End, Stride>(std::forward<F>(fun));
+        }
+    }
+}
+
 //operators helpers  //{{{1
 template <class T> constexpr T genHalfBits()
 {
@@ -48,6 +73,9 @@ std::enable_if_t<std::is_integral<typename V::value_type>::value, void>
 integral_operators()
 {
     using T = typename V::value_type;
+    constexpr int nbits(sizeof(T) * CHAR_BIT);
+    constexpr int n_promo_bits = std::max(nbits, int(sizeof(int) * CHAR_BIT));
+
     {  // complement{{{2
         COMPARE(~V(), V(~T()));
         COMPARE(~V(~T()), V());
@@ -109,13 +137,30 @@ integral_operators()
     }
 
     {  // bit_shift_left{{{2
-        COMPARE(V() << 1, V());
         // Note:
-        // - negative RHS or RHS >= #bits is UB
+        // - negative RHS or RHS >= max(#bits(T), #bits(int)) is UB
         // - negative LHS is UB
         // - shifting into (or over) the sign bit is UB
         // - unsigned LHS overflow is modulo arithmetic
-        constexpr int nbits(sizeof(T) * CHAR_BIT);
+        COMPARE(V() << 1, V());
+        for (int i = 0; i < nbits - 1; ++i) {
+            COMPARE(V(1) << i, V(T(1) << i)) << "i: " << i;
+        }
+        for_constexpr<int, 0, n_promo_bits - 1>([](auto shift_ic) {
+            constexpr int shift = shift_ic;
+            const V seq         = make_value_unknown(V([&](T i) {
+                if constexpr (std::is_signed_v<T>) {
+                    const T max = std::numeric_limits<T>::max() >> shift;
+                    return max == 0 ? 1 : (std::abs(max - i) % max) + 1;
+                } else {
+                    return ~T() - i;
+                }
+            }));
+            const V ref([&](T i) { return T(seq[i] << shift); });
+            COMPARE(seq << shift, ref) << "seq: " << seq << ", shift: " << shift;
+            COMPARE(seq << make_value_unknown(shift), ref)
+                << "seq: " << seq << ", shift: " << shift;
+        });
         {
             V seq = make_vec<V>({0, 1}, nbits - 2);
             seq %= nbits - 1;
@@ -125,9 +170,6 @@ integral_operators()
             COMPARE(make_vec<V>({1, 0}, 0) << seq,
                     V([&](auto i) { return T(T(~i & 1) << seq[i]); }));
             COMPARE(V(1) << seq, V([&](auto i) { return T(T(1) << seq[i]); }));
-        }
-        for (int i = 0; i < nbits - 1; ++i) {
-            COMPARE(V(1) << i, V(T(1) << i));
         }
         if (std::is_unsigned<T>::value) {
             constexpr int shift_count = nbits - 1;
@@ -139,7 +181,6 @@ integral_operators()
     }
 
     {  // bit_shift_right{{{2
-        constexpr int nbits(sizeof(T) * CHAR_BIT);
         // Note:
         // - negative LHS is implementation defined
         // - negative RHS or RHS >= #bits is UB
