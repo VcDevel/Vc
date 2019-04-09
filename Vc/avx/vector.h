@@ -94,7 +94,14 @@ public:
         static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
         static constexpr size_t MemoryAlignment = alignof(VectorType);
     using IndexType = fixed_size_simd<int, Size>;
+#if defined __WIN64__ && defined __GNUC__
+        // Passing Vector by value leads to misaligned loads and stores. This works around
+        // the bug
+        using AsArg = const Vector<T, abi> &;
+#else
         typedef Vector<T, abi> AsArg;
+#endif
+
         typedef VectorType VectorTypeArg;
 
     protected:
