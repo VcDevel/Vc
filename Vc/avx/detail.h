@@ -1319,6 +1319,13 @@ template <> Vc_INTRINSIC Vc_CONST int mask_to_int<16>(__m256i k)
 {
     return _pext_u32(movemask(k), 0x55555555u);
 }
+#else
+template <> Vc_INTRINSIC Vc_CONST int mask_to_int<16>(__m256i k)
+{
+    int upper = movemask(AVX::avx_cast<__m256>(k)) << 8;
+    int lower = movemask(AVX::avx_cast<__m256>(_mm256_slli_epi32(k,16)));
+    return upper | lower;
+}
 #endif
 template <> Vc_INTRINSIC Vc_CONST int mask_to_int<32>(__m256i k)
 {
