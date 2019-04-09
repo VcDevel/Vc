@@ -514,6 +514,15 @@ static Vc_INTRINSIC void _mm256_maskstore(unsigned short *mem, const __m256i mas
     _mm256_maskstore(reinterpret_cast<short *>(mem), mask, v);
 }
 
+static Vc_INTRINSIC void _mm256_maskstore(char *mem, const __m256i mask, const __m256i v) {
+    _mm256_maskstore(reinterpret_cast<short *>(mem), mask, v);
+}
+
+static Vc_INTRINSIC void _mm256_maskstore(unsigned char *mem, const __m256i mask, const __m256i v) {
+    _mm256_maskstore(reinterpret_cast<short *>(mem), mask, v);
+}
+
+
 #undef Vc_AVX_TO_SSE_1
 #undef Vc_AVX_TO_SSE_1_128
 #undef Vc_AVX_TO_SSE_2_NEW
