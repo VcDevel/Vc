@@ -454,6 +454,9 @@ static Vc_INTRINSIC m256i cmplt_epi8(__m256i a, __m256i b) {
 static Vc_INTRINSIC m256i cmpgt_epu8(__m256i a, __m256i b) {
     return cmpgt_epi8(xor_si256(a, setmin_epi8()), xor_si256(b, setmin_epi8()));
 }
+static Vc_INTRINSIC m256i cmplt_epu8(__m256i a, __m256i b) {
+    return cmpgt_epu8(b, a);
+}
 #if defined(Vc_IMPL_XOP)
     Vc_AVX_TO_SSE_2_NEW(comlt_epu32)
     Vc_AVX_TO_SSE_2_NEW(comgt_epu32)
