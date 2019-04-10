@@ -355,11 +355,14 @@ namespace AvxIntrinsics
     Vc_AVX_TO_SSE_2_NEW(cmpgt_epi64)
     Vc_AVX_TO_SSE_2_NEW(unpackhi_epi16)
     Vc_AVX_TO_SSE_2_NEW(unpacklo_epi16)
+    Vc_AVX_TO_SSE_2_NEW(add_epi8)
     Vc_AVX_TO_SSE_2_NEW(add_epi16)
     Vc_AVX_TO_SSE_2_NEW(add_epi32)
     Vc_AVX_TO_SSE_2_NEW(add_epi64)
+    Vc_AVX_TO_SSE_2_NEW(sub_epi8)
     Vc_AVX_TO_SSE_2_NEW(sub_epi16)
     Vc_AVX_TO_SSE_2_NEW(sub_epi32)
+    Vc_AVX_TO_SSE_2_NEW(sub_epi64)
     Vc_AVX_TO_SSE_2_NEW(mullo_epi16)
     Vc_AVX_TO_SSE_2_NEW(sign_epi16)
     Vc_AVX_TO_SSE_2_NEW(sign_epi32)
@@ -518,8 +521,9 @@ static Vc_INTRINSIC void _mm256_maskstore(unsigned int *mem, const __m256i mask,
 }
 static Vc_INTRINSIC void _mm256_maskstore(short *mem, const __m256i mask, const __m256i v) {
     using namespace AVX;
-    _mm_maskmoveu_si128(extract128<0>(v), extract128<0>(mask), reinterpret_cast<char *>(&mem[0]));
-    _mm_maskmoveu_si128(extract128<1>(v), extract128<1>(mask), reinterpret_cast<char *>(&mem[8]));
+    __m256i tmp = _mm256_loadu_si256(reinterpret_cast<__m256i *>(mem));
+    tmp = _mm256_blendv_epi8(tmp, v, mask);
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(mem), tmp);
 }
 static Vc_INTRINSIC void _mm256_maskstore(unsigned short *mem, const __m256i mask, const __m256i v) {
     _mm256_maskstore(reinterpret_cast<short *>(mem), mask, v);
