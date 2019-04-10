@@ -50,46 +50,46 @@ _GLIBCXX_SIMD_BEGIN_NAMESPACE
 namespace simd_abi  // {{{
 {
 // implementation details:
-struct __scalar_abi;
-template <int _N> struct __fixed_abi;
+struct _ScalarAbi;
+template <int _N> struct _FixedAbi;
 
-template <int Bytes = 16> struct __sse_abi;
-template <int Bytes = 32> struct __avx_abi;
-template <int Bytes = 64> struct __avx512_abi;
-template <int Bytes = 16> struct __neon_abi;
+template <int _Bytes = 16> struct _SseAbi;
+template <int _Bytes = 32> struct _AvxAbi;
+template <int _Bytes = 64> struct _Avx512Abi;
+template <int _Bytes = 16> struct _NeonAbi;
 
-template <int _N, class Abi> struct __combine;
+template <int _N, class _Abi> struct _CombineAbi;
 
 // implementation-defined:
-template <int NRegisters> using __sse_x = __combine<NRegisters, __sse_abi<>>;
-template <int NRegisters> using __avx_x = __combine<NRegisters, __avx_abi<>>;
-template <int NRegisters> using __avx512_x = __combine<NRegisters, __avx512_abi<>>;
-template <int NRegisters> using __neon_x = __combine<NRegisters, __neon_abi<>>;
+template <int _NRegisters> using __sse_x = _CombineAbi<_NRegisters, _SseAbi<>>;
+template <int _NRegisters> using __avx_x = _CombineAbi<_NRegisters, _AvxAbi<>>;
+template <int _NRegisters> using __avx512_x = _CombineAbi<_NRegisters, _Avx512Abi<>>;
+template <int _NRegisters> using __neon_x = _CombineAbi<_NRegisters, _NeonAbi<>>;
 
-template <class _Tp, int _N> using __sse_n = __sse_abi<sizeof(_Tp) * _N>;
-template <class _Tp, int _N> using __avx_n = __avx_abi<sizeof(_Tp) * _N>;
-template <class _Tp, int _N> using __avx512_n = __avx512_abi<sizeof(_Tp) * _N>;
-template <class _Tp, int _N> using __neon_n = __neon_abi<sizeof(_Tp) * _N>;
+template <class _Tp, int _N> using __sse_n = _SseAbi<sizeof(_Tp) * _N>;
+template <class _Tp, int _N> using __avx_n = _AvxAbi<sizeof(_Tp) * _N>;
+template <class _Tp, int _N> using __avx512_n = _Avx512Abi<sizeof(_Tp) * _N>;
+template <class _Tp, int _N> using __neon_n = _NeonAbi<sizeof(_Tp) * _N>;
 
-using __sse = __sse_abi<>;
-using __avx = __avx_abi<>;
-using __avx512 = __avx512_abi<>;
-using __neon = __neon_abi<>;
+using __sse = _SseAbi<>;
+using __avx = _AvxAbi<>;
+using __avx512 = _Avx512Abi<>;
+using __neon = _NeonAbi<>;
 
-using __neon128 = __neon_abi<16>;
-using __neon64 = __neon_abi<8>;
+using __neon128 = _NeonAbi<16>;
+using __neon64 = _NeonAbi<8>;
 
 // standard:
 template <class _Tp, size_t _N, class... > struct deduce;
-template <int _N> using fixed_size = __fixed_abi<_N>;
-using scalar = __scalar_abi;
+template <int _N> using fixed_size = _FixedAbi<_N>;
+using scalar = _ScalarAbi;
 }  // namespace simd_abi }}}
 // forward declarations is_simd(_mask), simd(_mask), simd_size {{{
 template <class _Tp> struct is_simd;
 template <class _Tp> struct is_simd_mask;
-template <class _Tp, class Abi> class simd;
-template <class _Tp, class Abi> class simd_mask;
-template <class _Tp, class Abi> struct simd_size;
+template <class _Tp, class _Abi> class simd;
+template <class _Tp, class _Abi> class simd_mask;
+template <class _Tp, class _Abi> struct simd_size;
 // }}}
 
 // On Windows (WIN32) we might see macros called min and max. Just undefine them and hope

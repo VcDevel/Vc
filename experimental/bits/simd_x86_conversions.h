@@ -32,12 +32,12 @@
 
 // work around PR85827
 // 1-arg __convert_x86 {{{1
-template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __convert_x86(_V __vv)
+template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __convert_x86(_V __v)
 {
+    static_assert(__is_vector_type_v<_V>);
     using _Tp = typename _Traits::value_type;
     constexpr size_t _N = _Traits::_S_width;
-    [[maybe_unused]] const auto __intrin = __to_intrin(__vv);
-    _SimdWrapper<_Tp, _N> __v(__vv);
+    [[maybe_unused]] const auto __intrin = __to_intrin(__v);
     using _U = typename _VectorTraits<_To>::value_type;
     constexpr size_t _M = _VectorTraits<_To>::_S_width;
 
@@ -116,7 +116,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                   sizeof(_Tp) == sizeof(_U)) {
         // conversion uses simple bit reinterpretation (or no conversion at all)
         if constexpr (_N >= _M) {
-            return __intrin_bitcast<_To>(__vv);
+            return __intrin_bitcast<_To>(__v);
         } else {
             return __zero_extend(__vector_bitcast<_U>(__v));
         }
@@ -130,11 +130,11 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         if constexpr (__x_to_x && __have_avx512vl) {
             return __intrin_bitcast<_To>(_mm_cvtepi64_epi32(__intrin));
         } else if constexpr (__x_to_x) {
-            return __auto_bitcast(_mm_shuffle_ps(__vector_bitcast<float>(__vv), __m128(), 8));
+            return __auto_bitcast(_mm_shuffle_ps(__vector_bitcast<float>(__v), __m128(), 8));
         } else if constexpr (__y_to_x && __have_avx512vl) {
             return __intrin_bitcast<_To>(_mm256_cvtepi64_epi32(__intrin));
         } else if constexpr (__y_to_x && __have_avx512f) {
-            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi64_epi32(__auto_bitcast(__vv))));
+            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi64_epi32(__auto_bitcast(__v))));
         } else if constexpr (__y_to_x) {
             return __intrin_bitcast<_To>(__lo128(_mm256_permute4x64_epi64(_mm256_shuffle_epi32(__intrin, 8), 0 + 4 * 2)));
         } else if constexpr (__z_to_y) {
@@ -376,21 +376,21 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     } else if constexpr (__f32_to_u32) {  //{{{2
         // the __builtin_constant_p hack enables constant propagation
         if constexpr (__have_avx512vl && __x_to_x) {
-            const __vector_type_t<float, 4> __x = __v._M_data;
+            const __vector_type_t<float, 4> __x = __v;
             return __builtin_constant_p(__x) ? __make_vector<_U>(__x[0], __x[1], __x[2], __x[3])
                                            : __vector_bitcast<_U>(_mm_cvttps_epu32(__intrin));
         } else if constexpr (__have_avx512f && __x_to_x) {
-            const __vector_type_t<float, 4> __x = __v._M_data;
+            const __vector_type_t<float, 4> __x = __v;
             return __builtin_constant_p(__x)
                        ? __make_vector<_U>(__x[0], __x[1], __x[2], __x[3])
                        : __vector_bitcast<_U>(__lo128(_mm512_cvttps_epu32(__auto_bitcast(__v))));
         } else if constexpr (__have_avx512vl && __y_to_y) {
-            const __vector_type_t<float, 8> __x = __v._M_data;
+            const __vector_type_t<float, 8> __x = __v;
             return __builtin_constant_p(__x) ? __make_vector<_U>(__x[0], __x[1], __x[2], __x[3],
                                                                 __x[4], __x[5], __x[6], __x[7])
                                            : __vector_bitcast<_U>(_mm256_cvttps_epu32(__intrin));
         } else if constexpr (__have_avx512f && __y_to_y) {
-            const __vector_type_t<float, 8> __x = __v._M_data;
+            const __vector_type_t<float, 8> __x = __v;
             return __builtin_constant_p(__x)
                        ? __make_vector<_U>(__x[0], __x[1], __x[2], __x[3], __x[4], __x[5], __x[6],
                                             __x[7])
@@ -481,16 +481,16 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             return __intrin_bitcast<_To>(__lo128(_mm512_cvtepu32_ps(__auto_bitcast(__v))));
         } else if constexpr(__x_to_x && (__have_fma || __have_fma4)) {
             // work around PR85819
-            return 0x10000 * _mm_cvtepi32_ps(__to_intrin(__vv >> 16)) +
-                   _mm_cvtepi32_ps(__to_intrin(__vv & 0xffff));
+            return 0x10000 * _mm_cvtepi32_ps(__to_intrin(__v >> 16)) +
+                   _mm_cvtepi32_ps(__to_intrin(__v & 0xffff));
         } else if constexpr(__y_to_y && __have_avx512vl) {
             // use fallback
         } else if constexpr(__y_to_y && __have_avx512f) {
             return __intrin_bitcast<_To>(__lo256(_mm512_cvtepu32_ps(__auto_bitcast(__v))));
         } else if constexpr(__y_to_y) {
             // work around PR85819
-            return 0x10000 * _mm256_cvtepi32_ps(__to_intrin(__vv >> 16)) +
-                   _mm256_cvtepi32_ps(__to_intrin(__vv & 0xffff));
+            return 0x10000 * _mm256_cvtepi32_ps(__to_intrin(__v >> 16)) +
+                   _mm256_cvtepi32_ps(__to_intrin(__v & 0xffff));
         } // else use fallback (builtin conversion)
     } else if constexpr (__ibw_to_f32) {  //{{{2
         if constexpr (_M == 4 || __have_avx2) {
@@ -531,7 +531,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             return __intrin_bitcast<_To>(_mm512_cvtepi64_pd(__intrin));
         } else if constexpr (__z_to_z) {
             return __intrin_bitcast<_To>(
-                _mm512_cvtepi32_pd(_mm512_cvtepi64_epi32(__to_intrin(__vv._M_data >> 32))) *
+                _mm512_cvtepi32_pd(_mm512_cvtepi64_epi32(__to_intrin(__v >> 32))) *
                     0x100000000LL +
                 _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(__intrin)));
         }
@@ -544,7 +544,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             return __intrin_bitcast<_To>(_mm512_cvtepu64_pd(__intrin));
         } else if constexpr (__z_to_z) {
             return __intrin_bitcast<_To>(
-                _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(__to_intrin(__vv >> 32))) *
+                _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(__to_intrin(__v >> 32))) *
                     0x100000000LL +
                 _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(__intrin)));
         }
@@ -562,13 +562,13 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         } else if constexpr (__x_to_x && __have_avx512f) {
             return __intrin_bitcast<_To>(__lo128(_mm512_cvtepu32_pd(__auto_bitcast(__v))));
         } else if constexpr (__x_to_x) {
-            return __intrin_bitcast<_To>(_mm_cvtepi32_pd(__to_intrin(__vv ^ 0x8000'0000u)) + 0x8000'0000u);
+            return __intrin_bitcast<_To>(_mm_cvtepi32_pd(__to_intrin(__v ^ 0x8000'0000u)) + 0x8000'0000u);
         } else if constexpr (__x_to_y && __have_avx512vl) {
             return __intrin_bitcast<_To>(_mm256_cvtepu32_pd(__intrin));
         } else if constexpr (__x_to_y && __have_avx512f) {
             return __intrin_bitcast<_To>(__lo256(_mm512_cvtepu32_pd(__auto_bitcast(__v))));
         } else if constexpr (__x_to_y) {
-            return __intrin_bitcast<_To>(_mm256_cvtepi32_pd(__to_intrin(__vv ^ 0x8000'0000u)) + 0x8000'0000u);
+            return __intrin_bitcast<_To>(_mm256_cvtepi32_pd(__to_intrin(__v ^ 0x8000'0000u)) + 0x8000'0000u);
         } else if constexpr (__y_to_z) {
             return __intrin_bitcast<_To>(_mm512_cvtepu32_pd(__intrin));
         }
@@ -595,18 +595,17 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     }
 
     // fallback:{{{2
-    return __vector_convert<_To>(__vv, make_index_sequence<std::min(_M, _N)>());
+    return __vector_convert<_To>(__v, make_index_sequence<std::min(_M, _N)>());
     //}}}
 } // }}}
 // 2-arg __convert_x86 {{{1
-template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __convert_x86(_V __vv0, _V __vv1)
+template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __convert_x86(_V __v0, _V __v1)
 {
+    static_assert(__is_vector_type_v<_V>);
     using _Tp = typename _Traits::value_type;
     constexpr size_t _N = _Traits::_S_width;
-    _SimdWrapper<_Tp, _N> __v0(__vv0);
-    _SimdWrapper<_Tp, _N> __v1(__vv1);
-    [[maybe_unused]] const auto __i0 = __to_intrin(__vv0);
-    [[maybe_unused]] const auto __i1 = __to_intrin(__vv1);
+    [[maybe_unused]] const auto __i0 = __to_intrin(__v0);
+    [[maybe_unused]] const auto __i1 = __to_intrin(__v1);
     using _U = typename _VectorTraits<_To>::value_type;
     constexpr size_t _M = _VectorTraits<_To>::_S_width;
 
@@ -773,7 +772,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                                                        7, 10, 11, 14, 15)));
                 } else if constexpr (__have_ssse3) {
                     return __intrin_bitcast<_To>(
-                        _mm_hadd_epi16(__to_intrin(__vv0 << 16), __to_intrin(__vv1 << 16)));
+                        _mm_hadd_epi16(__to_intrin(__v0 << 16), __to_intrin(__v1 << 16)));
                     /*
                     return _mm_unpacklo_epi64(
                         _mm_shuffle_epi8(__i0, _mm_setr_epi8(0, 1, 4, 5, 8, 9, 12, 13, 8, 9,
@@ -866,8 +865,8 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                                                             _mm512_cvtepu64_ps(__i1));
             } else if constexpr (__z_to_z && std::is_signed_v<_Tp>) {
                 const __m512 __hi32 = _mm512_cvtepi32_ps(
-                    __concat(_mm512_cvtepi64_epi32(__to_intrin(__vv0 >> 32)),
-                                   _mm512_cvtepi64_epi32(__to_intrin(__vv1 >> 32))));
+                    __concat(_mm512_cvtepi64_epi32(__to_intrin(__v0 >> 32)),
+                                   _mm512_cvtepi64_epi32(__to_intrin(__v1 >> 32))));
                 const __m512i __lo32 =
                     __concat(_mm512_cvtepi64_epi32(__i0), _mm512_cvtepi64_epi32(__i1));
                 // split low 32-bits, because if __hi32 is a small negative number, the
@@ -943,23 +942,20 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 __assert_unreachable<_Tp>();
             }
         } else {
-            return __vector_convert<_To>(__vv0, __vv1, make_index_sequence<_N>());
+            return __vector_convert<_To>(__v0, __v1, make_index_sequence<_N>());
         }  //}}}
     }
 }//}}}1
 // 4-arg __convert_x86 {{{1
-template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __convert_x86(_V __vv0, _V __vv1,_V __vv2,_V __vv3)
+template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __convert_x86(_V __v0, _V __v1,_V __v2,_V __v3)
 {
+    static_assert(__is_vector_type_v<_V>);
     using _Tp = typename _Traits::value_type;
     constexpr size_t _N = _Traits::_S_width;
-    _SimdWrapper<_Tp, _N> __v0(__vv0);
-    _SimdWrapper<_Tp, _N> __v1(__vv1);
-    _SimdWrapper<_Tp, _N> __v2(__vv2);
-    _SimdWrapper<_Tp, _N> __v3(__vv3);
-    [[maybe_unused]] const auto __i0 = __to_intrin(__vv0);
-    [[maybe_unused]] const auto __i1 = __to_intrin(__vv1);
-    [[maybe_unused]] const auto __i2 = __to_intrin(__vv2);
-    [[maybe_unused]] const auto __i3 = __to_intrin(__vv3);
+    [[maybe_unused]] const auto __i0 = __to_intrin(__v0);
+    [[maybe_unused]] const auto __i1 = __to_intrin(__v1);
+    [[maybe_unused]] const auto __i2 = __to_intrin(__v2);
+    [[maybe_unused]] const auto __i3 = __to_intrin(__v3);
     using _U = typename _VectorTraits<_To>::value_type;
     constexpr size_t _M = _VectorTraits<_To>::_S_width;
 
@@ -1108,10 +1104,10 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         } else if constexpr (__i32_to_i8) {  //{{{2
             if constexpr (__x_to_x) {
                 if constexpr (__have_ssse3) {
-                    const auto __x0 =  __vector_bitcast<_UInt>(__v0._M_data) & 0xff;
-                    const auto __x1 = (__vector_bitcast<_UInt>(__v1._M_data) & 0xff) << 8;
-                    const auto __x2 = (__vector_bitcast<_UInt>(__v2._M_data) & 0xff) << 16;
-                    const auto __x3 =  __vector_bitcast<_UInt>(__v3._M_data)         << 24;
+                    const auto __x0 =  __vector_bitcast<_UInt>(__v0) & 0xff;
+                    const auto __x1 = (__vector_bitcast<_UInt>(__v1) & 0xff) << 8;
+                    const auto __x2 = (__vector_bitcast<_UInt>(__v2) & 0xff) << 16;
+                    const auto __x3 =  __vector_bitcast<_UInt>(__v3)         << 24;
                     return __intrin_bitcast<_To>(
                         _mm_shuffle_epi8(__to_intrin(__x0 | __x1 | __x2 | __x3),
                                          _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10,
@@ -1202,32 +1198,25 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 __assert_unreachable<_Tp>();
             }
         } else {
-            return __vector_convert<_To>(__v0._M_data, __v1._M_data, __v2._M_data, __v3._M_data,
+            return __vector_convert<_To>(__v0, __v1, __v2, __v3,
                                          make_index_sequence<_N>());
         }  //}}}2
     }
 }//}}}
 // 8-arg __convert_x86 {{{1
-template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __convert_x86(_V __vv0, _V __vv1,_V __vv2,_V __vv3,_V __vv4,_V __vv5, _V __vv6, _V __vv7)
+template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __convert_x86(_V __v0, _V __v1,_V __v2,_V __v3,_V __v4,_V __v5, _V __v6, _V __v7)
 {
+    static_assert(__is_vector_type_v<_V>);
     using _Tp = typename _Traits::value_type;
     constexpr size_t _N = _Traits::_S_width;
-    _SimdWrapper<_Tp, _N> __v0(__vv0);
-    _SimdWrapper<_Tp, _N> __v1(__vv1);
-    _SimdWrapper<_Tp, _N> __v2(__vv2);
-    _SimdWrapper<_Tp, _N> __v3(__vv3);
-    _SimdWrapper<_Tp, _N> __v4(__vv4);
-    _SimdWrapper<_Tp, _N> __v5(__vv5);
-    _SimdWrapper<_Tp, _N> __v6(__vv6);
-    _SimdWrapper<_Tp, _N> __v7(__vv7);
-    [[maybe_unused]] const auto __i0 = __to_intrin(__vv0);
-    [[maybe_unused]] const auto __i1 = __to_intrin(__vv1);
-    [[maybe_unused]] const auto __i2 = __to_intrin(__vv2);
-    [[maybe_unused]] const auto __i3 = __to_intrin(__vv3);
-    [[maybe_unused]] const auto __i4 = __to_intrin(__vv4);
-    [[maybe_unused]] const auto __i5 = __to_intrin(__vv5);
-    [[maybe_unused]] const auto __i6 = __to_intrin(__vv6);
-    [[maybe_unused]] const auto __i7 = __to_intrin(__vv7);
+    [[maybe_unused]] const auto __i0 = __to_intrin(__v0);
+    [[maybe_unused]] const auto __i1 = __to_intrin(__v1);
+    [[maybe_unused]] const auto __i2 = __to_intrin(__v2);
+    [[maybe_unused]] const auto __i3 = __to_intrin(__v3);
+    [[maybe_unused]] const auto __i4 = __to_intrin(__v4);
+    [[maybe_unused]] const auto __i5 = __to_intrin(__v5);
+    [[maybe_unused]] const auto __i6 = __to_intrin(__v6);
+    [[maybe_unused]] const auto __i7 = __to_intrin(__v7);
     using _U = typename _VectorTraits<_To>::value_type;
     constexpr size_t _M = _VectorTraits<_To>::_S_width;
 
@@ -1278,10 +1267,10 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             if constexpr (__x_to_x && __have_ssse3) {
                 // unsure whether this is better than the variant below
                 return __intrin_bitcast<_To>(_mm_shuffle_epi8(
-                    __to_intrin((((__vv0 & 0xff) | ((__vv1 & 0xff) << 8)) |
-                                 (((__vv2 & 0xff) << 16) | ((__vv3 & 0xff) << 24))) |
-                                ((((__vv4 & 0xff) << 32) | ((__vv5 & 0xff) << 40)) |
-                                 (((__vv6 & 0xff) << 48) | (__vv7 << 56)))),
+                    __to_intrin((((__v0 & 0xff) | ((__v1 & 0xff) << 8)) |
+                                 (((__v2 & 0xff) << 16) | ((__v3 & 0xff) << 24))) |
+                                ((((__v4 & 0xff) << 32) | ((__v5 & 0xff) << 40)) |
+                                 (((__v6 & 0xff) << 48) | (__v7 << 56)))),
                     _mm_setr_epi8(0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15)));
             } else if constexpr (__x_to_x) {
                 const auto __a = _mm_unpacklo_epi8(__i0, __i1); // ac
@@ -1300,10 +1289,10 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                     ));
             } else if constexpr (__y_to_y) {
                 auto __a =  // 048C GKOS 159D HLPT 26AE IMQU 37BF JNRV
-                    __to_intrin((((__vv0 & 0xff) | ((__vv1 & 0xff) << 8)) |
-                                 (((__vv2 & 0xff) << 16) | ((__vv3 & 0xff) << 24))) |
-                                ((((__vv4 & 0xff) << 32) | ((__vv5 & 0xff) << 40)) |
-                                 (((__vv6 & 0xff) << 48) | ((__vv7 << 56)))));
+                    __to_intrin((((__v0 & 0xff) | ((__v1 & 0xff) << 8)) |
+                                 (((__v2 & 0xff) << 16) | ((__v3 & 0xff) << 24))) |
+                                ((((__v4 & 0xff) << 32) | ((__v5 & 0xff) << 40)) |
+                                 (((__v6 & 0xff) << 48) | ((__v7 << 56)))));
                 /*
                 auto __b = _mm256_unpackhi_epi64(__a, __a);  // 159D HLPT 159D HLPT 37BF JNRV 37BF JNRV
                 auto __c = _mm256_unpacklo_epi8(__a, __b);  // 0145 89CD GHKL OPST 2367 ABEF IJMN QRUV
@@ -1347,7 +1336,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             return __intrin_bitcast<_To>(_mm_unpacklo_epi64(__lo, __hi));
         } else {
             __assert_unreachable<_Tp>();
-            //return __vector_convert<_To>(__v0._M_data, __v1._M_data, __v2._M_data, __v3._M_data, __v4._M_data, __v5._M_data, __v6._M_data, __v7._M_data,
+            //return __vector_convert<_To>(__v0, __v1, __v2, __v3, __v4, __v5, __v6, __v7,
             //                             make_index_sequence<_N>());
         }  //}}}2
     }

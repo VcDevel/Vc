@@ -317,7 +317,7 @@ _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __zero_low_bits(simd<_Tp, _Abi> __x)
 {
   const simd<_Tp, _Abi> __bitmask =
     __bit_cast<_Tp>(~std::make_unsigned_t<__int_for_sizeof_t<_Tp>>() << _Bits);
-  return {__private_init, __get_impl_t<simd<_Tp, _Abi>>::bit_and(
+  return {__private_init, __get_impl_t<simd<_Tp, _Abi>>::__bit_and(
 			    __data(__x), __data(__bitmask))};
 }
 
@@ -739,17 +739,17 @@ enable_if_t<std::is_floating_point_v<_Tp>, simd<_Tp, _Abi>> frexp(
         constexpr size_t _N = simd_size_v<_Tp, _Abi>;
         constexpr size_t NI = _N < 4 ? 4 : _N;
         const auto __v = __data(__x);
-        const auto isnonzero = __get_impl_t<simd<_Tp, _Abi>>::isnonzerovalue_mask(__v._M_data);
+        const auto __isnonzero = __get_impl_t<simd<_Tp, _Abi>>::__isnonzerovalue_mask(__v._M_data);
         const auto __e =
-            __to_intrin(__blend(isnonzero, __vector_type_t<int, NI>(),
+            __to_intrin(__blend(__isnonzero, __vector_type_t<int, NI>(),
                                 1 + __convert<_SimdWrapper<int, NI>>(__getexp(__v))._M_data));
         _GLIBCXX_SIMD_DEBUG(_Frexp)
-        (std::hex, _GLIBCXX_SIMD_PRETTY_PRINT(int(isnonzero)), std::dec,
+        (std::hex, _GLIBCXX_SIMD_PRETTY_PRINT(int(__isnonzero)), std::dec,
          _GLIBCXX_SIMD_PRETTY_PRINT(__e), _GLIBCXX_SIMD_PRETTY_PRINT(__getexp(__v)),
          _GLIBCXX_SIMD_PRETTY_PRINT(
              __to_intrin(1 + __convert<_SimdWrapper<int, NI>>(__getexp(__v))._M_data)));
         __vector_store<_N * sizeof(int)>(__e, __exp, overaligned<alignof(_IV)>);
-        return {__private_init, __blend(isnonzero, __v, __getmant_avx512(__v))};
+        return {__private_init, __blend(__isnonzero, __v, __getmant_avx512(__v))};
 #endif // _GLIBCXX_SIMD_X86INTRIN
     } else {
         // fallback implementation
