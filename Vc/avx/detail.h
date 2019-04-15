@@ -244,49 +244,112 @@ Vc_INTRINSIC __m256i load(const int *mem, when_streaming,
 }
 
 template <typename V, typename DstT>
-Vc_INTRINSIC __m256i load(const short *mem, when_unaligned,
-                          enable_if<(std::is_same<DstT, short>::value &&
-                                     std::is_same<V, __m256i>::value)> = nullarg)
+Vc_INTRINSIC __m256i
+load(const short *mem, when_unaligned,
+     enable_if<(std::is_same<DstT, short>::value && std::is_same<V, __m256i>::value)> =
+         nullarg)
 {
     return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(mem));
 }
 
 template <typename V, typename DstT>
-Vc_INTRINSIC __m256i load(const short *mem, when_aligned,
-                          enable_if<(std::is_same<DstT, short>::value &&
-                                     std::is_same<V, __m256i>::value)> = nullarg)
+Vc_INTRINSIC __m256i
+load(const short *mem, when_aligned,
+     enable_if<(std::is_same<DstT, short>::value && std::is_same<V, __m256i>::value)> =
+         nullarg)
 {
     return _mm256_load_si256(reinterpret_cast<const __m256i *>(mem));
 }
 
 template <typename V, typename DstT>
-Vc_INTRINSIC __m256i load(const short *mem, when_streaming,
-                          enable_if<(std::is_same<DstT, short>::value &&
-                                     std::is_same<V, __m256i>::value)> = nullarg)
+Vc_INTRINSIC __m256i
+load(const short *mem, when_streaming,
+     enable_if<(std::is_same<DstT, short>::value && std::is_same<V, __m256i>::value)> =
+         nullarg)
 {
     return AvxIntrinsics::stream_load<__m256i>(mem);
 }
 
 template <typename V, typename DstT>
-Vc_INTRINSIC __m256i load(const ushort *mem, when_unaligned,
-                          enable_if<(std::is_same<DstT, ushort>::value &&
-                                     std::is_same<V, __m256i>::value)> = nullarg)
+Vc_INTRINSIC __m256i
+load(const ushort *mem, when_unaligned,
+     enable_if<(std::is_same<DstT, ushort>::value && std::is_same<V, __m256i>::value)> =
+         nullarg)
 {
     return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(mem));
 }
 
 template <typename V, typename DstT>
-Vc_INTRINSIC __m256i load(const ushort *mem, when_aligned,
-                          enable_if<(std::is_same<DstT, ushort>::value &&
-                                     std::is_same<V, __m256i>::value)> = nullarg)
+Vc_INTRINSIC __m256i
+load(const ushort *mem, when_aligned,
+     enable_if<(std::is_same<DstT, ushort>::value && std::is_same<V, __m256i>::value)> =
+         nullarg)
 {
     return _mm256_load_si256(reinterpret_cast<const __m256i *>(mem));
 }
 
 template <typename V, typename DstT>
-Vc_INTRINSIC __m256i load(const ushort *mem, when_streaming,
-                          enable_if<(std::is_same<DstT, ushort>::value &&
-                                     std::is_same<V, __m256i>::value)> = nullarg)
+Vc_INTRINSIC __m256i
+load(const ushort *mem, when_streaming,
+     enable_if<(std::is_same<DstT, ushort>::value && std::is_same<V, __m256i>::value)> =
+         nullarg)
+{
+    return AvxIntrinsics::stream_load<__m256i>(mem);
+}
+
+
+//chars
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i
+load(const char *mem, when_unaligned,
+     enable_if<(std::is_same<DstT, char>::value && std::is_same<V, __m256i>::value)> =
+         nullarg)
+{
+    return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(mem));
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i
+load(const char *mem, when_aligned,
+     enable_if<(std::is_same<DstT, char>::value && std::is_same<V, __m256i>::value)> =
+         nullarg)
+{
+    return _mm256_load_si256(reinterpret_cast<const __m256i *>(mem));
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i
+load(const char *mem, when_streaming,
+     enable_if<(std::is_same<DstT, char>::value && std::is_same<V, __m256i>::value)> =
+         nullarg)
+{
+    return AvxIntrinsics::stream_load<__m256i>(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i
+load(const uchar *mem, when_unaligned,
+     enable_if<(std::is_same<DstT, uchar>::value && std::is_same<V, __m256i>::value)> =
+         nullarg)
+{
+    return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(mem));
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i
+load(const uchar *mem, when_aligned,
+     enable_if<(std::is_same<DstT, uchar>::value && std::is_same<V, __m256i>::value)> =
+         nullarg)
+{
+    return _mm256_load_si256(reinterpret_cast<const __m256i *>(mem));
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i
+load(const uchar *mem, when_streaming,
+     enable_if<(std::is_same<DstT, uchar>::value && std::is_same<V, __m256i>::value)> =
+         nullarg)
 {
     return AvxIntrinsics::stream_load<__m256i>(mem);
 }
