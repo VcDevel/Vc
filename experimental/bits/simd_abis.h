@@ -73,36 +73,17 @@ template <size_t _I, typename _Tp>
 using __simd_tuple_element_t = typename __simd_tuple_element<_I, _Tp>::type;
 
 // __simd_tuple_concat {{{1
-template <typename _Tp, typename... _A1s>
-_GLIBCXX_SIMD_INTRINSIC constexpr _SimdTuple<_Tp, _A1s...>
-  __simd_tuple_concat(const _SimdTuple<_Tp>&,
+template <typename _Tp, typename... _A0s, typename... _A1s>
+_GLIBCXX_SIMD_INTRINSIC constexpr _SimdTuple<_Tp, _A0s..., _A1s...>
+  __simd_tuple_concat(const _SimdTuple<_Tp, _A0s...>& __left,
 		      const _SimdTuple<_Tp, _A1s...>& __right)
 {
-  return __right;
-}
-
-template <typename _Tp,
-	  typename _A00,
-	  typename... _A0s,
-	  typename _A10,
-	  typename... _A1s>
-_GLIBCXX_SIMD_INTRINSIC constexpr _SimdTuple<_Tp,
-					       _A00,
-					       _A0s...,
-					       _A10,
-					       _A1s...>
-  __simd_tuple_concat(const _SimdTuple<_Tp, _A00, _A0s...>& __left,
-		      const _SimdTuple<_Tp, _A10, _A1s...>& __right)
-{
-  return {__left.first, __simd_tuple_concat(__left.second, __right)};
-}
-
-template <typename _Tp, typename _A00, typename... _A0s>
-_GLIBCXX_SIMD_INTRINSIC constexpr _SimdTuple<_Tp, _A00, _A0s...>
-  __simd_tuple_concat(const _SimdTuple<_Tp, _A00, _A0s...>& __left,
-		      const _SimdTuple<_Tp>&)
-{
-  return __left;
+  if constexpr (sizeof...(_A0s) == 0)
+    return __right;
+  else if constexpr (sizeof...(_A1s) == 0)
+    return __left;
+  else
+    return {__left.first, __simd_tuple_concat(__left.second, __right)};
 }
 
 template <typename _Tp, typename _A10, typename... _A1s>
@@ -117,27 +98,14 @@ _GLIBCXX_SIMD_INTRINSIC constexpr _SimdTuple<_Tp,
 }
 
 // __simd_tuple_pop_front {{{1
-template <typename _Tp>
-_GLIBCXX_SIMD_INTRINSIC constexpr const _Tp &__simd_tuple_pop_front(_SizeConstant<0>,
-                                                                   const _Tp &__x)
+template <size_t _N, typename _Tp>
+_GLIBCXX_SIMD_INTRINSIC constexpr decltype(auto)
+  __simd_tuple_pop_front(_Tp&& __x)
 {
-    return __x;
-}
-template <typename _Tp>
-_GLIBCXX_SIMD_INTRINSIC constexpr _Tp &__simd_tuple_pop_front(_SizeConstant<0>, _Tp &__x)
-{
-    return __x;
-}
-template <size_t _K, typename _Tp>
-_GLIBCXX_SIMD_INTRINSIC constexpr const auto &__simd_tuple_pop_front(_SizeConstant<_K>,
-                                                                     const _Tp &__x)
-{
-    return __simd_tuple_pop_front(_SizeConstant<_K - 1>(), __x.second);
-}
-template <size_t _K, typename _Tp>
-_GLIBCXX_SIMD_INTRINSIC constexpr auto &__simd_tuple_pop_front(_SizeConstant<_K>, _Tp &__x)
-{
-    return __simd_tuple_pop_front(_SizeConstant<_K - 1>(), __x.second);
+  if constexpr (_N == 0)
+    return std::forward<_Tp>(__x);
+  else
+    return __simd_tuple_pop_front<_N - 1>(__x.second);
 }
 
 // __get_simd_at<_N> {{{1
@@ -195,36 +163,6 @@ _GLIBCXX_SIMD_INTRINSIC constexpr auto &__get_tuple_at(_SimdTuple<_Tp, _Abis...>
     return __simd_tuple_get_impl(__as_simd_tuple(), __t, _SizeConstant<_N>());
 }
 
-// _HowManyToExtract {{{1
-template <size_t _LeftN, typename _RightT> constexpr size_t __tuple_elements_for () {
-    if constexpr (_LeftN == 0) {
-        return 0;
-    } else {
-        return 1 + __tuple_elements_for<_LeftN - _RightT::_S_first_size,
-                                        typename _RightT::_Second_type>();
-    }
-}
-template <size_t _LeftN, typename _RightT, bool = (_RightT::_S_first_size < _LeftN)>
-struct _HowManyToExtract;
-template <size_t _LeftN, typename _RightT> struct _HowManyToExtract<_LeftN, _RightT, true> {
-    static constexpr std::make_index_sequence<__tuple_elements_for<_LeftN, _RightT>()> __tag()
-    {
-        return {};
-    }
-};
-template <typename _Tp, size_t _Offset, size_t _Length, bool _Done, typename _IndexSeq>
-struct _Chunked {
-};
-template <size_t _LeftN, typename _RightT> struct _HowManyToExtract<_LeftN, _RightT, false> {
-    static_assert(_LeftN != _RightT::_S_first_size, "");
-    static constexpr _Chunked<typename _RightT::_First_type, 0, _LeftN, false,
-                             std::make_index_sequence<_LeftN>>
-    __tag()
-    {
-        return {};
-    }
-};
-
 // __tuple_element_meta {{{1
 template <typename _Tp, typename _Abi, size_t _Offset>
 struct __tuple_element_meta : public _Abi::_SimdImpl {
@@ -261,6 +199,66 @@ __tuple_element_meta<_Tp, _Abi, _Offset> __make_meta(const _SimdTuple<_Tp, _Abi,
     return {};
 }
 
+// }}}1
+// _WithOffset wrapper class {{{
+template <size_t _Offset, typename _Base>
+struct _WithOffset : public _Base
+{
+  static inline constexpr size_t _S_offset = _Offset;
+
+  _GLIBCXX_SIMD_INTRINSIC char* __as_charptr()
+  {
+    return reinterpret_cast<char*>(this) +
+	   _S_offset * sizeof(typename _Base::value_type);
+  }
+  _GLIBCXX_SIMD_INTRINSIC const char* __as_charptr() const
+  {
+    return reinterpret_cast<const char*>(this) +
+	   _S_offset * sizeof(typename _Base::value_type);
+  }
+};
+
+// make _WithOffset<_WithOffset> ill-formed to use:
+template <size_t _O0, size_t _O1, typename _Base>
+struct _WithOffset<_O0, _WithOffset<_O1, _Base>> {};
+
+template <size_t _Offset, typename _Tp>
+decltype(auto) __add_offset(_Tp& __base)
+{
+  return static_cast<_WithOffset<_Offset, __remove_cvref_t<_Tp>>&>(__base);
+}
+template <size_t _Offset, typename _Tp>
+decltype(auto) __add_offset(const _Tp& __base)
+{
+  return static_cast<const _WithOffset<_Offset, __remove_cvref_t<_Tp>>&>(
+    __base);
+}
+template <size_t _Offset, size_t _ExistingOffset, typename _Tp>
+decltype(auto) __add_offset(_WithOffset<_ExistingOffset, _Tp>& __base)
+{
+  return static_cast<_WithOffset<_Offset + _ExistingOffset, _Tp>&>(
+    static_cast<_Tp&>(__base));
+}
+template <size_t _Offset, size_t _ExistingOffset, typename _Tp>
+decltype(auto) __add_offset(const _WithOffset<_ExistingOffset, _Tp>& __base)
+{
+  return static_cast<const _WithOffset<_Offset + _ExistingOffset, _Tp>&>(
+    static_cast<const _Tp&>(__base));
+}
+
+template <typename _Tp>
+constexpr inline size_t __offset = 0;
+template <size_t _Offset, typename _Tp>
+constexpr inline size_t __offset<_WithOffset<_Offset, _Tp>> =
+  _WithOffset<_Offset, _Tp>::_S_offset;
+template <typename _Tp>
+constexpr inline size_t __offset<const _Tp> = __offset<_Tp>;
+template <typename _Tp>
+constexpr inline size_t __offset<_Tp&> = __offset<_Tp>;
+template <typename _Tp>
+constexpr inline size_t __offset<_Tp&&> = __offset<_Tp>;
+
+// }}}
 // _SimdTuple specializations {{{1
 // empty {{{2
 template <typename _Tp> struct _SimdTuple<_Tp> {
@@ -269,418 +267,309 @@ template <typename _Tp> struct _SimdTuple<_Tp> {
     static constexpr size_t size() { return 0; }
 };
 
-// 1 member {{{2
-template <typename _Tp, typename _Abi0> struct _SimdTuple<_Tp, _Abi0> {
-    using value_type = _Tp;
-    using _First_type = typename _SimdTraits<_Tp, _Abi0>::_SimdMember;
-    using _Second_type = _SimdTuple<_Tp>;
-    using _First_abi = _Abi0;
-    static constexpr size_t _S_tuple_size = 1;
-    static constexpr size_t size() { return simd_size_v<_Tp, _Abi0>; }
-    static constexpr size_t _S_first_size = simd_size_v<_Tp, _Abi0>;
-    _First_type first;
-    static constexpr _Second_type second = {};
-
-    template <size_t _Offset = 0, typename _F>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr _SimdTuple
-      __generate(_F&& __gen, _SizeConstant<_Offset> = {})
-    {
-        return {__gen(__tuple_element_meta<_Tp, _Abi0, _Offset>())};
-    }
-
-    template <size_t _Offset = 0, typename _F, typename... _More>
-    _GLIBCXX_SIMD_INTRINSIC _SimdTuple __apply_wrapped(_F &&__fun, const _More &... __more) const
-    {
-        _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
-        return {__fun(__make_meta<_Offset>(*this), first, __more.first...)};
-    }
-
-    template <typename _F, typename... _More>
-    _GLIBCXX_SIMD_INTRINSIC constexpr friend _SimdTuple
-      __simd_tuple_apply(_F&& __fun, const _SimdTuple& __x, _More&&... __more)
-    {
-        _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
-        return _SimdTuple::__apply_impl(
-            __bool_constant<conjunction<__is_equal<
-                size_t, _S_first_size, __remove_cvref_t<_More>::_S_first_size>...>::value>(),
-            std::forward<_F>(__fun), __x, std::forward<_More>(__more)...);
-    }
-
-  private:
-    template <typename _F, typename... _More>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr _SimdTuple
-      __apply_impl(true_type, // _S_first_size is equal for all arguments
-		 _F&&                __fun,
-		 const _SimdTuple& __x,
-		 _More&&... __more)
-    {
-      _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
-      //_GLIBCXX_SIMD_DEBUG_DEFERRED("__more.first = ", __more.first..., "__more
-      //=
-      //", __more...);
-      return {__fun(__tuple_element_meta<_Tp, _Abi0, 0>(), __x.first,
-		    __more.first...)};
-    }
-
-    template <typename _F, typename _More>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr _SimdTuple __apply_impl(
-      false_type, // at least one argument in _More has different _S_first_size,
-		  // __x has only one member, so _More has 2 or more
-      _F&&                __fun,
-      const _SimdTuple& __x,
-      _More&&             __y)
-    {
-      _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
-      //_GLIBCXX_SIMD_DEBUG_DEFERRED("__y = ", __y);
-      return __apply_impl(
-	std::make_index_sequence<__remove_cvref_t<_More>::_S_tuple_size>(),
-	std::forward<_F>(__fun), __x, std::forward<_More>(__y));
-    }
-
-    template <typename _F, typename _More, size_t... _Indexes>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr _SimdTuple
-      __apply_impl(std::index_sequence<_Indexes...>,
-		 _F&&                __fun,
-		 const _SimdTuple& __x,
-		 _More&&             __y)
-    {
-        _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
-        //_GLIBCXX_SIMD_DEBUG_DEFERRED("__y = ", __y);
-        auto __tmp = std::experimental::concat(__get_simd_at<_Indexes>(__y)...);
-        const auto first = __fun(__tuple_element_meta<_Tp, _Abi0, 0>(), __x.first, __tmp);
-        if constexpr (std::is_lvalue_reference<_More>::value &&
-                      !std::is_const<_More>::value) {
-            // if __y is non-const lvalue ref, assume write back is necessary
-            const auto __tup =
-                std::experimental::split<__simd_tuple_element_t<_Indexes, __remove_cvref_t<_More>>::size()...>(__tmp);
-            auto &&ignore = {
-                (__get_tuple_at<_Indexes>(__y) = __data(std::get<_Indexes>(__tup)), 0)...};
-            __unused(ignore);
-        }
-        return {first};
-    }
-
-  public:
-    // __apply_impl2 can only be called from a 2-element _SimdTuple
-    template <typename _Tuple, size_t _Offset, typename _F2>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr _SimdTuple
-      __extract(_SizeConstant<_Offset>,
-		_SizeConstant<__remove_cvref_t<_Tuple>::_S_first_size - _Offset>,
-		_Tuple&& __tup,
-		_F2&&    __fun2)
-    {
-        static_assert(_Offset > 0, "");
-        auto __splitted =
-            split<_Offset, __remove_cvref_t<_Tuple>::_S_first_size - _Offset>(__get_simd_at<0>(__tup));
-        _SimdTuple __r = __fun2(__data(std::get<1>(__splitted)));
-        // if __tup is non-const lvalue ref, write __get_tuple_at<0>(__splitted) back
-        __tup.first = __data(concat(std::get<0>(__splitted), std::get<1>(__splitted)));
-        return __r;
-    }
-
-    template <typename _F,
-	      typename _More,
-	      typename _U,
-	      size_t _Length,
-	      size_t... _Indexes>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr _SimdTuple
-      __apply_impl2(_Chunked<_U,
-			  __remove_cvref_t<_More>::_S_first_size,
-			  _Length,
-			  true,
-			  std::index_sequence<_Indexes...>>,
-		  _F&&                __fun,
-		  const _SimdTuple& __x,
-		  _More&&             __y)
-    {
-        _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
-        return __simd_tuple_apply(std::forward<_F>(__fun), __x, __y.second);
-    }
-
-    template <class _F,
-	      class _More,
-	      class _U,
-	      size_t _Offset,
-	      size_t _Length,
-	      size_t... _Indexes>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr _SimdTuple __apply_impl2(
-      _Chunked<_U, _Offset, _Length, false, std::index_sequence<_Indexes...>>,
-      _F&&                __fun,
-      const _SimdTuple& __x,
-      _More&&             __y)
-    {
-        _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
-        static_assert(_Offset < __remove_cvref_t<_More>::_S_first_size, "");
-        static_assert(_Offset > 0, "");
-        return __extract(_SizeConstant<_Offset>(), _SizeConstant<_Length>(), __y,
-                       [&](auto &&__yy) constexpr -> _SimdTuple {
-                           return {__fun(__tuple_element_meta<_Tp, _Abi0, 0>(), __x.first, __yy)};
-                       });
-    }
-
-    template <class _R = _Tp, class _F, class... _More>
-    _GLIBCXX_SIMD_INTRINSIC __fixed_size_storage_t<_R, size()> __apply_r(_F &&__fun,
-                                                       const _More &... __more) const
-    {
-        _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
-        return {__fun(__tuple_element_meta<_Tp, _Abi0, 0>(), first, __more.first...)};
-    }
-
-    template <class _F, class... _More>
-    _GLIBCXX_SIMD_INTRINSIC friend std::bitset<size()> __test(_F &&__fun, const _SimdTuple &__x,
-                                                 const _More &... __more)
-    {
-        return __vector_to_bitset(
-            __fun(__tuple_element_meta<_Tp, _Abi0, 0>(), __x.first, __more.first...));
-    }
-
-    _Tp operator[](size_t __i) const noexcept { return __subscript_read(first, __i); }
-    void __set(size_t __i, _Tp __val) noexcept { __subscript_write(first, __i, __val); }
+// _SimdTupleData {{{2
+template <typename _FirstType, typename _SecondType>
+struct _SimdTupleData
+{
+  _FirstType  first;
+  _SecondType second;
 };
 
-// 2 or more {{{2
-template <class _Tp, class _Abi0, class... _Abis> struct _SimdTuple<_Tp, _Abi0, _Abis...> {
-    using value_type = _Tp;
-    using _First_type = typename _SimdTraits<_Tp, _Abi0>::_SimdMember;
-    using _First_abi = _Abi0;
-    using _Second_type = _SimdTuple<_Tp, _Abis...>;
-    static constexpr size_t _S_tuple_size = sizeof...(_Abis) + 1;
-    static constexpr size_t size() { return simd_size_v<_Tp, _Abi0> + _Second_type::size(); }
-    static constexpr size_t _S_first_size = simd_size_v<_Tp, _Abi0>;
-    //static constexpr size_t alignment = __next_power_of_2(sizeof(_Tp) * size());
-    //alignas(alignment)
-    _First_type first;
-    _Second_type second;
+template <typename _FirstType, typename _Tp>
+struct _SimdTupleData<_FirstType, _SimdTuple<_Tp>>
+{
+  _FirstType  first;
+  static constexpr _SimdTuple<_Tp> second = {};
+};
 
-    template <size_t _Offset = 0, class _F>
-    _GLIBCXX_SIMD_INTRINSIC static _SimdTuple __generate(_F &&__gen, _SizeConstant<_Offset> = {})
-    {
-        return {__gen(__tuple_element_meta<_Tp, _Abi0, _Offset>()),
-                _Second_type::__generate(
-                    std::forward<_F>(__gen),
-                    _SizeConstant<_Offset + simd_size_v<_Tp, _Abi0>>())};
-    }
+// 1 or more {{{2
+template <class _Tp, class _Abi0, class... _Abis>
+struct _SimdTuple<_Tp, _Abi0, _Abis...>
+: _SimdTupleData<typename _SimdTraits<_Tp, _Abi0>::_SimdMember,
+		 _SimdTuple<_Tp, _Abis...>>
+{
+  using value_type   = _Tp;
+  using _First_type  = typename _SimdTraits<_Tp, _Abi0>::_SimdMember;
+  using _First_abi   = _Abi0;
+  using _Second_type = _SimdTuple<_Tp, _Abis...>;
+  static constexpr size_t _S_tuple_size = sizeof...(_Abis) + 1;
+  static constexpr size_t size()
+  {
+    return simd_size_v<_Tp, _Abi0> + _Second_type::size();
+  }
+  static constexpr size_t _S_first_size = simd_size_v<_Tp, _Abi0>;
 
-    template <size_t _Offset = 0, class _F, class... _More>
-    _GLIBCXX_SIMD_INTRINSIC _SimdTuple __apply_wrapped(_F &&__fun, const _More &... __more) const
-    {
-        _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
-        return {__fun(__make_meta<_Offset>(*this), first, __more.first...),
-                second.template __apply_wrapped<_Offset + simd_size_v<_Tp, _Abi0>>(
-                    std::forward<_F>(__fun), __more.second...)};
-    }
+  using _Base = _SimdTupleData<typename _SimdTraits<_Tp, _Abi0>::_SimdMember,
+			       _SimdTuple<_Tp, _Abis...>>;
+  using _Base::first;
+  using _Base::second;
 
-    template <class _F, class... _More>
-    _GLIBCXX_SIMD_INTRINSIC constexpr friend _SimdTuple
-      __simd_tuple_apply(_F&& __fun, const _SimdTuple& __x, _More&&... __more)
-    {
-      _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
-      //_GLIBCXX_SIMD_DEBUG_DEFERRED("__more = ", __more...);
-      return _SimdTuple::__apply_impl(
-	__bool_constant<conjunction<
-	  __is_equal<size_t, _S_first_size,
-		     __remove_cvref_t<_More>::_S_first_size>...>::value>(),
-	std::forward<_F>(__fun), __x, std::forward<_More>(__more)...);
-    }
+  _SimdTuple() = default;
 
-  private:
-    template <class _F, class... _More>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr _SimdTuple
-      __apply_impl(true_type, // _S_first_size is equal for all arguments
-		 _F&&                __fun,
-		 const _SimdTuple& __x,
-		 _More&&... __more)
-    {
-      _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
-      return {__fun(__tuple_element_meta<_Tp, _Abi0, 0>(), __x.first,
-		    __more.first...),
-	      __simd_tuple_apply(std::forward<_F>(__fun), __x.second,
-				 __more.second...)};
-    }
+  _GLIBCXX_SIMD_INTRINSIC char* __as_charptr()
+  {
+    return reinterpret_cast<char*>(this);
+  }
+  _GLIBCXX_SIMD_INTRINSIC const char* __as_charptr() const
+  {
+    return reinterpret_cast<const char*>(this);
+  }
 
-    template <class _F, class _More>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr _SimdTuple __apply_impl(
-      false_type, // at least one argument in _More has different _S_first_size
-      _F&&                __fun,
-      const _SimdTuple& __x,
-      _More&&             __y)
-    {
-        _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
-        //_GLIBCXX_SIMD_DEBUG_DEFERRED("__y = ", __y);
-        return __apply_impl2(_HowManyToExtract<_S_first_size, __remove_cvref_t<_More>>::__tag(),
-                           std::forward<_F>(__fun), __x, __y);
-    }
+  template <size_t _Offset = 0, class _F>
+  _GLIBCXX_SIMD_INTRINSIC static _SimdTuple
+    __generate(_F&& __gen, _SizeConstant<_Offset> = {})
+  {
+    auto &&__first = __gen(__tuple_element_meta<_Tp, _Abi0, _Offset>());
+    if constexpr (_S_tuple_size == 1)
+      return {__first};
+    else
+      return {__first, _Second_type::__generate(
+			 std::forward<_F>(__gen),
+			 _SizeConstant<_Offset + simd_size_v<_Tp, _Abi0>>())};
+  }
 
-    template <class _F, class _More, size_t... _Indexes>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr _SimdTuple
-      __apply_impl2(std::index_sequence<_Indexes...>,
-		  _F&&                __fun,
-		  const _SimdTuple& __x,
-		  _More&&             __y)
-    {
-        _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
-        //_GLIBCXX_SIMD_DEBUG_DEFERRED("__y = ", __y);
-        auto __tmp = std::experimental::concat(__get_simd_at<_Indexes>(__y)...);
-        const auto first = __fun(__tuple_element_meta<_Tp, _Abi0, 0>(), __x.first, __tmp);
-        if constexpr (std::is_lvalue_reference<_More>::value &&
-                      !std::is_const<_More>::value) {
-            // if __y is non-const lvalue ref, assume write back is necessary
-            const auto __tup =
-                std::experimental::split<__simd_tuple_element_t<_Indexes, __remove_cvref_t<_More>>::size()...>(__tmp);
-            [](std::initializer_list<int>) constexpr {
-            }({(__get_tuple_at<_Indexes>(__y) = __data(std::get<_Indexes>(__tup)), 0)...});
-        }
-        return {first, __simd_tuple_apply(
-                           std::forward<_F>(__fun), __x.second,
-                           __simd_tuple_pop_front(_SizeConstant<sizeof...(_Indexes)>(), __y))};
-    }
+  template <size_t _Offset = 0, class _F, class... _More>
+  _GLIBCXX_SIMD_INTRINSIC _SimdTuple
+			  __apply_wrapped(_F&& __fun, const _More&... __more) const
+  {
+    _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
+    auto&& __first= __fun(__make_meta<_Offset>(*this), first, __more.first...);
+    if constexpr (_S_tuple_size == 1)
+      return { __first };
+    else
+      return {
+	__first,
+	second.template __apply_wrapped<_Offset + simd_size_v<_Tp, _Abi0>>(
+	  std::forward<_F>(__fun), __more.second...)};
+  }
 
-  public:
-    template <typename _F,
-	      typename _More,
-	      typename _U,
-	      size_t _Length,
-	      size_t... _Indexes>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr _SimdTuple
-      __apply_impl2(_Chunked<_U,
-			  __remove_cvref_t<_More>::_S_first_size,
-			  _Length,
-			  true,
-			  std::index_sequence<_Indexes...>>,
-		  _F&&                __fun,
-		  const _SimdTuple& __x,
-		  _More&&             __y)
-    {
-        _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
-        return __simd_tuple_apply(std::forward<_F>(__fun), __x, __y.second);
-    }
+  template <size_t _Size,
+	    size_t _Offset = 0,
+	    typename _R    = __fixed_size_storage_t<_Tp, _Size>>
+  _GLIBCXX_SIMD_INTRINSIC constexpr _R __extract_tuple_with_size() const
+  {
+    if constexpr (_Size == _S_first_size && _Offset == 0)
+      return {first};
+    else if constexpr (_Size > _S_first_size && _Offset == 0 && _S_tuple_size > 1)
+      return {
+	first,
+	second.template __extract_tuple_with_size<_Size - _S_first_size>()};
+    else if constexpr (_Size == 1)
+      return {operator[](_SizeConstant<_Offset>())};
+    else if constexpr (_R::_S_tuple_size == 1)
+      {
+	static_assert(_Offset % _Size == 0);
+	static_assert(_S_first_size % _Size == 0);
+	return {typename _R::_First_type(
+	  __private_init,
+	  __extract_part<_Offset / _Size, _S_first_size / _Size>(first))};
+      }
+    else
+      __assert_unreachable<_SizeConstant<_Size>>();
+  }
 
-    template <typename _Tuple, size_t _Length, typename _F2>
-    _GLIBCXX_SIMD_INTRINSIC static auto __extract(_SizeConstant<0>, _SizeConstant<_Length>, _Tuple &&__tup,
-                                     _F2 &&__fun2)
-    {
-        auto __splitted =
-            split<_Length, __remove_cvref_t<_Tuple>::_S_first_size - _Length>(__get_simd_at<0>(__tup));
-        auto __r = __fun2(__data(std::get<0>(__splitted)));
-        // if __tup is non-const lvalue ref, write __get_tuple_at<0>(__splitted) back
-        __tup.first = __data(concat(std::get<0>(__splitted), std::get<1>(__splitted)));
-        return __r;
-    }
+  template <typename _Tup>
+  _GLIBCXX_SIMD_INTRINSIC constexpr decltype(auto)
+    __extract_argument(_Tup&& __tup) const
+  {
+    using _TupT = typename __remove_cvref_t<_Tup>::value_type;
+    if constexpr (is_same_v<_SimdTuple, __remove_cvref_t<_Tup>>)
+      return __tup.first;
+    else if (__builtin_is_constant_evaluated())
+      return __fixed_size_storage_t<_TupT, _S_first_size>::__generate([&](
+	auto __meta) constexpr {
+	return __meta.__generator(
+	  [&](auto __i) constexpr { return __tup[__i]; },
+	  static_cast<_TupT*>(nullptr));
+      });
+    else
+      {
+	__fixed_size_storage_t<_TupT, _S_first_size> __r;
+	__builtin_memcpy(__r.__as_charptr(), __tup.__as_charptr(), sizeof(__r));
+	return __r;
+      }
+  }
 
-    template <typename _Tuple, size_t _Offset, typename _F2>
-    _GLIBCXX_SIMD_INTRINSIC static auto __extract(
-        _SizeConstant<_Offset>, _SizeConstant<__remove_cvref_t<_Tuple>::_S_first_size - _Offset>,
-        _Tuple &&__tup, _F2 &&__fun2)
-    {
-        auto __splitted =
-            split<_Offset, __remove_cvref_t<_Tuple>::_S_first_size - _Offset>(__get_simd_at<0>(__tup));
-        auto __r = __fun2(__data(std::get<1>(__splitted)));
-        // if __tup is non-const lvalue ref, write __get_tuple_at<0>(__splitted) back
-        __tup.first = __data(concat(std::get<0>(__splitted), std::get<1>(__splitted)));
-        return __r;
-    }
+  template <typename _Tup>
+  _GLIBCXX_SIMD_INTRINSIC constexpr auto& __skip_argument(_Tup&& __tup) const
+  {
+    static_assert(_S_tuple_size > 1);
+    using _U               = __remove_cvref_t<_Tup>;
+    constexpr size_t __off = __offset<_U>;
+    if constexpr (_S_first_size == _U::_S_first_size && __off == 0)
+      return __tup.second;
+    else if constexpr (_S_first_size > _U::_S_first_size &&
+		       _S_first_size % _U::_S_first_size == 0 && __off == 0)
+      return __simd_tuple_pop_front<_S_first_size / _U::_S_first_size>(__tup);
+    else if constexpr (_S_first_size + __off < _U::_S_first_size)
+      return __add_offset<_S_first_size>(__tup);
+    else if constexpr (_S_first_size + __off == _U::_S_first_size)
+      return __tup.second;
+    else
+      __assert_unreachable<_Tup>();
+  }
 
-    template <
-        typename _Tuple, size_t _Offset, size_t _Length, typename _F2,
-        typename = enable_if_t<(_Offset + _Length < __remove_cvref_t<_Tuple>::_S_first_size)>>
-    _GLIBCXX_SIMD_INTRINSIC static auto __extract(_SizeConstant<_Offset>, _SizeConstant<_Length>,
-                                     _Tuple &&__tup, _F2 &&__fun2)
-    {
-        static_assert(_Offset + _Length < __remove_cvref_t<_Tuple>::_S_first_size, "");
-        auto __splitted =
-            split<_Offset, _Length, __remove_cvref_t<_Tuple>::_S_first_size - _Offset - _Length>(
-                __get_simd_at<0>(__tup));
-        auto __r = __fun2(__data(std::get<1>(__splitted)));
-        // if __tup is non-const lvalue ref, write __get_tuple_at<0>(__splitted) back
-        __tup.first = __data(
-            concat(std::get<0>(__splitted), std::get<1>(__splitted), std::get<2>(__splitted)));
-        return __r;
-    }
+  template <size_t _Offset, typename... _More>
+  _GLIBCXX_SIMD_INTRINSIC constexpr void
+    __assign_front(const _SimdTuple<_Tp, _Abi0, _More...>& __x) &
+  {
+    static_assert(_Offset == 0);
+    first = __x.first;
+    if constexpr (sizeof...(_More) > 0)
+      {
+	static_assert(sizeof...(_Abis) >= sizeof...(_More));
+	second.template __assign_front<0>(__x.second);
+      }
+  }
 
-    template <typename _F,
-	      typename _More,
-	      typename _U,
-	      size_t _Offset,
-	      size_t _Length,
-	      size_t... _Indexes>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr _SimdTuple __apply_impl2(
-      _Chunked<_U, _Offset, _Length, false, std::index_sequence<_Indexes...>>,
-      _F&&                __fun,
-      const _SimdTuple& __x,
-      _More&&             __y)
-    {
-        _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
-        static_assert(_Offset < __remove_cvref_t<_More>::_S_first_size, "");
-        return {__extract(_SizeConstant<_Offset>(), _SizeConstant<_Length>(), __y,
-                        [&](auto &&__yy) constexpr {
-                            return __fun(__tuple_element_meta<_Tp, _Abi0, 0>(), __x.first, __yy);
-                        }),
-                _Second_type::__apply_impl2(
-                    _Chunked<_U, _Offset + _Length, _Length,
-                            _Offset + _Length == __remove_cvref_t<_More>::_S_first_size,
-                            std::index_sequence<_Indexes...>>(),
-                    std::forward<_F>(__fun), __x.second, __y)};
-    }
+  template <size_t _Offset>
+  _GLIBCXX_SIMD_INTRINSIC constexpr void
+    __assign_front(const _First_type& __x) &
+  {
+    static_assert(_Offset == 0);
+    first = __x;
+  }
 
-    template <typename _R = _Tp, typename _F, typename... _More>
-    _GLIBCXX_SIMD_INTRINSIC auto __apply_r(_F &&__fun, const _More &... __more) const
-    {
-        _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
-        return __simd_tuple_concat<_R>(
-            __fun(__tuple_element_meta<_Tp, _Abi0, 0>(), first, __more.first...),
-            second.template __apply_r<_R>(std::forward<_F>(__fun), __more.second...));
-    }
+  template <size_t _Offset, typename... _As>
+  _GLIBCXX_SIMD_INTRINSIC constexpr void
+    __assign_front(const _SimdTuple<_Tp, _As...>& __x) &
+  {
+    __builtin_memcpy(__as_charptr() + _Offset * sizeof(value_type),
+		     __x.__as_charptr(),
+		     sizeof(_Tp) * _SimdTuple<_Tp, _As...>::size());
+  }
 
-    template <typename _F, typename... _More>
-    _GLIBCXX_SIMD_INTRINSIC friend std::bitset<size()> __test(_F &&__fun, const _SimdTuple &__x,
-                                                 const _More &... __more)
-    {
-        return __vector_to_bitset(
-                   __fun(__tuple_element_meta<_Tp, _Abi0, 0>(), __x.first, __more.first...))
-                   .to_ullong() |
-               (__test(__fun, __x.second, __more.second...).to_ullong() << simd_size_v<_Tp, _Abi0>);
-    }
+  /*
+   * Iterate over the first objects in this _SimdTuple and call __fun for each
+   * of them. If additional arguments are passed via __more, chunk them into
+   * _SimdTuple or __vector_type_t objects of the same number of values.
+   */
+  template <class _F, class... _More>
+  _GLIBCXX_SIMD_INTRINSIC constexpr _SimdTuple
+    __apply_per_chunk(_F&& __fun, _More&&... __more) const
+  {
+    _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
+    //_GLIBCXX_SIMD_DEBUG_DEFERRED("__more = ", __more...);
+    static_assert(
+      (... && ((_S_first_size % __remove_cvref_t<_More>::_S_first_size == 0) ||
+	       (__remove_cvref_t<_More>::_S_first_size % _S_first_size == 0))));
+    if constexpr ((... || conjunction_v<
+			    is_lvalue_reference<_More>,
+			    negation<is_const<remove_reference_t<_More>>>>))
+      {
+	// need to write back at least one of __more after calling __fun
+	auto&& __first = [&](auto... __args) constexpr {
+	  auto __r =
+	    __fun(__tuple_element_meta<_Tp, _Abi0, 0>(), first, __args...);
+	  [[maybe_unused]] auto&& __unused = {(
+	    [](auto&& __dst, const auto& __src) {
+	      if constexpr (is_assignable_v<decltype(__dst), decltype(__dst)>)
+		{
+		  __dst.template __assign_front<__offset<decltype(__dst)>>(
+		    __src);
+		}
+	    }(std::forward<_More>(__more), __args),
+	    0)...};
+	  return __r;
+	}(__extract_argument(__more)...);
+	if constexpr (_S_tuple_size == 1)
+	  return { __first };
+	else
+	  return {__first,
+		  second.__apply_per_chunk(std::forward<_F>(__fun),
+					   __skip_argument(__more)...)};
+      }
+    else
+      {
+	auto&& __first = __fun(__tuple_element_meta<_Tp, _Abi0, 0>(), first,
+			       __extract_argument(__more)...);
+	if constexpr (_S_tuple_size == 1)
+	  return { __first };
+	else
+	  return {__first,
+		  second.__apply_per_chunk(std::forward<_F>(__fun),
+					   __skip_argument(__more)...)};
+      }
+  }
 
-    template <typename _U, _U _I>
-    _GLIBCXX_SIMD_INTRINSIC constexpr _Tp operator[](std::integral_constant<_U, _I>) const noexcept
-    {
-        if constexpr (_I < simd_size_v<_Tp, _Abi0>) {
-            return __subscript_read(first, _I);
-        } else {
-            return second[std::integral_constant<_U, _I - simd_size_v<_Tp, _Abi0>>()];
-        }
-    }
+  template <typename _R = _Tp, typename _F, typename... _More>
+  _GLIBCXX_SIMD_INTRINSIC auto
+    __apply_r(_F&& __fun, const _More&... __more) const
+  {
+    _GLIBCXX_SIMD_DEBUG(_SIMD_TUPLE);
+    auto&& __first =
+      __fun(__tuple_element_meta<_Tp, _Abi0, 0>(), first, __more.first...);
+    if constexpr (_S_tuple_size == 1)
+      return __first;
+    else
+      return __simd_tuple_concat<_R>(
+	__first, second.template __apply_r<_R>(std::forward<_F>(__fun),
+					       __more.second...));
+  }
 
-    _Tp operator[](size_t __i) const noexcept
-    {
+  template <typename _F, typename... _More>
+  _GLIBCXX_SIMD_INTRINSIC friend std::bitset<size()>
+    __test(_F&& __fun, const _SimdTuple& __x, const _More&... __more)
+  {
+    auto&& __first = __vector_to_bitset(
+      __fun(__tuple_element_meta<_Tp, _Abi0, 0>(), __x.first, __more.first...));
+    if constexpr (_S_tuple_size == 1)
+      return __first;
+    else
+      return __first.to_ullong() |
+	     (__test(__fun, __x.second, __more.second...).to_ullong()
+	      << simd_size_v<_Tp, _Abi0>);
+  }
+
+  template <typename _U, _U _I>
+  _GLIBCXX_SIMD_INTRINSIC constexpr _Tp
+    operator[](std::integral_constant<_U, _I>) const noexcept
+  {
+    if constexpr (_I < simd_size_v<_Tp, _Abi0>)
+	return __subscript_read(first, _I);
+    else
+	return second[std::integral_constant<_U,
+					     _I - simd_size_v<_Tp, _Abi0>>()];
+  }
+
+  _Tp operator[](size_t __i) const noexcept
+  {
+    if constexpr (_S_tuple_size == 1)
+      return __subscript_read(first, __i);
+    else
+      {
 #ifdef _GLIBCXX_SIMD_USE_ALIASING_LOADS
-        return reinterpret_cast<const __may_alias<_Tp> *>(this)[__i];
+	return reinterpret_cast<const __may_alias<_Tp>*>(this)[__i];
 #else
-      if constexpr (__is_abi<_Abi0, simd_abi::scalar>())
-	{
-	  const _Tp* ptr = &first;
-	  return ptr[__i];
-	}
-      else
-	{
+	if constexpr (__is_abi<_Abi0, simd_abi::scalar>())
+	  {
+	    const _Tp* ptr = &first;
+	    return ptr[__i];
+	  }
+	else
 	  return __i < simd_size_v<_Tp, _Abi0>
 		   ? __subscript_read(first, __i)
 		   : second[__i - simd_size_v<_Tp, _Abi0>];
-	}
 #endif
-    }
-    void __set(size_t __i, _Tp __val) noexcept
-    {
+      }
+  }
+
+  void __set(size_t __i, _Tp __val) noexcept
+  {
+    if constexpr (_S_tuple_size == 1)
+      return __subscript_write(first, __i, __val);
+    else
+      {
 #ifdef _GLIBCXX_SIMD_USE_ALIASING_LOADS
-        reinterpret_cast<__may_alias<_Tp> *>(this)[__i] = __val;
+	reinterpret_cast<__may_alias<_Tp>*>(this)[__i] = __val;
 #else
-        if (__i < simd_size_v<_Tp, _Abi0>) {
-            __subscript_write(first, __i, __val);
-        } else {
-            second.__set(__i - simd_size_v<_Tp, _Abi0>, __val);
-        }
+	if (__i < simd_size_v<_Tp, _Abi0>)
+	  __subscript_write(first, __i, __val);
+	else
+	  second.__set(__i - simd_size_v<_Tp, _Abi0>, __val);
 #endif
-    }
+      }
+  }
 };
 
 // __make_simd_tuple {{{1
@@ -2037,382 +1926,208 @@ inline _To __convert_mask(_From __k)
 
 // }}}
 
-template <class _Abi> struct __simd_math_fallback {  //{{{
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __acos(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::acos(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __asin(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::asin(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __atan(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::atan(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __atan2(const simd<_Tp, _Abi> &__x, const simd<_Tp, _Abi> &__y)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::atan2(__x[__i], __y[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __cos(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::cos(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __sin(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::sin(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __tan(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::tan(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __acosh(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::acosh(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __asinh(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::asinh(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __atanh(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::atanh(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __cosh(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::cosh(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __sinh(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::sinh(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __tanh(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::tanh(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __exp(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::exp(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __exp2(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::exp2(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __expm1(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::expm1(__x[__i]); });
-    }
-
-    template <class _Tp>
-    simd<_Tp, _Abi> __frexp(const simd<_Tp, _Abi> &__x,
-                         fixed_size_simd<int, simd_size_v<_Tp, _Abi>> &__exp)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) {
-            int __tmp;
-            _Tp __r = std::frexp(__x[__i], &__tmp);
-            __exp[__i] = __tmp;
-            return __r;
-        });
-    }
-
-    template <class _Tp>
-    simd<_Tp, _Abi> __ldexp(const simd<_Tp, _Abi> &__x,
-                         const fixed_size_simd<int, simd_size_v<_Tp, _Abi>> &__exp)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::ldexp(__x[__i], __exp[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC
-    fixed_size_simd<int, simd_size_v<_Tp, _Abi>> __ilogb(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::ilogb(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __log(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::log(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __log10(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::log10(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __log1p(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::log1p(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __log2(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::log2(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __logb(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::logb(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __modf(const simd<_Tp, _Abi> &__x, simd<_Tp, _Abi> &__y)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) {
-            _Tp __tmp;
-            _Tp __r = std::modf(__x[__i], &__tmp);
-            __y[__i] = __tmp;
-            return __r;
-        });
-    }
-
-    template <class _Tp>
-    _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi>
-			    __scalbn(const simd<_Tp, _Abi>&                              __x,
-				     const fixed_size_simd<int, simd_size_v<_Tp, _Abi>>& __y)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::scalbn(__x[__i], __y[__i]); });
-    }
-
-    template <class _Tp>
-    _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi>
-			    __scalbln(const simd<_Tp, _Abi>&                               __x,
-				      const fixed_size_simd<long, simd_size_v<_Tp, _Abi>>& __y)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::scalbln(__x[__i], __y[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __cbrt(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::cbrt(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __abs(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::abs(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __fabs(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::fabs(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __pow(const simd<_Tp, _Abi> &__x, const simd<_Tp, _Abi> &__y)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::pow(__x[__i], __y[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __sqrt(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::sqrt(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __erf(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::erf(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __erfc(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::erfc(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __lgamma(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::lgamma(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __tgamma(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::tgamma(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __ceil(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::ceil(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __floor(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::floor(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __nearbyint(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::nearbyint(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __rint(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::rint(__x[__i]); });
-    }
-
-    template <class _Tp>
-    fixed_size_simd<long, simd_size_v<_Tp, _Abi>> __lrint(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::lrint(__x[__i]); });
-    }
-
-    template <class _Tp>
-    fixed_size_simd<long long, simd_size_v<_Tp, _Abi>> __llrint(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::llrint(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __round(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::round(__x[__i]); });
-    }
-
-    template <class _Tp>
-    fixed_size_simd<long, simd_size_v<_Tp, _Abi>> __lround(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::lround(__x[__i]); });
-    }
-
-    template <class _Tp>
-    fixed_size_simd<long long, simd_size_v<_Tp, _Abi>> __llround(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::llround(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __trunc(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::trunc(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __fmod(const simd<_Tp, _Abi> &__x, const simd<_Tp, _Abi> &__y)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::fmod(__x[__i], __y[__i]); });
-    }
-
-    template <class _Tp>
-    simd<_Tp, _Abi> __remainder(const simd<_Tp, _Abi> &__x, const simd<_Tp, _Abi> &__y)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::remainder(__x[__i], __y[__i]); });
-    }
-
-    template <class _Tp>
-    simd<_Tp, _Abi> __remquo(const simd<_Tp, _Abi> &__x, const simd<_Tp, _Abi> &__y,
-                          fixed_size_simd<int, simd_size_v<_Tp, _Abi>> &__z)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) {
-            int __tmp;
-            _Tp __r = std::remquo(__x[__i], __y[__i], &__tmp);
-            __z[__i] = __tmp;
-            return __r;
-        });
-    }
-
-    template <class _Tp>
-    simd<_Tp, _Abi> __copysign(const simd<_Tp, _Abi> &__x, const simd<_Tp, _Abi> &__y)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::copysign(__x[__i], __y[__i]); });
-    }
-
-    template <class _Tp>
-    simd<_Tp, _Abi> __nextafter(const simd<_Tp, _Abi> &__x, const simd<_Tp, _Abi> &__y)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::nextafter(__x[__i], __y[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __fdim(const simd<_Tp, _Abi> &__x, const simd<_Tp, _Abi> &__y)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::fdim(__x[__i], __y[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __fmax(const simd<_Tp, _Abi> &__x, const simd<_Tp, _Abi> &__y)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::fmax(__x[__i], __y[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __fmin(const simd<_Tp, _Abi> &__x, const simd<_Tp, _Abi> &__y)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::fmin(__x[__i], __y[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC
-    simd<_Tp, _Abi> __fma(const simd<_Tp, _Abi> &__x, const simd<_Tp, _Abi> &__y,
-                       const simd<_Tp, _Abi> &__z)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::fma(__x[__i], __y[__i], __z[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC
-    fixed_size_simd<int, simd_size_v<_Tp, _Abi>> __fpclassify(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::fpclassify(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd_mask<_Tp, _Abi> __isfinite(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::isfinite(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd_mask<_Tp, _Abi> __isinf(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::isinf(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd_mask<_Tp, _Abi> __isnan(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::isnan(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd_mask<_Tp, _Abi> __isnormal(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::isnormal(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd_mask<_Tp, _Abi> __signbit(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::signbit(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd_mask<_Tp, _Abi> __isgreater(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::isgreater(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd_mask<_Tp, _Abi> __isgreaterequal(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::isgreaterequal(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd_mask<_Tp, _Abi> __isless(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::isless(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd_mask<_Tp, _Abi> __islessequal(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::islessequal(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd_mask<_Tp, _Abi> __islessgreater(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::islessgreater(__x[__i]); });
-    }
-
-    template <class _Tp> _GLIBCXX_SIMD_INTRINSIC simd_mask<_Tp, _Abi> __isunordered(const simd<_Tp, _Abi> &__x)
-    {
-        return simd<_Tp, _Abi>([&](auto __i) { return std::isunordered(__x[__i]); });
-    }
+template <class _Abi> struct _SimdMathFallback {  //{{{
+  using _SuperImpl = typename _Abi::_SimdImpl;
+
+#define _GLIBCXX_SIMD_MATH_FALLBACK(__name)                                    \
+  template <typename _Tp, typename... _More>                                   \
+  static _Tp __##__name(const _Tp& __x, const _More&... __more)                \
+  {                                                                            \
+    if constexpr ((__is_vectorizable_v<_Tp> && ... &&                          \
+		   __is_vectorizable_v<_More>))                                \
+      return std::__name(__x, __more...);                                      \
+    else if constexpr (__is_vectorizable_v<_Tp>)                               \
+      return std::__name(__x, __more[0]...);                                   \
+    else                                                                       \
+      return __generate_vector<_Tp>(                                           \
+	[&](auto __i) { return std::__name(__x[__i], __more[__i]...); });      \
+  }
+
+#define _GLIBCXX_SIMD_MATH_FALLBACK_MASKRET(__name)                            \
+  template <typename _Tp, typename... _More>                                   \
+  static                                                                       \
+    typename _Tp::mask_type __##__name(const _Tp& __x, const _More&... __more) \
+  {                                                                            \
+    if constexpr ((__is_vectorizable_v<_Tp> && ... &&                          \
+		   __is_vectorizable_v<_More>))                                \
+      return std::__name(__x, __more...);                                      \
+    else if constexpr (__is_vectorizable_v<_Tp>)                               \
+      return std::__name(__x, __more[0]...);                                   \
+    else                                                                       \
+      return __generate_vector<_Tp>(                                           \
+	[&](auto __i) { return std::__name(__x[__i], __more[__i]...); });      \
+  }
+
+#define _GLIBCXX_SIMD_MATH_FALLBACK_FIXEDRET(_RetTp, __name)                   \
+  template <typename _Tp, typename... _More>                                   \
+  static auto __##__name(const _Tp& __x, const _More&... __more)               \
+  {                                                                            \
+    if constexpr (__is_vectorizable_v<_Tp>)                                    \
+      return _SimdTuple<_RetTp, simd_abi::scalar>{                             \
+	std::__name(__x, __more...)};                                          \
+    else                                                                       \
+      return __fixed_size_storage_t<_RetTp, _VectorTraits<_Tp>::_S_width>::    \
+	__generate([&](auto __meta) constexpr {                                \
+	  return __meta.__generator(                                           \
+	    [&](auto __i) {                                                    \
+	      return std::__name(__x[__meta._S_offset + __i],                  \
+				 __more[__meta._S_offset + __i]...);           \
+	    },                                                                 \
+	    static_cast<_RetTp*>(nullptr));                                    \
+	});                                                                    \
+  }
+
+  _GLIBCXX_SIMD_MATH_FALLBACK(acos)
+  _GLIBCXX_SIMD_MATH_FALLBACK(asin)
+  _GLIBCXX_SIMD_MATH_FALLBACK(atan)
+  _GLIBCXX_SIMD_MATH_FALLBACK(atan2)
+  _GLIBCXX_SIMD_MATH_FALLBACK(cos)
+  _GLIBCXX_SIMD_MATH_FALLBACK(sin)
+  _GLIBCXX_SIMD_MATH_FALLBACK(tan)
+  _GLIBCXX_SIMD_MATH_FALLBACK(acosh)
+  _GLIBCXX_SIMD_MATH_FALLBACK(asinh)
+  _GLIBCXX_SIMD_MATH_FALLBACK(atanh)
+  _GLIBCXX_SIMD_MATH_FALLBACK(cosh)
+  _GLIBCXX_SIMD_MATH_FALLBACK(sinh)
+  _GLIBCXX_SIMD_MATH_FALLBACK(tanh)
+  _GLIBCXX_SIMD_MATH_FALLBACK(exp)
+  _GLIBCXX_SIMD_MATH_FALLBACK(exp2)
+  _GLIBCXX_SIMD_MATH_FALLBACK(expm1)
+  _GLIBCXX_SIMD_MATH_FALLBACK(ldexp)
+  _GLIBCXX_SIMD_MATH_FALLBACK_FIXEDRET(int, ilogb)
+  _GLIBCXX_SIMD_MATH_FALLBACK(log)
+  _GLIBCXX_SIMD_MATH_FALLBACK(log10)
+  _GLIBCXX_SIMD_MATH_FALLBACK(log1p)
+  _GLIBCXX_SIMD_MATH_FALLBACK(log2)
+  _GLIBCXX_SIMD_MATH_FALLBACK(logb)
+
+  //modf implemented in simd_math.h
+  _GLIBCXX_SIMD_MATH_FALLBACK(scalbn)
+  _GLIBCXX_SIMD_MATH_FALLBACK(scalbln)
+  _GLIBCXX_SIMD_MATH_FALLBACK(cbrt)
+  _GLIBCXX_SIMD_MATH_FALLBACK(abs)
+  _GLIBCXX_SIMD_MATH_FALLBACK(fabs)
+  _GLIBCXX_SIMD_MATH_FALLBACK(pow)
+  _GLIBCXX_SIMD_MATH_FALLBACK(sqrt)
+  _GLIBCXX_SIMD_MATH_FALLBACK(erf)
+  _GLIBCXX_SIMD_MATH_FALLBACK(erfc)
+  _GLIBCXX_SIMD_MATH_FALLBACK(lgamma)
+  _GLIBCXX_SIMD_MATH_FALLBACK(tgamma)
+  _GLIBCXX_SIMD_MATH_FALLBACK(ceil)
+  _GLIBCXX_SIMD_MATH_FALLBACK(floor)
+  _GLIBCXX_SIMD_MATH_FALLBACK(nearbyint)
+
+  _GLIBCXX_SIMD_MATH_FALLBACK(rint)
+  _GLIBCXX_SIMD_MATH_FALLBACK_FIXEDRET(long, lrint)
+  _GLIBCXX_SIMD_MATH_FALLBACK_FIXEDRET(long long, llrint)
+
+  _GLIBCXX_SIMD_MATH_FALLBACK(round)
+  _GLIBCXX_SIMD_MATH_FALLBACK_FIXEDRET(long, lround)
+  _GLIBCXX_SIMD_MATH_FALLBACK_FIXEDRET(long long, llround)
+
+  _GLIBCXX_SIMD_MATH_FALLBACK(trunc)
+  _GLIBCXX_SIMD_MATH_FALLBACK(fmod)
+  _GLIBCXX_SIMD_MATH_FALLBACK(remainder)
+
+  template <typename _Tp, typename _TVT = _VectorTraits<_Tp>>
+  static _Tp __remquo(const _Tp                                   __x,
+		      const _Tp                                   __y,
+		      __fixed_size_storage_t<int, _TVT::_S_width>* __z)
+  {
+    return __generate_vector<_Tp>([&](auto __i) {
+      int  __tmp;
+      auto __r    = std::remquo(__x[__i], __y[__i], &__tmp);
+      __z->__set(__i, __tmp);
+      return __r;
+    });
+  }
+
+  // copysign in simd_math.h
+  _GLIBCXX_SIMD_MATH_FALLBACK(nextafter)
+  _GLIBCXX_SIMD_MATH_FALLBACK(fdim)
+  _GLIBCXX_SIMD_MATH_FALLBACK(fmax)
+  _GLIBCXX_SIMD_MATH_FALLBACK(fmin)
+  _GLIBCXX_SIMD_MATH_FALLBACK(fma)
+  _GLIBCXX_SIMD_MATH_FALLBACK_FIXEDRET(int, fpclassify)
+
+  template <class _Tp>
+  _GLIBCXX_SIMD_INTRINSIC simd_mask<_Tp, _Abi>
+			  __isfinite(const simd<_Tp, _Abi>& __x)
+  {
+    return simd<_Tp, _Abi>([&](auto __i) { return std::isfinite(__x[__i]); });
+  }
+
+  template <class _Tp>
+  _GLIBCXX_SIMD_INTRINSIC simd_mask<_Tp, _Abi>
+			  __isinf(const simd<_Tp, _Abi>& __x)
+  {
+    return simd<_Tp, _Abi>([&](auto __i) { return std::isinf(__x[__i]); });
+  }
+
+  template <class _Tp>
+  _GLIBCXX_SIMD_INTRINSIC simd_mask<_Tp, _Abi>
+			  __isnan(const simd<_Tp, _Abi>& __x)
+  {
+    return simd<_Tp, _Abi>([&](auto __i) { return std::isnan(__x[__i]); });
+  }
+
+  template <class _Tp>
+  _GLIBCXX_SIMD_INTRINSIC simd_mask<_Tp, _Abi>
+			  __isnormal(const simd<_Tp, _Abi>& __x)
+  {
+    return simd<_Tp, _Abi>([&](auto __i) { return std::isnormal(__x[__i]); });
+  }
+
+  template <class _Tp>
+  _GLIBCXX_SIMD_INTRINSIC simd_mask<_Tp, _Abi>
+			  __signbit(const simd<_Tp, _Abi>& __x)
+  {
+    return simd<_Tp, _Abi>([&](auto __i) { return std::signbit(__x[__i]); });
+  }
+
+  template <typename _Tp, typename _TVT = _VectorTraits<_Tp>>
+  _GLIBCXX_SIMD_INTRINSIC static constexpr auto
+    __isgreater(const _Tp& __x, const _Tp& __y)
+  {
+    return _SuperImpl::__less(__y, __x);
+  }
+  template <typename _Tp, typename _TVT = _VectorTraits<_Tp>>
+  _GLIBCXX_SIMD_INTRINSIC static constexpr auto
+    __isgreaterequal(const _Tp& __x, const _Tp& __y)
+  {
+    return _SuperImpl::__less_equal(__y, __x);
+  }
+  template <typename _Tp, typename _TVT = _VectorTraits<_Tp>>
+  _GLIBCXX_SIMD_INTRINSIC static constexpr auto
+    __isless(const _Tp& __x, const _Tp& __y)
+  {
+    return _SuperImpl::__less(__x, __y);
+  }
+  template <typename _Tp, typename _TVT = _VectorTraits<_Tp>>
+  _GLIBCXX_SIMD_INTRINSIC static constexpr auto
+    __islessequal(const _Tp& __x, const _Tp& __y)
+  {
+    return _SuperImpl::__less_equal(__x, __y);
+  }
+  template <typename _Tp, typename _TVT = _VectorTraits<_Tp>>
+  _GLIBCXX_SIMD_INTRINSIC static constexpr auto
+    __islessgreater(const _Tp& __x, const _Tp& __y)
+  {
+    return __or(_SuperImpl::__less(__y, __x), _SuperImpl::__less(__x, __y));
+  }
+
+  template <typename _Tp, typename _TVT = _VectorTraits<_Tp>>
+  _GLIBCXX_SIMD_INTRINSIC static constexpr auto
+    __isunordered(const _Tp& __x, const _Tp& __y)
+  {
+    return __cmpunord(__x, __y);
+  }
+
+#undef _GLIBCXX_SIMD_MATH_FALLBACK
+#undef _GLIBCXX_SIMD_MATH_FALLBACK_FIXEDRET
 };  // }}}
 // _SimdImplScalar {{{
-struct _SimdImplScalar : __simd_math_fallback<simd_abi::scalar> {
+struct _SimdImplScalar : _SimdMathFallback<simd_abi::scalar> {
     // member types {{{2
     using abi_type = std::experimental::simd_abi::scalar;
     using _MaskMember = bool;
@@ -2599,6 +2314,18 @@ struct _SimdImplScalar : __simd_math_fallback<simd_abi::scalar> {
     template <class _Tp> _GLIBCXX_SIMD_INTRINSIC static _Tp __floor(_Tp __x) { return std::floor(__x); }
     template <class _Tp> _GLIBCXX_SIMD_INTRINSIC static _Tp __ceil(_Tp __x) { return std::ceil(__x); }
 
+    template <typename _Tp>
+    _GLIBCXX_SIMD_INTRINSIC static _Tp
+      __remquo(_Tp __x, _Tp __y, _SimdTuple<int, simd_abi::_ScalarAbi>* __z)
+    {
+      return std::remquo(__x, __y, &__z->first);
+    }
+    template <typename _Tp>
+    _GLIBCXX_SIMD_INTRINSIC static _Tp __remquo(_Tp __x, _Tp __y, int* __z)
+    {
+      return std::remquo(__x, __y, __z);
+    }
+
     template <class _Tp> _GLIBCXX_SIMD_INTRINSIC static _SimdTuple<int, abi_type> __fpclassify(_Tp __x)
     {
         return {std::fpclassify(__x)};
@@ -2759,7 +2486,7 @@ template <class _Tp, size_t _N> constexpr bool __is_neon_pd()
 }
 
 // _SimdImplBuiltin {{{1
-template <class _Abi> struct _SimdImplBuiltin : __simd_math_fallback<_Abi> {
+template <class _Abi> struct _SimdImplBuiltin : _SimdMathFallback<_Abi> {
     // member types {{{2
     using abi_type = _Abi;
     template <class _Tp> using _TypeTag = _Tp *;
@@ -3556,17 +3283,15 @@ template <class _Abi> struct __generic_mask_impl {
     }
 
     // smart_reference access {{{2
-    template <class _Tp, size_t _N> static void __set(_SimdWrapper<_Tp, _N> &__k, int __i, bool __x) noexcept
+    template <class _Tp, size_t _N>
+    static void __set(_SimdWrapper<_Tp, _N>& __k, int __i, bool __x) noexcept
     {
-        if constexpr (std::is_same_v<_Tp, bool>) {
-            __k.__set(__i, __x);
-        } else {
-            using _IntT = __vector_type_t<__int_for_sizeof_t<_Tp>, _N>;
-            auto __tmp = reinterpret_cast<_IntT>(__k._M_data);
-            __tmp[__i] = -__x;
-            __k._M_data = __auto_bitcast(__tmp);
-        }
+      if constexpr (std::is_same_v<_Tp, bool>)
+	__k.__set(__i, __x);
+      else
+	__k._M_data[__i] = __bit_cast<_Tp>(__int_for_sizeof_t<_Tp>(-__x));
     }
+
     // __masked_assign{{{2
     template <class _Tp, size_t _N>
     _GLIBCXX_SIMD_INTRINSIC static void __masked_assign(_SimdWrapper<_Tp, _N> __k, _SimdWrapper<_Tp, _N> &__lhs,
@@ -5776,6 +5501,8 @@ _GLIBCXX_SIMD_INTRINSIC _Tp __vec_to_scalar_reduction(const _SimdTuple<_Tp, _A0,
 }
 
 // _SimdImplFixedSize {{{1
+// fixed_size should not inherit from _SimdMathFallback in order for
+// specializations in the used _SimdTuple Abis to get used
 template <int _N> struct _SimdImplFixedSize {
     // member types {{{2
     using _MaskMember = std::bitset<_N>;
@@ -5902,11 +5629,11 @@ public:
       __min(const _SimdTuple<_Tp, _As...>& __a,
 	  const _SimdTuple<_Tp, _As...>& __b)
     {
-      return __simd_tuple_apply(
+      return __a.__apply_per_chunk(
 	[](auto __impl, auto __aa, auto __bb) constexpr {
 	  return __impl.__min(__aa, __bb);
 	},
-	__a, __b);
+	__b);
     }
 
     template <typename _Tp, typename... _As>
@@ -5914,11 +5641,11 @@ public:
       __max(const _SimdTuple<_Tp, _As...>& __a,
 	  const _SimdTuple<_Tp, _As...>& __b)
     {
-      return __simd_tuple_apply(
+      return __a.__apply_per_chunk(
 	[](auto __impl, auto __aa, auto __bb) constexpr {
 	  return __impl.__max(__aa, __bb);
 	},
-	__a, __b);
+	__b);
     }
 
     // __complement {{{2
@@ -5926,8 +5653,9 @@ public:
     static inline constexpr _SimdTuple<_Tp, _As...>
       __complement(const _SimdTuple<_Tp, _As...>& __x) noexcept
     {
-      return __simd_tuple_apply(
-	[](auto __impl, auto __xx) constexpr { return __impl.__complement(__xx); }, __x);
+      return __x.__apply_per_chunk([](auto __impl, auto __xx) constexpr {
+	return __impl.__complement(__xx);
+      });
     }
 
     // __unary_minus {{{2
@@ -5935,8 +5663,9 @@ public:
     static inline constexpr _SimdTuple<_Tp, _As...>
       __unary_minus(const _SimdTuple<_Tp, _As...>& __x) noexcept
     {
-      return __simd_tuple_apply(
-	[](auto __impl, auto __xx) constexpr { return __impl.__unary_minus(__xx); }, __x);
+      return __x.__apply_per_chunk([](auto __impl, auto __xx) constexpr {
+	return __impl.__unary_minus(__xx);
+      });
     }
 
     // arithmetic operators {{{2
@@ -5946,11 +5675,11 @@ public:
   static inline constexpr _SimdTuple<_Tp, _As...> name_(                       \
     const _SimdTuple<_Tp, _As...>& __x, const _SimdTuple<_Tp, _As...>& __y)    \
   {                                                                            \
-    return __simd_tuple_apply(                                                 \
+    return __x.__apply_per_chunk(                                              \
       [](auto __impl, auto __xx, auto __yy) constexpr {                        \
 	return __impl.name_(__xx, __yy);                                       \
       },                                                                       \
-      __x, __y);                                                               \
+      __y);                                                                    \
   }
 
     _GLIBCXX_SIMD_FIXED_OP(__plus, +)
@@ -5969,57 +5698,143 @@ public:
     static inline constexpr _SimdTuple<_Tp, _As...>
       __bit_shift_left(const _SimdTuple<_Tp, _As...>& __x, int __y)
     {
-      return __simd_tuple_apply(
-	[__y](auto __impl, auto __xx) constexpr {
-	  return __impl.__bit_shift_left(__xx, __y);
-	},
-	__x);
+      return __x.__apply_per_chunk([__y](auto __impl, auto __xx) constexpr {
+	return __impl.__bit_shift_left(__xx, __y);
+      });
     }
 
     template <typename _Tp, typename... _As>
     static inline constexpr _SimdTuple<_Tp, _As...>
       __bit_shift_right(const _SimdTuple<_Tp, _As...>& __x, int __y)
     {
-      return __simd_tuple_apply(
-	[__y](auto __impl, auto __xx) constexpr {
-	  return __impl.__bit_shift_right(__xx, __y);
-	},
-	__x);
+      return __x.__apply_per_chunk([__y](auto __impl, auto __xx) constexpr {
+	return __impl.__bit_shift_right(__xx, __y);
+      });
     }
 
     // math {{{2
-#define _GLIBCXX_SIMD_APPLY_ON_TUPLE_(name_)                                   \
-  template <typename _Tp, typename... _As>                                     \
-  static inline _SimdTuple<_Tp, _As...> __##name_(                             \
-    const _SimdTuple<_Tp, _As...>& __x) noexcept                               \
+#define _GLIBCXX_SIMD_APPLY_ON_TUPLE(_RetTp, __name)                           \
+  template <typename _Tp, typename... _As, typename... _More>                  \
+  static inline __fixed_size_storage_t<_RetTp,                                 \
+				       _SimdTuple<_Tp, _As...>::size()>        \
+    __##__name(const _SimdTuple<_Tp, _As...>& __x, const _More&... __more)     \
   {                                                                            \
-    return __simd_tuple_apply(                                                 \
-      [](auto __impl, auto __xx) constexpr {                                   \
-	using _V = typename decltype(__impl)::simd_type;                       \
-	return __data(name_(_V(__private_init, __xx)));                        \
-      },                                                                       \
-      __x);                                                                    \
+    if constexpr (sizeof...(_More) == 0)                                       \
+      {                                                                        \
+	if constexpr (is_same_v<_Tp, _RetTp>)                                  \
+	  return __x.__apply_per_chunk([](auto __impl, auto __xx) constexpr {  \
+	    using _V = typename decltype(__impl)::simd_type;                   \
+	    return __data(__name(_V(__private_init, __xx)));                   \
+	  });                                                                  \
+	else                                                                   \
+	  return __optimize_simd_tuple(__x.template __apply_r<_RetTp>(         \
+	    [](auto __impl, auto __xx) { return __impl.__##__name(__xx); }));  \
+      }                                                                        \
+    else if constexpr (is_same_v<_Tp, _RetTp> &&                               \
+		       (... &&                                                 \
+			std::is_same_v<_SimdTuple<_Tp, _As...>, _More>))       \
+      return __x.__apply_per_chunk(                                            \
+	[](auto __impl, auto __xx, auto... __pack) constexpr {                 \
+	  using _V = typename decltype(__impl)::simd_type;                     \
+	  return __data(                                                       \
+	    __name(_V(__private_init, __xx), _V(__private_init, __pack)...));  \
+	},                                                                     \
+	__more...);                                                            \
+    else if constexpr (is_same_v<_Tp, _RetTp>)                                 \
+      return __x.__apply_per_chunk(                                            \
+	[](auto __impl, auto __xx, auto... __pack) constexpr {                 \
+	  using _V = typename decltype(__impl)::simd_type;                     \
+	  return __data(                                                       \
+	    __name(_V(__private_init, __xx), __autocvt_to_simd(__pack)...));   \
+	},                                                                     \
+	__more...);                                                            \
+    else                                                                       \
+      __assert_unreachable<_Tp>();                                             \
   }
-    _GLIBCXX_SIMD_APPLY_ON_TUPLE_(sqrt)
-    _GLIBCXX_SIMD_APPLY_ON_TUPLE_(abs)
-    _GLIBCXX_SIMD_APPLY_ON_TUPLE_(trunc)
-    _GLIBCXX_SIMD_APPLY_ON_TUPLE_(floor)
-    _GLIBCXX_SIMD_APPLY_ON_TUPLE_(ceil)
-    _GLIBCXX_SIMD_APPLY_ON_TUPLE_(sin)
-    _GLIBCXX_SIMD_APPLY_ON_TUPLE_(cos)
-#undef _GLIBCXX_SIMD_APPLY_ON_TUPLE_
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, acos)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, asin)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, atan)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, atan2)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, cos)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, sin)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, tan)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, acosh)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, asinh)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, atanh)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, cosh)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, sinh)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, tanh)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, exp)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, exp2)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, expm1)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(int, ilogb)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, log)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, log10)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, log1p)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, log2)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, logb)
+    //modf implemented in simd_math.h
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, scalbn) //double scalbn(double x, int exp);
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, scalbln)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, cbrt)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, abs)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, fabs)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, pow)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, sqrt)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, erf)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, erfc)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, lgamma)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, tgamma)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, trunc)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, ceil)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, floor)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, nearbyint)
+
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, rint)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(long, lrint)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(long long, llrint)
+
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, round)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(long, lround)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(long long, llround)
+
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, ldexp)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, fmod)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, remainder)
+    // copysign in simd_math.h
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, nextafter)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, fdim)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, fmax)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, fmin)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(_Tp, fma)
+    _GLIBCXX_SIMD_APPLY_ON_TUPLE(int, fpclassify)
+#undef _GLIBCXX_SIMD_APPLY_ON_TUPLE
+
+    template <typename _Tp, typename... _Abis>
+    static _SimdTuple<_Tp, _Abis...> __remquo(
+      const _SimdTuple<_Tp, _Abis...>&                                __x,
+      const _SimdTuple<_Tp, _Abis...>&                                __y,
+      __fixed_size_storage_t<int, _SimdTuple<_Tp, _Abis...>::size()>* __z)
+    {
+      return __x.__apply_per_chunk(
+	[](auto __impl, const auto __xx, const auto __yy, auto& __zz) {
+	  return __impl.__remquo(__xx, __yy, &__zz);
+	},
+	__y, *__z);
+    }
 
     template <typename _Tp, typename... _As>
-    static inline _SimdTuple<_Tp, _As...> __frexp(const _SimdTuple<_Tp, _As...> &__x,
-                                             __fixed_size_storage_t<int, _N> &__exp) noexcept
+    static inline _SimdTuple<_Tp, _As...>
+      __frexp(const _SimdTuple<_Tp, _As...>&   __x,
+	      __fixed_size_storage_t<int, _N>& __exp) noexcept
     {
-        return __simd_tuple_apply(
-            [](auto __impl, const auto &__a, auto &__b) {
-                return __data(
-                    __impl.__frexp(typename decltype(__impl)::simd_type(__private_init, __a),
-                                 __autocvt_to_simd(__b)));
-            },
-            __x, __exp);
+      return __x.__apply_per_chunk(
+	[](auto __impl, const auto& __a, auto& __b) {
+	  return __data(
+	    frexp(typename decltype(__impl)::simd_type(__private_init, __a),
+		  __autocvt_to_simd(__b)));
+	},
+	__exp);
     }
 
     template <typename _Tp, typename... _As>
@@ -6047,7 +5862,8 @@ public:
 
     // __increment & __decrement{{{2
     template <typename... _Ts>
-    static inline constexpr void __increment(_SimdTuple<_Ts...>& __x)
+    _GLIBCXX_SIMD_INTRINSIC static constexpr void
+      __increment(_SimdTuple<_Ts...>& __x)
     {
       __for_each(
 	__x, [](auto __meta, auto& native) constexpr {
@@ -6056,7 +5872,8 @@ public:
     }
 
     template <typename... _Ts>
-    static inline constexpr void __decrement(_SimdTuple<_Ts...>& __x)
+    _GLIBCXX_SIMD_INTRINSIC static constexpr void
+      __decrement(_SimdTuple<_Ts...>& __x)
     {
       __for_each(
 	__x, [](auto __meta, auto& native) constexpr {
@@ -6065,24 +5882,24 @@ public:
     }
 
     // compares {{{2
-#define _GLIBCXX_SIMD_CMP_OPERATIONS(cmp_)                                     \
+#define _GLIBCXX_SIMD_CMP_OPERATIONS(__cmp)                                    \
   template <typename _Tp, typename... _As>                                     \
-  static inline _MaskMember cmp_(const _SimdTuple<_Tp, _As...>& __x,           \
-				 const _SimdTuple<_Tp, _As...>& __y)           \
+  _GLIBCXX_SIMD_INTRINSIC static _MaskMember __cmp(                            \
+    const _SimdTuple<_Tp, _As...>& __x, const _SimdTuple<_Tp, _As...>& __y)    \
   {                                                                            \
-    _MaskMember __bits = 0;                                                    \
-    __for_each(                                                                \
-      __x,                                                                     \
-      __y, [&__bits](auto __meta, auto native_x, auto native_y) constexpr {    \
-	__bits |=                                                              \
-	  __meta.__mask_to_shifted_ullong(__meta.cmp_(native_x, native_y));    \
-      });                                                                      \
-    return __bits;                                                             \
+    return __test([](auto __impl, auto __xx,                                   \
+		     auto __yy) { return __impl.__cmp(__xx, __yy); },          \
+		  __x, __y);                                                   \
   }
     _GLIBCXX_SIMD_CMP_OPERATIONS(__equal_to)
     _GLIBCXX_SIMD_CMP_OPERATIONS(__not_equal_to)
     _GLIBCXX_SIMD_CMP_OPERATIONS(__less)
     _GLIBCXX_SIMD_CMP_OPERATIONS(__less_equal)
+    _GLIBCXX_SIMD_CMP_OPERATIONS(__isless)
+    _GLIBCXX_SIMD_CMP_OPERATIONS(__islessequal)
+    _GLIBCXX_SIMD_CMP_OPERATIONS(__isgreater)
+    _GLIBCXX_SIMD_CMP_OPERATIONS(__isgreaterequal)
+    _GLIBCXX_SIMD_CMP_OPERATIONS(__islessgreater)
     _GLIBCXX_SIMD_CMP_OPERATIONS(__isunordered)
 #undef _GLIBCXX_SIMD_CMP_OPERATIONS
 
@@ -6585,7 +6402,7 @@ protected:
                     typename __simd_tuple_element<sizeof...(_Indexes),
                                            _SimdTuple<_From, _A0, _Abis...>>::type::abi_type,
                     typename _R::_Second_type::_First_abi>(),
-                __simd_tuple_pop_front(_SizeConstant<sizeof...(_Indexes)>(), __x))};
+                __simd_tuple_pop_front<sizeof...(_Indexes)>(__x))};
     }
 
     // _EqualChunks {{{2

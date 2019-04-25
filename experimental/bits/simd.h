@@ -324,6 +324,17 @@ template <typename _Tp, typename _A>
 inline constexpr size_t __size_or_zero_v = __size_or_zero_dispatch<_Tp, _A>(0);
 
 // }}}
+// __bit_cast {{{
+template <typename _To, typename _From>
+_GLIBCXX_SIMD_INTRINSIC _To __bit_cast(const _From __x)
+{
+  static_assert(sizeof(_To) == sizeof(_From));
+  _To __r;
+  std::memcpy(&__r, &__x, sizeof(_To));
+  return __r;
+}
+
+// }}}
 // __promote_preserving_unsigned{{{
 // work around crazy semantics of unsigned integers of lower rank than int:
 // Before applying an operator the operands are promoted to int. In which case over- or
@@ -1219,8 +1230,9 @@ _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __xor(_Tp __a, typename _TVT::type __b) no
 
 // }}}
 // __or{{{
-template <typename _Tp, typename _TVT = _VectorTraits<_Tp>>
-_GLIBCXX_SIMD_INTRINSIC constexpr _Tp __or(_Tp __a, typename _TVT::type __b) noexcept
+template <typename _Tp, typename _TVT = _VectorTraits<_Tp>, typename... _Dummy>
+_GLIBCXX_SIMD_INTRINSIC constexpr _Tp
+  __or(_Tp __a, typename _TVT::type __b, _Dummy...) noexcept
 {
 #if _GLIBCXX_SIMD_X86INTRIN
   if constexpr (_TVT::template __is<float, 4> && __have_sse)
@@ -1239,6 +1251,12 @@ _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __or(_Tp __a, typename _TVT::type __b) noe
 #endif // _GLIBCXX_SIMD_X86INTRIN
     return reinterpret_cast<typename _TVT::type>(
       __vector_bitcast<unsigned>(__a) | __vector_bitcast<unsigned>(__b));
+}
+
+template <typename _Tp, typename = decltype(_Tp() | _Tp())>
+_GLIBCXX_SIMD_INTRINSIC constexpr _Tp __or(_Tp __a, _Tp __b) noexcept
+{
+  return __a | __b;
 }
 
 // }}}
