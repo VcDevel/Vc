@@ -268,7 +268,7 @@ TEST_TYPES(V, sin, real_test_types)  //{{{1
     using T = typename V::value_type;
 
     vir::test::setFuzzyness<float>(2);
-    vir::test::setFuzzyness<double>(1e7);
+    vir::test::setFuzzyness<double>(1);
 
     const auto &testdata = referenceData<function::sincos, T>();
     std::experimental::experimental::simd_view<V>(testdata).for_each(
@@ -284,7 +284,7 @@ TEST_TYPES(V, cos, real_test_types)  //{{{1
     using T = typename V::value_type;
 
     vir::test::setFuzzyness<float>(2);
-    vir::test::setFuzzyness<double>(1e7);
+    vir::test::setFuzzyness<double>(1);
 
     const auto &testdata = referenceData<function::sincos, T>();
     std::experimental::experimental::simd_view<V>(testdata).for_each(
@@ -626,8 +626,27 @@ TEST_TYPES(V, ldexp_scalbn_scalbln_modf, real_test_types)  //{{{1
 
     using limits = std::numeric_limits<typename V::value_type>;
     test_values<V>(
-        {limits::quiet_NaN(), limits::infinity(), -limits::infinity(), +0., -0.,
-         limits::denorm_min(), limits::min(), limits::max(), limits::min() / 3},
+        {limits::quiet_NaN(),
+         limits::infinity(),
+         -limits::infinity(),
+         +0.,
+         -0.,
+         +1.3,
+         -1.3,
+         2.1,
+         -2.1,
+         0.99,
+         0.9,
+         -0.9,
+         -0.99,
+         limits::denorm_min(),
+         limits::min(),
+         limits::max(),
+         limits::min() / 3,
+         -limits::denorm_min(),
+         -limits::min(),
+         -limits::max(),
+         -limits::min() / 3},
         {10000, -limits::max() / 2, limits::max() / 2},
         [](const V input) {
             for (int exp : {-10000, -100, -10, -1, 0, 1, 10, 100, 10000}) {
@@ -716,8 +735,7 @@ TEST_TYPES(V, ldexp_scalbn_scalbln_modf, real_test_types)  //{{{1
             const auto expect2 = expected(clean);
             COMPARE(modf(clean, &integral), expect2.first) << "\nclean = " << clean;
             COMPARE(integral, expect2.second);
-        }
-    );
+        });
 }
 
 TEST_TYPES(V, remqo, real_test_types)  //{{{1
