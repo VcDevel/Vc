@@ -4,10 +4,11 @@ tmp := "case $$(readlink -f $(build_dir)) in *icecc) which $${ICECC_CXX:-g++};; 
 build_dir := $(shell sh -c $(tmp))
 build_dir := $(realpath $(build_dir))
 build_dir := build-$(subst /,-,$(build_dir:/%=%))
+cols := $(shell sh -c 'stty size|col2')
 
 all:
 %:: $(build_dir)/CMakeCache.txt
-	$(MAKE) --no-print-directory -C "$(build_dir)" $(MAKECMDGOALS)
+	$(MAKE) --no-print-directory -C "$(build_dir)" $(MAKECMDGOALS) 2>&1|sed -u 's/std::\(experimental::\([a-z_0-9]\+::\)\?\)\?/⠶/g'|fold -s -w $(cols)
 
 $(build_dir)/CMakeCache.txt:
 	@test -n "$(build_dir)"
