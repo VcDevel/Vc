@@ -28,13 +28,6 @@ if(NOT "$ENV{TRAVIS_OS_NAME}" STREQUAL "")
 endif()
 
 add_definitions(-DCOMPILE_FOR_UNIT_TESTS -D_GLIBCXX_SIMD_NO_OPTIMIZATION_WARNINGS)
-if(Vc_COMPILER_IS_MSVC)
-   AddCompilerFlag("/wd4267") # Disable warning "conversion from 'size_t' to 'int', possible loss of data"
-   AddCompilerFlag("/wd4723") # Disable warning "potential divide by 0" (suppress doesn't work)
-   AddCompilerFlag("/wd4503") # Disable warning "decorated name length exceeded, name was truncated"
-   AddCompilerFlag("/wd4752") # Disable warning "found Intel(R) Advanced Vector Extensions; consider using /arch:AVX"
-   AddCompilerFlag("/bigobj") # work around "fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj"
-endif()
 AddCompilerFlag("-fmax-errors=10") # Don't go too crazy on errors
 
 # 32-bit x86 requires SSE for fp math to produce comparable results.
@@ -100,13 +93,6 @@ function(vc_download_testdata)#{{{
 endfunction()
 vc_download_testdata()#}}}
 
-if(Vc_COMPILER_IS_CLANG) # don't warn about sanity checks#{{{
-   # GCC does not complain about the following flags until much later. Therefore
-   # the AddCompilerFlag logic doesn't work as intended.
-   AddCompilerFlag(-Wno-tautological-constant-out-of-range-compare)
-   AddCompilerFlag(-Wno-tautological-compare)
-endif()#}}}
-
 function(get_target_executable VAR TARGET)#{{{
    get_target_property(exe "${TARGET}" OUTPUT_NAME)
    if(NOT exe)
@@ -148,22 +134,10 @@ endfunction()#}}}
 
 # sets Vc_nosimd_flags, Vc_sse2_flags, ...
 if(Vc_X86)
-   if(Vc_COMPILER_IS_MSVC)
-      if(CMAKE_SYSTEM_PROCESSOR MATCHES 64)
-         message(STATUS "Building tests for nosimd: disabled")
-         # /arch:SSE2 is implied and an unknown option to cl
-         vc_target_setup(sse2 mrm)
-      else()
-         vc_target_setup(nosimd mrm)
-         # There's only /arch:SSE2, and no way to select ISA options for SSE3-4
-         vc_target_setup(sse2 mrm "/arch:SSE2")
-      endif()
-   else()
-      vc_target_setup(nosimd mrm "-mno-sse")
-      vc_target_setup(sse2 mrm "-xSSE2" "-march=athlon64")
-      vc_target_setup(ssse3 mrm "-xSSSE3" "-march=core2")
-      vc_target_setup(sse4_2 nhm "-xSSE4.2" "-march=nehalem")
-   endif()
+   vc_target_setup(nosimd mrm "-mno-sse")
+   vc_target_setup(sse2 mrm "-xSSE2" "-march=athlon64")
+   vc_target_setup(ssse3 mrm "-xSSSE3" "-march=core2")
+   vc_target_setup(sse4_2 nhm "-xSSE4.2" "-march=nehalem")
    vc_target_setup(avx snb "-xAVX" "-march=sandybridge" "/arch:AVX")
    vc_target_setup(avx2 hsw "-xCORE-AVX2" "-march=haswell" "/arch:AVX2")
    vc_target_setup(knl knl "-xMIC-AVX512" "-march=knl" "/arch:KNL")
@@ -205,19 +179,6 @@ function(vc_add_test name) #{{{
       return()
    endif()
 
-   macro(check_target_disabled _t)
-      list(FIND disabled_targets ${${_t}} disabled)
-      if(disabled EQUAL -1)
-         set(disabled FALSE)
-      else()
-         set(disabled TRUE)
-         if(NOT DEFINED printed_${${_t}})
-            message(STATUS "Skipping unit test ${${_t}}. Disabled.")
-            set(printed_${${_t}} TRUE)
-         endif()
-      endif()
-   endmacro()
-
    cmake_parse_arguments("" "NO_TESTTYPES;SINGLE_TESTTYPE;EXCLUDE_FROM_ALL" "SOURCE" "DEFINITIONS" ${ARGN})
 
    if(_SOURCE)
@@ -229,20 +190,12 @@ function(vc_add_test name) #{{{
    set(run_targets)
    foreach(impl ${vc_all_target_variants})
       set(_target "${name}_${impl}")
-      check_target_disabled(_target)
-      if(disabled)
-         continue()
-      endif()
       set(flags "${Vc_COMPILE_FLAGS}")
       if(DEFINED Vc_${impl}_flags)
          list(APPEND flags "${Vc_${impl}_flags}")
       endif()
 
       string(REPLACE ";" " " link_flags "${flags}")
-      if(Vc_COMPILER_IS_MSVC)
-         # MS LNK warns about /arch: flags
-         string(REGEX REPLACE "/arch:[^ ]*" "" link_flags "${link_flags}")
-      endif()
 
       string(TOUPPER "${impl}" label)
       set(use_var "USE_${label}")
@@ -258,8 +211,6 @@ function(vc_add_test name) #{{{
          set(type_split " ")
       elseif(_SINGLE_TESTTYPE)
          set(type_split "ldouble" "float" "double" "uint" "llong" "long" "uchar" "int" "ushort" "short" "ulong" "schar" "ullong" "wchar" "char16" "char32" "char")
-      elseif(Vc_COMPILER_IS_MSVC)
-         set(type_split "ldouble,float,double" "uint,llong,char" "long,uchar,char16" "int,ushort,char32" "short,ulong,wchar" "schar,ullong")
       else()
          set(type_split "ldouble,float,double,schar,uchar" "llong,long,ullong,ulong,char,wchar" "int,short,uint,ushort,char16,char32")
       endif()
@@ -269,16 +220,8 @@ function(vc_add_test name) #{{{
          else()
             string(TOLOWER "${_target}" target)
          endif()#}}}
-         check_target_disabled(target)
-         if(disabled)
-            continue()
-         endif()
          if(NOT _NO_TESTTYPES)
             string(REPLACE "," "_" target "${target}_${types}")
-         endif()
-         check_target_disabled(target)
-         if(disabled)
-            continue()
          endif()
 
          if(OBJCOPY)
@@ -359,13 +302,7 @@ find_program(OBJDUMP objdump)
 mark_as_advanced(OBJDUMP)
 if(OBJDUMP AND NOT ENABLE_UBSAN) # ubsan changes codegen too much, just skip it
    set(alias_strategies2)
-   if(Vc_COMPILER_IS_CLANG OR Vc_COMPILER_IS_GCC)
-      list(APPEND alias_strategies2 MayAlias VectorBuiltin)
-   elseif(Vc_COMPILER_IS_INTEL)
-      list(APPEND alias_strategies2 VectorBuiltin)
-   elseif(Vc_COMPILER_IS_MSVC)
-      list(APPEND alias_strategies2 UnionMembers)
-   endif()
+   list(APPEND alias_strategies2 MayAlias VectorBuiltin)
 
    set(run_targets)
    macro(test_uninitialized _impl)
@@ -439,16 +376,12 @@ if(OBJDUMP AND NOT ENABLE_UBSAN) # ubsan changes codegen too much, just skip it
       test_uninitialized(AVX ${Vc_avx_flags})
       test_uninitialized(KNL ${Vc_knl_flags})
 
-      if(NOT Vc_COMPILER_IS_INTEL)
-         test_abi(abi_SSE     SSE __sse ${Vc_sse2_flags})
-         test_abi(abi_SSE_AVX SSE __sse ${Vc_avx_flags})
-         if(NOT Vc_AVX_INTRINSICS_BROKEN)
-            test_abi(abi_AVX     AVX __avx ${Vc_avx_flags})
-            test_abi(abi_AVX2    AVX2 __avx ${Vc_avx2_flags})
-            test_abi(abi_AVX512  AVX512 __avx512 ${Vc_avx512_flags})
-            test_abi(abi_KNL     KNL __avx512 ${Vc_knl_flags})
-         endif()
-      endif()
+      test_abi(abi_SSE     SSE __sse ${Vc_sse2_flags})
+      test_abi(abi_SSE_AVX SSE __sse ${Vc_avx_flags})
+      test_abi(abi_AVX     AVX __avx ${Vc_avx_flags})
+      test_abi(abi_AVX2    AVX2 __avx ${Vc_avx2_flags})
+      test_abi(abi_AVX512  AVX512 __avx512 ${Vc_avx512_flags})
+      test_abi(abi_KNL     KNL __avx512 ${Vc_knl_flags})
    endif()
 
    if(run_targets)

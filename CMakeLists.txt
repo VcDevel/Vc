@@ -8,15 +8,20 @@ endif()
 project(Vc)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-set(disabled_targets)
-
 set(CMAKE_REQUIRED_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}")
-include (VcMacros)
 include (AddTargetProperty)
 include (OptimizeForArchitecture)
+OptimizeForArchitecture()
 
-vc_determine_compiler()
-vc_determine_target_isa()
+set(Vc_X86 FALSE)
+set(Vc_ARM FALSE)
+if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(x86|AMD64|amd64)")
+   set(Vc_X86 TRUE)
+elseif("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(arm|aarch32|aarch64)")
+   set(Vc_ARM TRUE)
+else()
+   message(WARNING "No optimized implementation of the Vc types available for ${CMAKE_SYSTEM_PROCESSOR}")
+endif()
 
 # set up ccache#{{{
 ##################################################################
@@ -29,28 +34,8 @@ if(USE_CCACHE)
    endif()
 endif()#}}}
 
-# Check for C++17/14 support in the compiler#{{{
-##################################################################
-if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++14 on/off
-   AddCompilerFlag("-std=c++17" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
-   if(NOT _ok)
-      message(FATAL_ERROR "Vc 2.x requires C++17. It seems this is not available. If this was incorrectly determined please open an issue on https://github.com/VcDevel/Vc")
-   endif()
-elseif(Vc_MSVC_VERSION)
-   message(FATAL_ERROR "Vc 2.x requires C++17 support and GNU-like vector builtins.")
-endif()#}}}
-
-# Compiler workarounds that are not necessary for users#{{{
-##################################################################
-if(Vc_COMPILER_IS_GCC)
-   if(Vc_GCC_VERSION VERSION_GREATER "5.99")
-      AddCompilerFlag(-Wno-ignored-attributes)
-   endif()
-elseif(Vc_COMPILER_IS_INTEL)
-   # per default icc is not IEEE compliant, but we need that for verification
-   AddCompilerFlag("-fp-model source")
-   # Intel complains about non-POD class types being passed through ellipses in the test suite; silence those warnings.
-   AddCompilerFlag("-wd1595")
+if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "8.0")
+   message(FATAL_ERROR "This std::experimental::simd implementation requires GCC 8 or higher.")
 endif()#}}}
 
 # Set default CMAKE_BUILD_TYPE to Release#{{{
@@ -67,46 +52,10 @@ endif(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")#}}
 
 # Set default C(XX)FLAGS and includes#{{{
 ##################################################################
-vc_set_preferred_compiler_flags(WARNING_FLAGS BUILDTYPE_FLAGS)
-add_definitions(${Vc_DEFINITIONS})
-add_compile_options(${Vc_COMPILE_FLAGS})
-AddCompilerFlag(-ftemplate-depth=512 CXX_FLAGS CMAKE_CXX_FLAGS)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -W -Wall -Wextra -Wpedantic -Wcast-align -Wshadow -Wundef -Wold-style-cast -fabi-version=0 -fabi-compat-version=0 -ffp-contract=fast -ftemplate-depth=512")
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})#}}}
-
-# Option for building against libc++ with Clang#{{{
-##################################################################
-if(UNIX AND Vc_COMPILER_IS_CLANG)
-   # On UNIX (Linux) the standard library used by default typically is libstdc++ (GCC).
-   # To get the full clang deal we rather want to build against libc++. This requires
-   # additionally the libc++abi and libsupc++ libraries in all linker invokations.
-   option(USE_LIBC++ "Use libc++ instead of the system default C++ standard library." OFF)
-   if(USE_LIBC++)
-      AddCompilerFlag(-stdlib=libc++ CXX_FLAGS CMAKE_CXX_FLAGS CXX_RESULT _use_libcxx)
-      if(_use_libcxx)
-         find_library(LIBC++ABI c++abi)
-         mark_as_advanced(LIBC++ABI)
-         if(LIBC++ABI)
-            set(CMAKE_REQUIRED_LIBRARIES "${LIBC++ABI};supc++")
-            CHECK_CXX_SOURCE_COMPILES("#include <stdexcept>
-            #include <iostream>
-            void foo() {
-              std::cout << 'h' << std::flush << std::endl;
-              throw std::exception();
-            }
-            int main() {
-              try { foo(); }
-              catch (int) { return 0; }
-              return 1;
-            }" libcxx_compiles)
-            unset(CMAKE_REQUIRED_LIBRARIES)
-            if(libcxx_compiles)
-               link_libraries(${LIBC++ABI} supc++)
-            endif()
-         endif()
-      endif()
-   endif()
-endif()#}}}
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+#}}}
 
 # Look for the Intel SDE if we're running on x86 and Linux#{{{
 ##################################################################
