@@ -2446,7 +2446,7 @@ template <> struct __bool_storage_member_type<64> { using type = __mmask64; };
 // }}}
 // __intrinsic_type (x86){{{
 // the following excludes bool via __is_vectorizable
-#if _GLIBCXX_SIMD_HAVE_AVX512F
+#if _GLIBCXX_SIMD_HAVE_SSE
 template <>
 struct __intrinsic_type<double, 64, void>
 {
@@ -2462,9 +2462,7 @@ struct __intrinsic_type<_Tp, 64, enable_if_t<is_integral_v<_Tp>>>
 {
   using type [[__gnu__::__vector_size__(64)]] = long long int;
 };
-#endif  // _GLIBCXX_SIMD_HAVE_AVX512F
 
-#if _GLIBCXX_SIMD_HAVE_AVX
 template <>
 struct __intrinsic_type<double, 32, void>
 {
@@ -2480,9 +2478,7 @@ struct __intrinsic_type<_Tp, 32, enable_if_t<is_integral_v<_Tp>>>
 {
   using type [[__gnu__::__vector_size__(32)]] = long long int;
 };
-#endif  // _GLIBCXX_SIMD_HAVE_AVX
 
-#if _GLIBCXX_SIMD_HAVE_SSE
 template <>
 struct __intrinsic_type<float, 16, void>
 {
