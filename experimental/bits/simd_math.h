@@ -318,7 +318,7 @@ _GLIBCXX_SIMD_ALWAYS_INLINE __folded<float, _Abi>
     }
   else if (_GLIBCXX_SIMD_IS_LIKELY(all_of(__r._M_x < 6 * __pi_over_4)))
     {
-      const _V __y    = round(__r._M_x * __2_over_pi);
+      const _V __y    = nearbyint(__r._M_x * __2_over_pi);
       __r._M_quadrant = static_simd_cast<_IV>(__y) & 3; // __y mod 4
       __r._M_x -= __y * __pi_2_5bits0;
       __r._M_x -= __y * __pi_2_5bits0_rem;
@@ -329,7 +329,7 @@ _GLIBCXX_SIMD_ALWAYS_INLINE __folded<float, _Abi>
       using __math_double::__pi_2;
       using _VD       = rebind_simd_t<double, _V>;
       _VD __xd        = static_simd_cast<_VD>(__r._M_x);
-      _VD __y         = round(__xd * __2_over_pi);
+      _VD __y         = nearbyint(__xd * __2_over_pi);
       __r._M_quadrant = static_simd_cast<_IV>(__y) & 3; // = __y mod 4
       __r._M_x = static_simd_cast<_V>(__xd - __y * __pi_2);
     }
@@ -351,7 +351,7 @@ _GLIBCXX_SIMD_ALWAYS_INLINE __folded<double, _Abi>
         __r._M_quadrant = 0;
         return __r;
     }
-    const _V __y = round(__r._M_x / (2 * __pi_over_4));
+    const _V __y = nearbyint(__r._M_x / (2 * __pi_over_4));
     __r._M_quadrant = static_simd_cast<_IV>(__y) & 3;
 
     if (_GLIBCXX_SIMD_IS_LIKELY(all_of(__r._M_x < 1025 * __pi_over_4)))

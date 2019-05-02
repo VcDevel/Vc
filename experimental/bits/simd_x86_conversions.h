@@ -1057,7 +1057,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                                                     _mm_slli_si128(__i3, 6), 0x88),
                                     0xcc),
                     _mm_setr_epi8(0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15)));
-            } else if constexpr (__y_to_y) {
+            } else if constexpr (__y_to_y && __have_avx2) {
                 return __intrin_bitcast<_To>(_mm256_shuffle_epi8(
                     __xzyw(_mm256_blend_epi16(
                         __auto_bitcast(_mm256_shuffle_ps(__vector_bitcast<float>(__v0),

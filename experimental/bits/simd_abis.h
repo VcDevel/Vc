@@ -37,6 +37,11 @@
 
 #include "simd_debug.h"
 _GLIBCXX_SIMD_BEGIN_NAMESPACE
+template <typename _V, typename = _VectorTraits<_V>>
+static inline constexpr _V _S_signmask = __xor(_V() + 1, _V() - 1);
+template <typename _V, typename = _VectorTraits<_V>>
+static inline constexpr _V _S_absmask = __andnot(_S_signmask<_V>, __allbits<_V>);
+
 // __subscript_read/_write {{{1
 template <typename _Tp> _Tp __subscript_read(_Vectorizable<_Tp> __x, size_t) noexcept
 {
@@ -316,7 +321,7 @@ struct _SimdTuple<_Tp, _Abi0, _Abis...>
   }
 
   template <size_t _Offset = 0, class _F>
-  _GLIBCXX_SIMD_INTRINSIC static _SimdTuple
+  _GLIBCXX_SIMD_INTRINSIC static constexpr _SimdTuple
     __generate(_F&& __gen, _SizeConstant<_Offset> = {})
   {
     auto &&__first = __gen(__tuple_element_meta<_Tp, _Abi0, _Offset>());
@@ -383,11 +388,11 @@ struct _SimdTuple<_Tp, _Abi0, _Abis...>
 	  static_cast<_TupT*>(nullptr));
       });
     else
-      {
+      return [&]() {
 	__fixed_size_storage_t<_TupT, _S_first_size> __r;
 	__builtin_memcpy(__r.__as_charptr(), __tup.__as_charptr(), sizeof(__r));
 	return __r;
-      }
+      }();
   }
 
   template <typename _Tup>
@@ -2933,19 +2938,40 @@ template <class _Abi> struct _SimdImplBuiltin : _SimdMathFallback<_Abi> {
       //    return __x._M_data < 0 ? -__x._M_data : __x._M_data;
       //  }
       if constexpr (std::is_floating_point_v<_Tp>)
-	{
-	  // `v < 0 ? -v : v` cannot compile to the efficient implementation of
-	  // masking the signbit off because it must consider v == -0
+	// `v < 0 ? -v : v` cannot compile to the efficient implementation of
+	// masking the signbit off because it must consider v == -0
 
-	  // ~(-0.) & v would be easy, but breaks with fno-signed-zeros
-	  // return __andnot(__vector_broadcast<_N, _Tp>(-0.), __x._M_data);
-
-	  using _I = std::make_unsigned_t<__int_for_sizeof_t<_Tp>>;
-	  return __and(__x._M_data, __vector_bitcast<_Tp>(
-				      __vector_broadcast<_N, _I>(~_I() >> 1)));
-	}
+	// ~(-0.) & v would be easy, but breaks with fno-signed-zeros
+	return __and(_S_absmask<__vector_type_t<_Tp, _N>>, __x._M_data);
       else
 	return __x._M_data < 0 ? -__x._M_data : __x._M_data;
+    }
+
+    // __nearbyint {{{3
+    template <typename _Tp, typename _TVT = _VectorTraits<_Tp>>
+    _GLIBCXX_SIMD_INTRINSIC static _Tp __nearbyint(_Tp __x_) noexcept
+    {
+      using value_type = typename _TVT::value_type;
+      using _V        = typename _TVT::type;
+      const _V __x    = __x_;
+      const _V __absx = __and(__x, _S_absmask<_V>);
+      static_assert(CHAR_BIT * sizeof(1ull) >=
+		    std::numeric_limits<value_type>::digits);
+      constexpr _V __shifter_abs =
+	_V() + (1ull << (std::numeric_limits<value_type>::digits - 1));
+      const _V __shifter = __or(__and(_S_signmask<_V>, __x), __shifter_abs);
+      _V __shifted = __x + __shifter;
+      // how can we stop -fassociative-math to break this pattern?
+      //asm("" : "+X"(__shifted));
+      __shifted -= __shifter;
+      return __absx < __shifter_abs ? __shifted : __x;
+    }
+
+    // __rint {{{3
+    template <typename _Tp, typename _TVT = _VectorTraits<_Tp>>
+    _GLIBCXX_SIMD_INTRINSIC static _Tp __rint(_Tp __x) noexcept
+    {
+      return _SuperImpl::__nearbyint(__x);
     }
 
     // __trunc {{{3
@@ -2953,7 +2979,33 @@ template <class _Abi> struct _SimdImplBuiltin : _SimdMathFallback<_Abi> {
     _GLIBCXX_SIMD_INTRINSIC static _SimdWrapper<_Tp, _N>
       __trunc(_SimdWrapper<_Tp, _N> __x)
     {
-      __assert_unreachable<_Tp>();
+      using _V        = __vector_type_t<_Tp, _N>;
+      const _V __absx = __and(__x._M_data, _S_absmask<_V>);
+      static_assert(CHAR_BIT * sizeof(1ull) >=
+		    std::numeric_limits<_Tp>::digits);
+      constexpr _Tp __shifter = 1ull << (std::numeric_limits<_Tp>::digits - 1);
+      _V            __truncated = (__absx + __shifter) - __shifter;
+      __truncated -= __truncated > __absx ? _V() + 1 : _V();
+      return __absx < __shifter ? __or(__xor(__absx, __x._M_data), __truncated)
+				: __x._M_data;
+    }
+
+    // __round {{{3
+    template <class _Tp, size_t _N>
+    _GLIBCXX_SIMD_INTRINSIC static _SimdWrapper<_Tp, _N>
+      __round(_SimdWrapper<_Tp, _N> __x)
+    {
+      using _V        = __vector_type_t<_Tp, _N>;
+      const _V __absx = __and(__x._M_data, _S_absmask<_V>);
+      static_assert(CHAR_BIT * sizeof(1ull) >=
+		    std::numeric_limits<_Tp>::digits);
+      constexpr _Tp __shifter = 1ull << (std::numeric_limits<_Tp>::digits - 1);
+      _V            __truncated = (__absx + __shifter) - __shifter;
+      __truncated -= __truncated > __absx ? _V() + 1 : _V();
+      const _V __rounded =
+	__or(__xor(__absx, __x._M_data),
+	     __truncated + (__absx - __truncated >= _Tp(.5) ? _V() + 1 : _V()));
+      return __absx < __shifter ? __rounded : __x._M_data;
     }
 
     // __floor {{{3
@@ -4428,9 +4480,9 @@ template <class _Abi> struct __x86_simd_impl : _SimdImplBuiltin<_Abi> {
     _GLIBCXX_SIMD_INTRINSIC static _SimdWrapper<_Tp, _N> __trunc(_SimdWrapper<_Tp, _N> __x)
     {
         if constexpr (__is_avx512_ps<_Tp, _N>()) {
-            return _mm512_roundscale_round_ps(__x, 0x03, _MM_FROUND_CUR_DIRECTION);
+            return _mm512_roundscale_ps(__x, 0x0b);
         } else if constexpr (__is_avx512_pd<_Tp, _N>()) {
-            return _mm512_roundscale_round_pd(__x, 0x03, _MM_FROUND_CUR_DIRECTION);
+            return _mm512_roundscale_pd(__x, 0x0b);
         } else if constexpr (__is_avx_ps<_Tp, _N>()) {
             return _mm256_round_ps(__x, 0x3);
         } else if constexpr (__is_avx_pd<_Tp, _N>()) {
@@ -4446,24 +4498,93 @@ template <class _Abi> struct __x86_simd_impl : _SimdImplBuiltin<_Abi> {
                 0x4b000000);  // the exponent is so large that no mantissa bits signify
                               // fractional values (0x3f8 + 23*8 = 0x4b0)
             return __blend(__no_fractional_values, __x, __truncated);
-        } else if constexpr (__is_sse_pd<_Tp, _N>()) {
-            const auto __abs_x = __abs(__x)._M_data;
-            const auto __min_no_fractional_bits = __vector_bitcast<double>(
-                __vector_broadcast<2>(0x4330'0000'0000'0000ull));  // 0x3ff + 52 = 0x433
-            __vector_type16_t<double> __truncated =
-                (__abs_x + __min_no_fractional_bits) - __min_no_fractional_bits;
-            // due to rounding, the result can be too large. In this case `__truncated >
-            // abs(__x)` holds, so subtract 1 to __truncated if `abs(__x) < __truncated`
-            __truncated -=
-                __and(__vector_bitcast<double>(__abs_x < __truncated), __vector_broadcast<2>(1.));
-            // finally, fix the sign bit:
-            return __or(
-                __and(__vector_bitcast<double>(__vector_broadcast<2>(0x8000'0000'0000'0000ull)),
-                     __x),
-                __truncated);
         } else {
-            __assert_unreachable<_Tp>();
+            return _Base::__trunc(__x);
         }
+    }
+
+    // __round {{{3
+    template <class _Tp, size_t _N>
+    _GLIBCXX_SIMD_INTRINSIC static _SimdWrapper<_Tp, _N>
+      __round(_SimdWrapper<_Tp, _N> __x)
+    {
+      using _V = __vector_type_t<_Tp, _N>;
+      _V __truncated;
+      if constexpr (__is_avx512_ps<_Tp, _N>())
+	__truncated = _mm512_roundscale_ps(__x._M_data, 0x0b);
+      else if constexpr (__is_avx512_pd<_Tp, _N>())
+	__truncated = _mm512_roundscale_pd(__x._M_data, 0x0b);
+      else if constexpr (__is_avx_ps<_Tp, _N>())
+	__truncated = _mm256_round_ps(__x._M_data,
+			       _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+      else if constexpr (__is_avx_pd<_Tp, _N>())
+	__truncated = _mm256_round_pd(__x._M_data,
+			       _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+      else if constexpr (__have_sse4_1 && __is_sse_ps<_Tp, _N>())
+	__truncated = _mm_round_ps(__x._M_data,
+			    _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+      else if constexpr (__have_sse4_1 && __is_sse_pd<_Tp, _N>())
+	__truncated = _mm_round_pd(__x._M_data,
+			    _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+      else if constexpr (__is_sse_ps<_Tp, _N>())
+	__truncated = _mm_cvtepi32_ps(_mm_cvttps_epi32(__to_intrin(__x)));
+      else
+	return _Base::__round(__x);
+
+      // x < 0 => truncated <= 0 && truncated >= x => x - truncated <= 0
+      // x > 0 => truncated >= 0 && truncated <= x => x - truncated >= 0
+
+      const _V __rounded =
+	__truncated +
+	(__and(_S_absmask<_V>, __x._M_data - __truncated) >= _Tp(.5)
+	   ? __or(__and(_S_signmask<_V>, __x._M_data), _V() + 1)
+	   : _V());
+      if constexpr(__have_sse4_1)
+	return __rounded;
+      else
+	return __and(_S_absmask<_V>, __x._M_data) < 0x1p23f ? __rounded : __x._M_data;
+    }
+
+    // __nearbyint {{{3
+    template <typename _Tp, typename _TVT = _VectorTraits<_Tp>>
+    _GLIBCXX_SIMD_INTRINSIC static _Tp __nearbyint(_Tp __x) noexcept
+    {
+      if constexpr (_TVT::template __is<float, 16>)
+	return _mm512_roundscale_ps(__x, 0x0c);
+      else if constexpr (_TVT::template __is<double, 8>)
+	return _mm512_roundscale_pd(__x, 0x0c);
+      else if constexpr (_TVT::template __is<float, 8>)
+	return _mm256_round_ps(__x,
+			       _MM_FROUND_CUR_DIRECTION | _MM_FROUND_NO_EXC);
+      else if constexpr (_TVT::template __is<double, 4>)
+	return _mm256_round_pd(__x,
+			       _MM_FROUND_CUR_DIRECTION | _MM_FROUND_NO_EXC);
+      else if constexpr (__have_sse4_1 && _TVT::template __is<float, 4>)
+	return _mm_round_ps(__x, _MM_FROUND_CUR_DIRECTION | _MM_FROUND_NO_EXC);
+      else if constexpr (__have_sse4_1 && _TVT::template __is<double, 2>)
+	return _mm_round_pd(__x, _MM_FROUND_CUR_DIRECTION | _MM_FROUND_NO_EXC);
+      else
+	return _Base::__nearbyint(__x);
+    }
+
+    // __rint {{{3
+    template <typename _Tp, typename _TVT = _VectorTraits<_Tp>>
+    _GLIBCXX_SIMD_INTRINSIC static _Tp __rint(_Tp __x) noexcept
+    {
+      if constexpr (_TVT::template __is<float, 16>)
+	return _mm512_roundscale_ps(__x, 0x04);
+      else if constexpr (_TVT::template __is<double, 8>)
+	return _mm512_roundscale_pd(__x, 0x04);
+      else if constexpr (_TVT::template __is<float, 8>)
+	return _mm256_round_ps(__x, _MM_FROUND_CUR_DIRECTION);
+      else if constexpr (_TVT::template __is<double, 4>)
+	return _mm256_round_pd(__x, _MM_FROUND_CUR_DIRECTION);
+      else if constexpr (__have_sse4_1 && _TVT::template __is<float, 4>)
+	return _mm_round_ps(__x, _MM_FROUND_CUR_DIRECTION);
+      else if constexpr (__have_sse4_1 && _TVT::template __is<double, 2>)
+	return _mm_round_pd(__x, _MM_FROUND_CUR_DIRECTION);
+      else
+	return _Base::__rint(__x);
     }
 
     // __floor {{{3
@@ -4471,9 +4592,9 @@ template <class _Abi> struct __x86_simd_impl : _SimdImplBuiltin<_Abi> {
     _GLIBCXX_SIMD_INTRINSIC static _SimdWrapper<_Tp, _N> __floor(_SimdWrapper<_Tp, _N> __x)
     {
         if constexpr (__is_avx512_ps<_Tp, _N>()) {
-            return _mm512_roundscale_round_ps(__x, 0x01, _MM_FROUND_CUR_DIRECTION);
+            return _mm512_roundscale_ps(__x, 0x09);
         } else if constexpr (__is_avx512_pd<_Tp, _N>()) {
-            return _mm512_roundscale_round_pd(__x, 0x01, _MM_FROUND_CUR_DIRECTION);
+            return _mm512_roundscale_pd(__x, 0x09);
         } else if constexpr (__is_avx_ps<_Tp, _N>()) {
             return _mm256_round_ps(__x, 0x1);
         } else if constexpr (__is_avx_pd<_Tp, _N>()) {
@@ -4491,9 +4612,9 @@ template <class _Abi> struct __x86_simd_impl : _SimdImplBuiltin<_Abi> {
     template <class _Tp, size_t _N> _GLIBCXX_SIMD_INTRINSIC static _SimdWrapper<_Tp, _N> __ceil(_SimdWrapper<_Tp, _N> __x)
     {
         if constexpr (__is_avx512_ps<_Tp, _N>()) {
-            return _mm512_roundscale_round_ps(__x, 0x02, _MM_FROUND_CUR_DIRECTION);
+            return _mm512_roundscale_ps(__x, 0x0a);
         } else if constexpr (__is_avx512_pd<_Tp, _N>()) {
-            return _mm512_roundscale_round_pd(__x, 0x02, _MM_FROUND_CUR_DIRECTION);
+            return _mm512_roundscale_pd(__x, 0x0a);
         } else if constexpr (__is_avx_ps<_Tp, _N>()) {
             return _mm256_round_ps(__x, 0x2);
         } else if constexpr (__is_avx_pd<_Tp, _N>()) {
