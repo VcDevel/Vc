@@ -8,7 +8,7 @@ cols := $(shell sh -c 'stty size|col2')
 
 all:
 %:: $(build_dir)/CMakeCache.txt
-	$(MAKE) --no-print-directory -C "$(build_dir)" $(MAKECMDGOALS) 2>&1|sed -u 's/std::\(experimental::\([a-z_0-9]\+::\)\?\)\?/⠶/g'|fold -s -w $(cols)
+	$(MAKE) --no-print-directory -C "$(build_dir)" $(MAKECMDGOALS) 2>&1|sed -u 's/std::\(experimental::\([a-z_0-9]\+::\)\?\)\?/⠶/g'|stdbuf -oL fold -s -w $(cols)
 
 $(build_dir)/CMakeCache.txt:
 	@test -n "$(build_dir)"
