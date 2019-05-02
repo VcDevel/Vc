@@ -150,17 +150,22 @@ macro(vc_add_run_target _target emulator run_target_list)#{{{
    if("${CMAKE_GENERATOR}" MATCHES "Visual Studio")
       # do nothing. This just clutters the solution explorer
    else()
+      if(_ROUNDINGMODES)
+         set(_test_args "--roundingmodes")
+      else()
+         set(_test_args "")
+      endif()
       if(emulator)
          get_target_executable(_exe "${_target}")
          add_custom_target(run_${_target}
-            ${emulator} "${_exe}" "-v"
+            ${emulator} "${_exe}" "-v" ${_test_args}
             DEPENDS ${_target}
             COMMENT "Execute ${_target} test"
             VERBATIM
             )
       else()
          add_custom_target(run_${_target}
-            ${_target} -v
+            ${_target} -v ${_test_args}
             DEPENDS ${_target}
             COMMENT "Execute ${_target} test"
             VERBATIM
@@ -179,7 +184,7 @@ function(vc_add_test name) #{{{
       return()
    endif()
 
-   cmake_parse_arguments("" "NO_TESTTYPES;SINGLE_TESTTYPE;EXCLUDE_FROM_ALL" "SOURCE" "DEFINITIONS" ${ARGN})
+   cmake_parse_arguments("" "ROUNDINGMODES;NO_TESTTYPES;SINGLE_TESTTYPE;EXCLUDE_FROM_ALL" "SOURCE" "DEFINITIONS" ${ARGN})
 
    if(_SOURCE)
       set(src "${_SOURCE}")
@@ -193,6 +198,9 @@ function(vc_add_test name) #{{{
       set(flags "${Vc_COMPILE_FLAGS}")
       if(DEFINED Vc_${impl}_flags)
          list(APPEND flags "${Vc_${impl}_flags}")
+      endif()
+      if(_ROUNDINGMODES)
+         list(APPEND flags "-frounding-math")
       endif()
 
       string(REPLACE ";" " " link_flags "${flags}")
@@ -255,13 +263,18 @@ function(vc_add_test name) #{{{
          endif()
          if(${use_var}) # add test and run target#{{{
             if(NOT _EXCLUDE_FROM_ALL)
+               if(_ROUNDINGMODES)
+                  set(_test_args "--roundingmodes")
+               else()
+                  set(_test_args "")
+               endif()
                if(emulator)
                   get_target_executable(_exe "${target}")
                   add_test(NAME ${target}
-                     COMMAND ${emulator} "${_exe}"
+                     COMMAND ${emulator} "${_exe}" ${_test_args}
                      )
                else()
-                  add_test(${target} "${CMAKE_CURRENT_BINARY_DIR}/${target}")
+                  add_test(${target} "${CMAKE_CURRENT_BINARY_DIR}/${target}" ${_test_args})
                endif()
                set_property(TEST ${target} PROPERTY LABELS "${label}")
             endif()
@@ -291,8 +304,8 @@ vc_add_test(operators)
 vc_add_test(integer_operators)
 vc_add_test(casts DEFINITIONS ONE_RANDOM_ARITHMETIC_TYPE)
 vc_add_test(allcvt_casts SOURCE casts.cpp EXCLUDE_FROM_ALL)
-vc_add_test(math NO_TESTTYPES)
-vc_add_test(specialmath NO_TESTTYPES)
+vc_add_test(math NO_TESTTYPES ROUNDINGMODES)
+vc_add_test(specialmath NO_TESTTYPES ROUNDINGMODES)
 vc_add_test(where NO_TESTTYPES)
 #vc_add_test(experimental NO_TESTTYPES)
 vc_add_test(bitset_conversions NO_TESTTYPES)
