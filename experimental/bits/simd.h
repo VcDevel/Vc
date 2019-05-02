@@ -47,6 +47,17 @@
 
 _GLIBCXX_SIMD_BEGIN_NAMESPACE
 
+#if __GNUC__ < 9
+// Only added in GCC9:
+template <typename T>
+using __remove_cvref_t = std::remove_const_t<std::remove_reference_t<T>>;
+
+// Hack for missing GCC9 feature. This makes some constexpr usage ill-formed. The
+// alternative is to allow constexpr usage but pessimize normal usage, which seems like
+// the wrong focus.
+constexpr bool __builtin_is_constant_evaluated() { return false; }
+#endif
+
 #if !_GLIBCXX_SIMD_X86INTRIN
 using __m128  [[__gnu__::__vector_size__(16)]] = float;
 using __m128d [[__gnu__::__vector_size__(16)]] = double;
