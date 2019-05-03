@@ -34,9 +34,6 @@
 #include <utility>
 #include <iomanip>
 
-static_assert(std::is_same_v<bool, decltype(std::isnan(double()))>);
-static_assert(std::is_same_v<bool, decltype(std::isinf(double()))>);
-
 _GLIBCXX_SIMD_BEGIN_NAMESPACE
 template <class _Tp, class _V> using __samesize = fixed_size_simd<_Tp, _V::size()>;
 // __math_return_type {{{
@@ -1227,8 +1224,25 @@ _GLIBCXX_SIMD_MATH_CALL2_(fmin, _Tp)
 _GLIBCXX_SIMD_MATH_CALL3_(fma, _Tp, _Tp)
 _GLIBCXX_SIMD_MATH_CALL_(fpclassify)
 _GLIBCXX_SIMD_MATH_CALL_(isfinite)
-_GLIBCXX_SIMD_MATH_CALL_(isinf)
-_GLIBCXX_SIMD_MATH_CALL_(isnan)
+
+// isnan and isinf require special treatment because old glibc may declare
+// `int std::isinf(double)`.
+template <class _Tp, class _Abi, class...,
+          class _R = std::experimental::__math_return_type_t<bool, _Tp, _Abi>>
+enable_if_t<std::is_floating_point_v<_Tp>, _R> isinf(
+    std::experimental::simd<_Tp, _Abi> __x)
+{
+  return {std::experimental::__private_init,
+          _Abi::_SimdImpl::__isinf(std::experimental::__data(__x))};
+}
+template <class _Tp, class _Abi, class...,
+          class _R = std::experimental::__math_return_type_t<bool, _Tp, _Abi>>
+enable_if_t<std::is_floating_point_v<_Tp>, _R> isnan(
+    std::experimental::simd<_Tp, _Abi> __x)
+{
+  return {std::experimental::__private_init,
+          _Abi::_SimdImpl::__isnan(std::experimental::__data(__x))};
+}
 _GLIBCXX_SIMD_MATH_CALL_(isnormal)
 _GLIBCXX_SIMD_MATH_CALL_(signbit)
 
