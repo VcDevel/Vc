@@ -6211,7 +6211,7 @@ template <int _N> struct _MaskImplFixedSize {
                 } else if constexpr (__remaining & 3) {
                     constexpr int to_shift = 16 - int(__remaining);
                     _mm_maskmoveu_si128(__bool16,
-                                        _mm_srli_si128(__allbits<__m128i>, to_shift),
+                                        _mm_srli_si128(~__m128i(), to_shift),
                                         reinterpret_cast<char *>(&__mem[__offset]));
                 } else  // at this point: 8 < __remaining < 16
                     if constexpr (__remaining >= 8) {
