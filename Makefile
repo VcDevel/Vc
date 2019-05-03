@@ -25,4 +25,13 @@ clean_builddir:
 Makefile:
 	@true
 
-.PHONY: print_build_dir clean_builddir
+install:
+	./install.sh
+
+benchmarks:
+	cd benchmarks && for i in *.cpp; do ./run.sh $$i; done
+
+benchmark-%:
+	cd benchmarks && ./run.sh $*
+
+.PHONY: print_build_dir clean_builddir install benchmarks
