@@ -4,7 +4,7 @@ tmp := "case $$(readlink -f $(build_dir)) in *icecc) which $${ICECC_CXX:-g++};; 
 build_dir := $(shell sh -c $(tmp))
 build_dir := $(realpath $(build_dir))
 build_dir := build-$(subst /,-,$(build_dir:/%=%))
-cols := $(shell sh -c 'stty size|col2')
+cols := $(shell sh -c 'stty size|cut -d" " -f2')
 
 all:
 %:: $(build_dir)/CMakeCache.txt
