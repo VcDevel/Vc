@@ -1,37 +1,192 @@
-include(CMakeParseArguments)
-include(AddFileDependencies)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/virtest)
+cmake_minimum_required(VERSION 3.0)
+cmake_policy(SET CMP0054 NEW)
 
-if(FALSE)
-execute_process(
-   COMMAND ${CMAKE_CXX_COMPILER} -print-file-name=liblto_plugin.so
-   OUTPUT_VARIABLE lto_plugin
-   RESULT_VARIABLE found_lto_plugin
-   OUTPUT_STRIP_TRAILING_WHITESPACE
-   )
-if(${found_lto_plugin} EQUAL 0)
-   execute_process(COMMAND ${CMAKE_AR} --plugin ${lto_plugin} --version
-      OUTPUT_VARIABLE tmp
-      ERROR_VARIABLE tmp
-      RESULT_VARIABLE ar_plugin_switch_available)
-   if(${ar_plugin_switch_available} EQUAL 0)
-      set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> qc --plugin ${lto_plugin} <TARGET> <LINK_FLAGS> <OBJECTS>")
-      set(CMAKE_CXX_ARCHIVE_APPEND "<CMAKE_AR> q  --plugin ${lto_plugin} <TARGET> <LINK_FLAGS> <OBJECTS>")
-      set(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> --plugin ${lto_plugin} <TARGET>")
-   endif()
-   AddCompilerFlag(-flto=4) # Hopefully faster "code build test" cycles
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+   message(FATAL_ERROR "You don't want to configure in the source directory!")
 endif()
-endif(FALSE)
+
+project("std::simd tests")
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_REQUIRED_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/..")
+
+if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "9.0")
+   message(FATAL_ERROR "This std::experimental::simd implementation requires GCC 9 or higher.")
+endif()
+
+include (AddTargetProperty)
+include (AddCompilerFlag)
+include (CMakeParseArguments)
+
+set(Vc_X86 FALSE)
+set(Vc_ARM FALSE)
+if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(x86|AMD64|amd64)")
+   set(Vc_X86 TRUE)
+
+   execute_process(
+      COMMAND ${CMAKE_CXX_COMPILER} -dM -march=native -E -o- -x c++ /dev/null
+      OUTPUT_VARIABLE predefined
+      )
+   macro(check_predefined_macro name)
+      string(FIND "${predefined}" "define __${name}__ 1" HAVE_${name})
+      if(HAVE_${name} EQUAL -1)
+         message(STATUS "Checking host system for ${name}: No.")
+         set(HAVE_${name} FALSE)
+      else()
+         message(STATUS "Checking host system for ${name}: Yes.")
+         set(HAVE_${name} TRUE)
+      endif()
+   endmacro()
+   check_predefined_macro(SSE)
+   check_predefined_macro(SSE2)
+   check_predefined_macro(SSE3)
+   check_predefined_macro(SSSE3)
+   check_predefined_macro(SSE4_1)
+   check_predefined_macro(SSE4_2)
+   check_predefined_macro(SSE4A)
+   check_predefined_macro(AVX)
+   check_predefined_macro(AVX2)
+   check_predefined_macro(AVX512F)
+   check_predefined_macro(AVX512BW)
+   check_predefined_macro(AVX512VL)
+   check_predefined_macro(AVX512CD)
+   check_predefined_macro(AVX512DQ)
+   check_predefined_macro(AVX512ER)
+   check_predefined_macro(AVX512PF)
+   check_predefined_macro(FMA)
+   check_predefined_macro(FMA4)
+elseif("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(arm|aarch32|aarch64)")
+   set(Vc_ARM TRUE)
+else()
+   message(WARNING "No optimized implementation of the Vc types available for ${CMAKE_SYSTEM_PROCESSOR}")
+endif()
+
+# set up ccache#{{{
+##################################################################
+option(USE_CCACHE "If enabled, ccache will be used (if it exists on the system) to speed up recompiles." OFF)
+if(USE_CCACHE)
+   find_program(CCACHE_COMMAND ccache)
+   if(CCACHE_COMMAND)
+      mark_as_advanced(CCACHE_COMMAND)
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_COMMAND}")
+   endif()
+endif()#}}}
+
+# Set default CMAKE_BUILD_TYPE to Release#{{{
+##################################################################
+if(NOT CMAKE_BUILD_TYPE)
+   set(CMAKE_BUILD_TYPE Release CACHE STRING
+      "Choose the type of build, options are: None Debug Release RelWithDebug RelWithDebInfo MinSizeRel."
+      FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
+
+if(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
+   message(STATUS "WARNING! It seems you are compiling without optimization. Please set CMAKE_BUILD_TYPE.")
+endif(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")#}}}
+
+# Set default C(XX)FLAGS and includes#{{{
+##################################################################
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -W -Wall -Wextra -Wpedantic -Wcast-align -Wshadow -Wundef -Wold-style-cast -fabi-version=0 -fabi-compat-version=0 -ffp-contract=fast -ftemplate-depth=512 -fmax-errors=10 -mfpmath=sse")
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/virtest)
+#}}}
+
+# Look for the Intel SDE if we're running on x86 and Linux#{{{
+##################################################################
+if(Vc_X86 AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+   macro(Vc_find_sde)
+      find_program(INTEL_SDE sde64 ${ARGN} DOC "Path to the Intel Software Development Emulator")
+      if(INTEL_SDE)
+         execute_process(COMMAND ${INTEL_SDE} -help RESULT_VARIABLE _sde_usable OUTPUT_QUIET ERROR_QUIET)
+         if(NOT _sde_usable LESS 2)
+            unset(INTEL_SDE CACHE)
+            find_program(INTEL_SDE sde ${ARGN} NO_DEFAULT_PATH DOC "Path to the Intel Software Development Emulator")
+            if(INTEL_SDE)
+               execute_process(COMMAND ${INTEL_SDE} -help RESULT_VARIABLE _sde_usable OUTPUT_QUIET ERROR_QUIET)
+               if(NOT _sde_usable LESS 2)
+                  set(INTEL_SDE FALSE)
+               endif()
+            endif()
+         endif()
+      endif()
+   endmacro()
+
+   file(GLOB SDE_DIRS /opt/intel/*)
+   list(SORT SDE_DIRS)
+   list(REVERSE SDE_DIRS)
+   Vc_find_sde(${SDE_DIRS} "$ENV{HOME}/.cache/sde/")
+
+   # if running a dashboard cycle and no installed SDE was found, download and use it automatically
+   if(NOT "$ENV{DASHBOARD_TEST_FROM_CTEST}" STREQUAL "" AND NOT INTEL_SDE)
+      find_program(_bin_sh sh)
+      find_program(_wget wget)
+      if(_bin_sh AND _wget AND DEFINED ENV{HOME})
+         option(DOWNLOAD_INTEL_SDE "Download the Intel Software Development Emulator to execute tests on different ISAs" ON)
+         if(DOWNLOAD_INTEL_SDE)
+            message(STATUS "Downloading Intel SDE:")
+            file(MAKE_DIRECTORY "$ENV{HOME}/.cache/sde")
+            execute_process(COMMAND ${_bin_sh} "${CMAKE_SOURCE_DIR}/../scripts/download_intel_sde.sh"
+               WORKING_DIRECTORY "$ENV{HOME}/.cache/sde"
+               TIMEOUT 20
+               RESULT_VARIABLE res)
+            if(${res} EQUAL 0)
+               Vc_find_sde("$ENV{HOME}/.cache/sde/" NO_DEFAULT_PATH)
+            endif()
+         endif()
+      endif()
+      mark_as_advanced(_bin_sh _wget)
+   endif()
+
+   if(INTEL_SDE)
+      execute_process(COMMAND ${INTEL_SDE} -version OUTPUT_VARIABLE sde_version ERROR_QUIET)
+      string(REGEX MATCH "Version: +[0-9.]+" sde_version "${sde_version}")
+      message(STATUS "Intel SDE ${sde_version}")
+   else()
+      message(STATUS "Intel SDE not found.")
+   endif()
+endif()#}}}
+
+# Set up make targets#{{{
+##################################################################
+add_custom_target(other VERBATIM)
+add_custom_target(NoSIMD COMMENT "build non-SIMD code" VERBATIM)
+if(Vc_X86)
+   add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
+   add_custom_target(SSE1 COMMENT "build SSE1 code" VERBATIM)
+   add_custom_target(SSE2 COMMENT "build SSE2 code" VERBATIM)
+   add_custom_target(SSSE3 COMMENT "build SSSE3 code" VERBATIM)
+   add_custom_target(SSE4_2 COMMENT "build SSE4.2 code" VERBATIM)
+   add_dependencies(SSE SSE1 SSE2 SSSE3 SSE4_2)
+   add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
+   add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
+   add_custom_target(KNL COMMENT "build KNL code" VERBATIM)
+   add_custom_target(AVX512 COMMENT "build AVX512 code" VERBATIM)
+elseif(Vc_ARM)
+   add_custom_target(NEON COMMENT "build NEON code" VERBATIM)
+endif()#}}}
+
+# Unit tests#{{{
+##################################################################
+include (CTest)
+configure_file(${CMAKE_SOURCE_DIR}/../scripts/CTestCustom.cmake ${CMAKE_BINARY_DIR}/CTestCustom.cmake COPYONLY)
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/virtest/vir/test.h")
+   # first try to resolve the issue automatically
+   message(STATUS "virtest missing: calling 'git submodule update --init'")
+   execute_process(
+      COMMAND git submodule update --init
+      WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+      )
+endif()
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/virtest/vir/test.h")
+   message(FATAL_ERROR "Unit tests enabled but virtest is missing. Call 'git submodule update' to clone the required unit test framework.")
+endif()
+add_custom_target(build_tests ALL VERBATIM)
+#}}}
 
 if(NOT "$ENV{TRAVIS_OS_NAME}" STREQUAL "")
    set(CMAKE_CXX_FLAGS_RELEASE "-O1 -DNDEBUG") # try to not time out, -O0 is faster
 endif()
 
 add_definitions(-DCOMPILE_FOR_UNIT_TESTS -D_GLIBCXX_SIMD_NO_OPTIMIZATION_WARNINGS)
-AddCompilerFlag("-fmax-errors=10") # Don't go too crazy on errors
-
-# 32-bit x86 requires SSE for fp math to produce comparable results.
-AddCompilerFlag("-mfpmath=sse" CXX_FLAGS Vc_ARCHITECTURE_FLAGS CXX_RESULT _fpmath_ok)
 
 option(ENABLE_UBSAN "Enable build of unit tests with undefined behavior sanitizer" OFF)
 if(ENABLE_UBSAN)
@@ -108,40 +263,31 @@ if(cxx_abi_header_works)
    add_definitions(-DHAVE_CXX_ABI_H)
 endif()
 
-function(vc_target_setup name sde_cpuid)#{{{
-   macro(_return_success)
+function(vc_target_setup name sde_cpuid flags)#{{{
+   string(REPLACE "|" ";" flags "${flags}")
+   set(result)
+   AddCompilerFlag("${flags}" CXX_FLAGS result CXX_RESULT ok)
+   if(ok)
+      set(Vc_${name}_flags ${result} PARENT_SCOPE)
       message(STATUS "Building tests for ${name}: enabled")
       list(APPEND vc_all_target_variants ${name})
       set(vc_all_target_variants ${vc_all_target_variants} PARENT_SCOPE)
       set(sde_cpuid_${name} "-${sde_cpuid}" PARENT_SCOPE)
-      return()
-   endmacro()
-
-   if(${ARGC} EQUAL 2)
-      _return_success()
+   else()
+      message(STATUS "Building tests for ${name}: disabled")
    endif()
-   foreach(flags ${ARGN})
-      string(REPLACE "|" ";" flags "${flags}")
-      set(result)
-      AddCompilerFlag("${flags}" CXX_FLAGS result CXX_RESULT ok)
-      if(ok)
-         set(Vc_${name}_flags ${result} PARENT_SCOPE)
-         _return_success()
-      endif()
-   endforeach()
-   message(STATUS "Building tests for ${name}: disabled")
 endfunction()#}}}
 
 # sets Vc_nosimd_flags, Vc_sse2_flags, ...
 if(Vc_X86)
    vc_target_setup(nosimd mrm "-mno-sse")
-   vc_target_setup(sse2 mrm "-xSSE2" "-march=athlon64")
-   vc_target_setup(ssse3 mrm "-xSSSE3" "-march=core2")
-   vc_target_setup(sse4_2 nhm "-xSSE4.2" "-march=nehalem")
-   vc_target_setup(avx snb "-xAVX" "-march=sandybridge" "/arch:AVX")
-   vc_target_setup(avx2 hsw "-xCORE-AVX2" "-march=haswell" "/arch:AVX2")
-   vc_target_setup(knl knl "-xMIC-AVX512" "-march=knl" "/arch:KNL")
-   vc_target_setup(avx512 skx "-xCORE-AVX512" "-march=skylake-avx512" "/arch:AVX512")
+   vc_target_setup(sse2 mrm "-march=athlon64")
+   vc_target_setup(ssse3 mrm "-march=core2")
+   vc_target_setup(sse4_2 nhm "-march=nehalem")
+   vc_target_setup(avx snb "-march=sandybridge")
+   vc_target_setup(avx2 hsw "-march=haswell")
+   vc_target_setup(knl knl "-march=knl")
+   vc_target_setup(avx512 skx "-march=skylake-avx512")
 elseif(Vc_ARM)
    vc_target_setup(neon "" "-march=armv8-a")
 endif()
@@ -206,14 +352,21 @@ function(vc_add_test name) #{{{
       string(REPLACE ";" " " link_flags "${flags}")
 
       string(TOUPPER "${impl}" label)
-      set(use_var "USE_${label}")
       set(emulator FALSE)
+      set(can_exec_test "${HAVE_${label}}")
       if(impl STREQUAL "nosimd")
          set(label NoSIMD)
-         set(use_var TRUE)
-      elseif(Vc_X86 AND INTEL_SDE AND NOT ${use_var})
-         set(use_var TRUE)
-         set(emulator "${INTEL_SDE};${sde_cpuid_${impl}};--")
+         set(can_exec_test TRUE)
+      elseif(NOT can_exec_test)
+         if((impl STREQUAL "KNL" AND HAVE_AVX512PF AND HAVE_AVX512ER) OR
+            (impl STREQUAL "AVX512" AND HAVE_AVX512DQ AND HAVE_AVX512VL AND HAVE_AVX512BW))
+            set(can_exec_test TRUE)
+         elseif(Vc_X86 AND INTEL_SDE)
+            set(can_exec_test TRUE)
+            set(emulator "${INTEL_SDE};${sde_cpuid_${impl}};--")
+         else()
+            set(can_exec_test FALSE)
+         endif()
       endif()
       if(_NO_TESTTYPES)
          set(type_split " ")
@@ -261,7 +414,7 @@ function(vc_add_test name) #{{{
             add_dependencies(build_tests ${target})
             add_dependencies(${label} ${target})
          endif()
-         if(${use_var}) # add test and run target#{{{
+         if(${can_exec_test}) # add test and run target#{{{
             if(NOT _EXCLUDE_FROM_ALL)
                if(_ROUNDINGMODES)
                   set(_test_args "--roundingmodes")
@@ -307,7 +460,6 @@ vc_add_test(allcvt_casts SOURCE casts.cpp EXCLUDE_FROM_ALL)
 vc_add_test(math NO_TESTTYPES ROUNDINGMODES)
 vc_add_test(specialmath NO_TESTTYPES ROUNDINGMODES)
 vc_add_test(where NO_TESTTYPES)
-#vc_add_test(experimental NO_TESTTYPES)
 vc_add_test(bitset_conversions NO_TESTTYPES)
 
 # ABI tests#{{{
@@ -415,10 +567,10 @@ add_dependencies(build_tests linkTest)
 add_dependencies(other linkTest)
 add_target_property(linkTestLibDynamic1 COMPILE_FLAGS "-DPOSTFIX=A")
 add_target_property(linkTestLibDynamic2 COMPILE_FLAGS "-DPOSTFIX=B")
-set_property(TARGET linkTestLibDynamic1 APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
-set_property(TARGET linkTestLibDynamic2 APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
-set_property(TARGET linkTestLibStatic APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
-set_property(TARGET linkTest APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
+set_property(TARGET linkTestLibDynamic1 APPEND PROPERTY COMPILE_OPTIONS "-march=native")
+set_property(TARGET linkTestLibDynamic2 APPEND PROPERTY COMPILE_OPTIONS "-march=native")
+set_property(TARGET linkTestLibStatic APPEND PROPERTY COMPILE_OPTIONS "-march=native")
+set_property(TARGET linkTest APPEND PROPERTY COMPILE_OPTIONS "-march=native")
 target_link_libraries(linkTest linkTestLibDynamic1 linkTestLibDynamic2 linkTestLibStatic)#}}}
 
 # Use the following program to generate the sincos-reference-*.dat files

@@ -6,14 +6,14 @@ build_dir := $(realpath $(build_dir))
 build_dir := build-$(subst /,-,$(build_dir:/%=%))
 cols := $(shell sh -c 'stty size|cut -d" " -f2')
 
-all:
+test:
 %:: $(build_dir)/CMakeCache.txt
 	$(MAKE) --no-print-directory -C "$(build_dir)" $(MAKECMDGOALS) 2>&1|sed -u 's/std::\(experimental::\([a-z_0-9]\+::\)\?\)\?/⠶/g'|stdbuf -oL fold -s -w $(cols)
 
 $(build_dir)/CMakeCache.txt:
 	@test -n "$(build_dir)"
 	@mkdir -p "$(build_dir)"
-	@test -e "$(build_dir)/CMakeCache.txt" || cmake -H. -B"$(build_dir)"
+	@test -e "$(build_dir)/CMakeCache.txt" || cmake -Htests -B"$(build_dir)"
 
 print_build_dir:
 	@echo "$(PWD)/$(build_dir)"

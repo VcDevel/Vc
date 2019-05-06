@@ -427,7 +427,7 @@ macro(go)
    # enter the following section for Continuous builds only if the CTEST_UPDATE above found changes
    if(NOT is_continuous OR res GREATER 0)
       CTEST_CONFIGURE (BUILD "${CTEST_BINARY_DIRECTORY}"
-         SOURCE "${PROJECT_DIRECTORY}"
+         SOURCE "${PROJECT_DIRECTORY}/tests"
          OPTIONS "${configure_options}"
          APPEND
          RETURN_VALUE res)
