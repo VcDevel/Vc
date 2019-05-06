@@ -309,6 +309,11 @@ template <class _Tp, class _Abi> struct simd_size;
 #endif
 
 // workaround macros {{{
+// use aliasing loads to help GCC understand the data accesses better
+// This also seems to hide a miscompilation on swap(x[i], x[i + 1]) with
+// fixed_size_simd<float, 16> x.
+#define _GLIBCXX_SIMD_USE_ALIASING_LOADS 1
+
 // vector conversions on x86 not optimized:
 #if _GLIBCXX_SIMD_X86INTRIN
 #define _GLIBCXX_SIMD_WORKAROUND_PR85048 1
