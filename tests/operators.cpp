@@ -113,8 +113,8 @@ TEST_TYPES(V, operators, all_test_types)  //{{{1
             swap(x[i], x[i + 1]);
         }
         for (std::size_t i = 0; i + 1 < V::size(); i += 2) {
-            COMPARE(x[i], T(i + 1));
-            COMPARE(x[i + 1], T(i));
+            COMPARE(x[i], T(i + 1)) << x;
+            COMPARE(x[i + 1], T(i)) << x;
         }
         x = 1;
         V y = 0;
