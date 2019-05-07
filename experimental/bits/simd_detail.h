@@ -33,7 +33,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#define _GLIBCXX_SIMD_VERSION_STRING "9.1.0"
+#define Vir_SIMD_VERSION_STRING "1.0.0"
 
 #define _GLIBCXX_SIMD_BEGIN_NAMESPACE                                                    \
     namespace std _GLIBCXX_VISIBILITY(default)                                           \
