@@ -1,50 +1,25 @@
-# Vc: portable, zero-overhead C++ types for explicitly data-parallel programming
+# `std::experimental::simd`
+portable, zero-overhead C++ types for explicitly data-parallel programming
 
-*NOTE*: This is the development version, implementing https://wg21.link/p0214.
-For production use consider the latest release or the 1.3 branch.
-This implementation requires GCC 7.1 or newer.
-Support for Clang, ICC, and MSVC is available with the 1.3 branch.
+This package implements ISO/IEC TS 19570:2018 Section 9 "Data-Parallel Types".
+It is targetting inclusion into libstdc++. By default, the `install.sh` script
+places the `std::experimental::simd` headers into the directory where the
+standard library of your C++ compiler (identified via `$CXX`) resides.
 
-## Introduction
+The implementation derives from https://github.com/VcDevel/Vc.
+It is only tested and supported with GCC 9, even though it may (partially) work
+with older GCC versions.
 
-Recent generations of CPUs, and GPUs in particular, require data-parallel codes
-for full efficiency. Data parallelism requires that the same sequence of
-operations is applied to different input data. CPUs and GPUs can thus reduce
-the necessary hardware for instruction decoding and scheduling in favor of more
-arithmetic and logic units, which execute the same instructions synchronously.
-On CPU architectures this is implemented via SIMD registers and instructions.
-A single SIMD register can store N values and a single SIMD instruction can
-execute N operations on those values. On GPU architectures N threads run in
-perfect sync, fed by a single instruction decoder/scheduler. Each thread has
-local memory and a given index to calculate the offsets in memory for loads and
-stores.
+## Target support
 
-Current C++ compilers can do automatic transformation of scalar codes to SIMD
-instructions (auto-vectorization). However, the compiler must reconstruct an
-intrinsic property of the algorithm that was lost when the developer wrote a
-purely scalar implementation in C++. Consequently, C++ compilers cannot
-vectorize any given code to its most efficient data-parallel variant.
-Especially larger data-parallel loops, spanning over multiple functions or even
-translation units, will often not be transformed into efficient SIMD code.
-
-The Vc library provides the missing link. Its types enable explicitly stating
-data-parallel operations on multiple values. The parallelism is therefore added
-via the type system. Competing approaches state the parallelism via new control
-structures and consequently new semantics inside the body of these control
-structures.
-
-Vc is a free software library to ease explicit vectorization of C++ code. It
-has an intuitive API and provides portability between different compilers and
-compiler versions as well as portability between different vector instruction
-sets. Thus an application written with Vc can be compiled for:
-
-* AVX and AVX2
-* SSE2 up to SSE4.2 or SSE4a
-* Scalar
-* MIC (only before Vc 2.0)
-* AVX-512 (since Vc 2.0)
-* NEON (in development)
-* NVIDIA GPUs / CUDA (research)
+* x86_64 is the main development platform and thoroughly tested. This includes
+  support from SSE-only up to AVX512 on Xeon Phi or Xeon CPUs.
+* aarch64 was tested and verified to work. No significant performance evaluation
+  was done.
+* ARM NEON in general should work, too.
+* IBM Power support received minimal testing.
+* In any case, a fallback to correct execution via builtin arthmetic types is
+  available for all targets.
 
 ## Examples
 
@@ -57,19 +32,22 @@ float scalar_product(Vec3D a, Vec3D b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 ```
-Using Vc, we can easily vectorize the code using the `native_simd<float>` type:
+
+Using `simd`, we can easily vectorize the code using the `native_simd<float>` type:
 ```cpp
-using Vc::native_simd;
+using std::experimental::native_simd;
 using Vec3D = std::array<native_simd<float>, 3>;
-float_v scalar_product(Vec3D a, Vec3D b) {
+native_simd<float> scalar_product(Vec3D a, Vec3D b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 ```
+
 The above will scale to 1, 4, 8, 16, etc. scalar products calculated in parallel, depending
 on the target hardware's capabilities.
 
-For comparison, the same vectorization using Intel SSE intrinsics is more verbose and uses
-prefix notation (i.e. function calls):
+For comparison, the same vectorization using Intel SSE intrinsics is more verbose, uses
+prefix notation (i.e. function calls), and neither scales to AVX or AVX512, nor is it
+portable to different SIMD ISAs:
 ```cpp
 using Vec3D = std::array<__m128, 3>;
 __m128 scalar_product(Vec3D a, Vec3D b) {
@@ -77,59 +55,36 @@ __m128 scalar_product(Vec3D a, Vec3D b) {
                     _mm_mul_ps(a[2], b[2]));
 }
 ```
-The above will neither scale to AVX, MIC, etc. nor is it portable to other SIMD ISAs.
+
+## Install Instructions
+
+```sh
+$ ./install.sh
+```
+
+Use `--help` to learn about the available options.
 
 ## Build Requirements
 
-cmake >= 3.0
+none. It's header-only.
 
-C++17 Compiler:
+However, to build the unit tests you will need:
+* cmake >= 3.0
+* GCC >= 9.1
 
-* GCC >= 7.1
+To execute all AVX512 unit tests, you will need the Intel SDE.
 
-
-## Building and Installing Vc
-
-* Create a build directory:
-
-```sh
-$ mkdir build
-$ cd build
-```
-
-* Call `cmake`; the following options may be interesting:
-  - `-DCMAKE_INSTALL_PREFIX=<path>`:
-    Select a different install prefix. Note that installing is not required (use
-     `-I<path to Vc src>`) and currently not supported.
-  - `-DENABLE_UBSAN=ON`:
-    Build tests with the “undefined behavior sanitizer” enabled.
-  - `-DTARGET_ARCHITECTURE=<target>`:
-    Select a target architecture, different from the one you are building on.
-  - `-DUSE_CCACHE=ON`:
-    Use `ccache` (when found) to speed up recurring builds.
+## Building the tests
 
 ```sh
-$ cmake <srcdir>
+$ make test
 ```
 
-* Build and run tests:
-
-```sh
-$ make -j8
-$ ctest -j8
-```
+This will create a build directory, run cmake, compile the tests, and execute the tests.
 
 ## Documentation
 
-The documentation of the master branch is currently out of date. Please refer to
-https://wg21.link/p0214 for the specification.
-
-Documentation for older releases is available at:
-
-* [1.3.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.3.0/)
-* [1.2.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.2.0/)
-* [1.1.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.1.0/)
-* [0.7 branch](https://web-docs.gsi.de/~mkretz/Vc-0.7/)
+https://en.cppreference.com/w/cpp/experimental/simd
 
 ## Publications
 
@@ -139,12 +94,7 @@ Documentation for older releases is available at:
 * [M. Kretz and V. Lindenstruth, "Vc: A C++ library for explicit
   vectorization", Software: Practice and Experience,
   2011.](http://dx.doi.org/10.1002/spe.1149)
-* [M. Kretz, "Efficient Use of Multi- and Many-Core Systems with Vectorization
-  and Multithreading", University of Heidelberg,
-  2009.](http://code.compeng.uni-frankfurt.de/attachments/13/Diplomarbeit.pdf)
-
-[Work on integrating the functionality of Vc in the C++ standard library.](
-https://github.com/VcDevel/Vc/wiki/ISO-Standardization-of-the-Vector-classes)
+* [J. Hoberock, "Working Draft, C++ Extensions for Parallelism Version 2", 2019](https://wg21.link/N4808)
 
 ## Communication
 
@@ -158,4 +108,5 @@ Vc](https://compeng.uni-frankfurt.de/mailman/listinfo/vc)
 
 ## License
 
-Vc is released under the terms of the [3-clause BSD license](http://opensource.org/licenses/BSD-3-Clause).
+The `simd` headers, tests, and benchmarks are released under the terms of the
+[3-clause BSD license](http://opensource.org/licenses/BSD-3-Clause).
