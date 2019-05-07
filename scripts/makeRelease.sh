@@ -21,7 +21,7 @@ fi
 git tag -m "std::experimental::simd $version release" -s "simd-$version" || exit
 
 # Make sure git-archive-all (needed for archiving with virtest) is available
-which git-archive-all >/dev/null 2>&1 || pip install --user git-archive-all || exit
+which git-archive-all >/dev/null 2>&1 || `which pip pip3` install --user git-archive-all || exit
 
 # Create tarball
 git-archive-all -v --prefix="simd-$version/" "../simd-$version.tar.gz" && \
