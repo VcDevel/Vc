@@ -1,5 +1,6 @@
-/*  This file is part of the Vc library. {{{
-Copyright © 2017 Matthias Kretz <kretz@kde.org>
+/*{{{
+Copyright © 2017-2019 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH
+                      Matthias Kretz <m.kretz@gsi.de>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
