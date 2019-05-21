@@ -1,3 +1,5 @@
+**You may be interested in switching to [std-simd](https://github.com/VcDevel/std-simd).** Features present in Vc 1.4 and not present in *std-simd* will eventually turn into Vc 2.0, which then depends on *std-simd*.
+
 # Vc: portable, zero-overhead C++ types for explicitly data-parallel programming
 
 Recent generations of CPUs, and GPUs in particular, require data-parallel codes
