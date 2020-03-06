@@ -29,11 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_COMMON_BITSCANINTRINSICS_H_
 
 #if defined(Vc_GCC) || defined(Vc_CLANG) || defined(Vc_APPLECLANG)
-#  if Vc_GCC >= 0x40500
-     // GCC 4.5.0 introduced _bit_scan_forward / _bit_scan_reverse
-#    include <x86intrin.h>
-#  else
-     // GCC <= 4.4 and clang have x86intrin.h, but not the required functions
+#include <x86intrin.h>
+#  ifndef _bit_scan_forward
 #    define _bit_scan_forward(x) __builtin_ctz(x)
 #include "macros.h"
 static Vc_ALWAYS_INLINE Vc_CONST int _Vc_bit_scan_reverse_asm(unsigned int x) {
