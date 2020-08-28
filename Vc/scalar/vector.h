@@ -210,13 +210,13 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         {
             return V2(static_cast<typename V2::EntryType>(m_data));
         }
-        template <typename V2>
-        Vc_DEPRECATED("use reinterpret_components_cast instead") Vc_ALWAYS_INLINE V2
-            reinterpretCast() const
-        {
-            typedef typename V2::EntryType AliasT2 Vc_MAY_ALIAS;
-            return V2(*reinterpret_cast<const AliasT2 *>(&m_data));
-        }
+//        template <typename V2>
+//        Vc_DEPRECATED("use reinterpret_components_cast instead") Vc_ALWAYS_INLINE V2
+//            reinterpretCast() const
+//        {
+//            typedef typename V2::EntryType AliasT2 Vc_MAY_ALIAS;
+//            return V2(*reinterpret_cast<const AliasT2 *>(&m_data));
+//        }
 
         Vc_ALWAYS_INLINE Common::WriteMaskedVector<Vector, Mask> operator()(Mask m)
         {
