@@ -12,7 +12,7 @@ cd "`dirname "$0"`"
 test -z "dashboard_model" && export dashboard_model=Experimental
 
 runTest() {
-  LD_LIBRARY_PATH=$(dirname $(realpath $($CXX $1 -print-file-name=libstdc++.so.6))) \
+  LD_LIBRARY_PATH=$(dirname $(realpath $($CXX $1 -print-file-name=libstdc++.so))) \
   CFLAGS="$1" CXXFLAGS="$1" ctest -S test.cmake || true
 }
 
