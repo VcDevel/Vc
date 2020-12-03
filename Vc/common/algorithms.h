@@ -83,7 +83,7 @@ simd_for_each(InputIt first, InputIt last, UnaryFunction f)
         load_interleaved(tmp, std::addressof(*first));
         f(tmp);
     }
-    return std::move(f);
+    return f;
 }
 
 template <typename InputIt, typename UnaryFunction,
@@ -108,7 +108,7 @@ simd_for_each(InputIt first, InputIt last, UnaryFunction f)
         f(tmp);
         store_interleaved(tmp, std::addressof(*first));
     }
-    return std::move(f);
+    return f;
 }
 #endif
 
@@ -133,7 +133,7 @@ simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
         load_interleaved(tmp, std::addressof(*first));
         f(tmp);
     }
-    return std::move(f);
+    return f;
 }
 
 template <typename InputIt, typename UnaryFunction,
@@ -158,7 +158,7 @@ simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
         f(tmp);
         store_interleaved(tmp, std::addressof(*first));
     }
-    return std::move(f);
+    return f;
 }
 
 }  // namespace Vc
