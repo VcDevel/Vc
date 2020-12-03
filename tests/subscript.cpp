@@ -171,6 +171,9 @@ template <typename T, std::size_t Align = alignof(T)> struct S {
         b = x + 1;
         c = x + 2;
     }
+#ifdef __i386__
+    alignas(sizeof(double))
+#endif
     double x0;
     alignas(Align) T a;
     char x1;
