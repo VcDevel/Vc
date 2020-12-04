@@ -166,13 +166,14 @@ TEST_TYPES(Vec, gatherArray, ALL_TYPES)
     gatherArrayImpl<Vec, double>();
 }
 
-template<typename T, std::size_t Align> struct Struct
+template<typename T>
+struct alignas(std::is_arithmetic<T>::value ? sizeof(T) : alignof(T)) Struct
 {
-    alignas(Align) T a;
+    T a;
     char x;
-    alignas(Align) T b;
+    T b;
     short y;
-    alignas(Align) T c;
+    T c;
     char z;
 };
 
@@ -180,7 +181,7 @@ TEST_TYPES(Vec, gatherStruct, ALL_TYPES)
 {
     typedef typename Vec::IndexType It;
     typedef typename Vec::EntryType T;
-    typedef Struct<T, alignof(T)> S;
+    typedef Struct<T> S;
     constexpr int count = 3999;
     Vc::array<S, count> array;
     Vc::span<S, count> s(array);
