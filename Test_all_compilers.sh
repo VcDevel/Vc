@@ -12,8 +12,9 @@ cd "`dirname "$0"`"
 test -z "dashboard_model" && export dashboard_model=Experimental
 
 runTest() {
-  LD_LIBRARY_PATH=$(dirname $(realpath $($CXX $1 -print-file-name=libstdc++.so))) \
-  CFLAGS="$1" CXXFLAGS="$1" ctest -S test.cmake || true
+  libpath="$LD_LIBRARY_PATH"
+  test -n "$1" && libpath="$(dirname $(realpath $($CXX $1 -print-file-name=libstdc++.so)))${libpath:+:}${libpath}"
+  LD_LIBRARY_PATH="$libpath" CFLAGS="$1" CXXFLAGS="$1" ctest -S test.cmake || true
 }
 
 tested_compilers="lsakdfjwowleqirjodfisj"
