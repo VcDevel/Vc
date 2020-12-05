@@ -101,8 +101,8 @@ TEST_TYPES(Vec, maskedScatterArray, AllTypes) //{{{1
 }
 
 //struct Struct {{{1
-template<typename T>
-struct alignas(std::is_arithmetic<T>::value ? sizeof(T) : alignof(T)) Struct
+template <typename T, size_t Align = std::is_arithmetic<T>::value ? sizeof(T) : alignof(T)>
+struct alignas(Align > alignof(short) ? Align : alignof(short)) Struct
 {
     T a;
     char x;

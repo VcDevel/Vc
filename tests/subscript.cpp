@@ -164,8 +164,8 @@ TEST_TYPES(V, scatters, AllVectors)
     }
 }
 
-template <typename T>
-struct alignas(std::is_arithmetic<T>::value ? sizeof(T) : alignof(T)) S
+template <typename T, size_t Align = std::is_arithmetic<T>::value ? sizeof(T) : alignof(T)>
+struct alignas(Align > alignof(double) ? Align : alignof(double)) S
 {
     void operator=(int x)
     {
