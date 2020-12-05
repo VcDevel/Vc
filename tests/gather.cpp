@@ -166,8 +166,8 @@ TEST_TYPES(Vec, gatherArray, ALL_TYPES)
     gatherArrayImpl<Vec, double>();
 }
 
-template<typename T>
-struct alignas(std::is_arithmetic<T>::value ? sizeof(T) : alignof(T)) Struct
+template <typename T, size_t Align = std::is_arithmetic<T>::value ? sizeof(T) : alignof(T)>
+struct alignas(Align > alignof(short) ? Align : alignof(short)) Struct
 {
     T a;
     char x;
