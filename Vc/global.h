@@ -132,9 +132,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifdef Vc_GCC
-#  define Vc_HAVE_MAX_ALIGN_T 1
+#  if Vc_GCC >= 0x70000 && defined __i386__ && (!defined __GLIBC_PREREQ || !__GLIBC_PREREQ(2,26))
+     // GCC 7 changed alignof(max_align_t) to 16. glibc 2.26 followed with malloc in 2.26.
+     // 1. If GCC >= 7 and libc is not glibc max_align_t and malloc mismatch
+     // 2. If GCC >= 7 and libc is glibc < 2.26 max_align_t and malloc mismatch
+#  elif Vc_GCC >= 0x40900
+#    define Vc_HAVE_STD_MAX_ALIGN_T 1
+#  else
+#    define Vc_HAVE_MAX_ALIGN_T 1
+#  endif
 #elif !defined(Vc_CLANG) && !defined(Vc_ICC)
 //   Clang/ICC don't provide max_align_t at all
+//   TODO: Clang defines max_align_t since 3.5.0. Whether std::max_align_t is defined depends on the
+//   standard library version.
 #  define Vc_HAVE_STD_MAX_ALIGN_T 1
 #endif
 
