@@ -112,14 +112,15 @@ template <class V, class T> void gatherArrayImpl()
 
     const int count = 39999;
     T array[count];
+    using value_type = typename V::value_type;
+    using limits = typename std::conditional<
+        (std::is_floating_point<T>::value && std::is_integral<value_type>::value),
+        std::numeric_limits<value_type>, std::numeric_limits<T>>::type;
+    const T max = static_cast<T>(limits::max());
     for (int i = 0; i < count; ++i) {
-        using value_type = typename V::value_type;
-        using limits = typename std::conditional<
-            (std::is_floating_point<T>::value && std::is_integral<value_type>::value),
-            std::numeric_limits<value_type>, std::numeric_limits<T>>::type;
         T tmp = i + 1;
-        while (tmp > limits::max()) {
-            tmp -= limits::max();
+        while (tmp > max) {
+            tmp -= max;
         }
         array[i] = tmp;
     }
