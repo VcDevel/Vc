@@ -237,7 +237,8 @@ namespace Vc_VERSIONED_NAMESPACE
 #include "vector.h"
 namespace std
 {
-    template<typename T> class allocator<Vc::Vector<T> > : public ::Vc::Allocator<Vc::Vector<T> >
+    template<typename T, typename Abi>
+    class allocator<Vc::Vector<T, Abi> > : public ::Vc::Allocator<Vc::Vector<T, Abi> >
     {
     public:
         template<typename U> struct rebind { typedef ::std::allocator<U> other; };
@@ -246,8 +247,8 @@ namespace std
         const allocator &select_on_container_copy_construction() const { return *this; }
 #endif
     };
-    template <typename T>
-    class allocator<Vc::Mask<T>> : public ::Vc::Allocator<Vc::Mask<T>>
+    template <typename T, typename Abi>
+    class allocator<Vc::Mask<T, Abi>> : public ::Vc::Allocator<Vc::Mask<T, Abi>>
     {
     public:
         template<typename U> struct rebind { typedef ::std::allocator<U> other; };
