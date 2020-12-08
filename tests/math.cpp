@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/array>
 #include "vectormemoryhelper.h"
 #include <cmath>
+#include <cstdlib>
 #include <algorithm>
 #include <Vc/common/const.h>
 /*}}}*/
@@ -53,11 +54,17 @@ TEST_TYPES(V, testAbs,
         COMPARE(a, Vc::abs(a));
         COMPARE(a, Vc::abs(b));
     }
+    using T = typename V::value_type;
+    if (std::is_same<T, short>::value)
+    {
+        const V a = std::numeric_limits<T>::lowest();
+        COMPARE(abs(a), a);
+    }
     for (int i = 0; i < 1000; ++i) {
         V a = V::Random();
-        if (std::is_integral<typename V::EntryType>::value) {
+        if (std::is_integral<T>::value) {
             // Avoid most negative value which doesn't have an absolute value.
-            a = max(a, V(std::numeric_limits<typename V::EntryType>::min() + 1));
+            a = max(a, V(std::numeric_limits<T>::min() + 1));
         }
         const V ref = V::generate([&](int j) { return std::abs(a[j]); });
         COMPARE(abs(a), ref) << "a : " << a;
