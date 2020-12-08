@@ -54,7 +54,11 @@ TEST_TYPES(V, testAbs,
         COMPARE(a, Vc::abs(b));
     }
     for (int i = 0; i < 1000; ++i) {
-        const V a = V::Random();
+        V a = V::Random();
+        if (std::is_integral<typename V::EntryType>::value) {
+            // Avoid most negative value which doesn't have an absolute value.
+            a = max(a, V(std::numeric_limits<typename V::EntryType>::min() + 1));
+        }
         const V ref = V::generate([&](int j) { return std::abs(a[j]); });
         COMPARE(abs(a), ref) << "a : " << a;
     }
