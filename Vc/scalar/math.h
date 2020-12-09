@@ -84,11 +84,15 @@ template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> rsqrt(const Scala
 
 template <typename T,
           typename = enable_if<std::is_same<T, double>::value || std::is_same<T, float>::value ||
-                               std::is_same<T, short>::value ||
                                std::is_same<T, int>::value>>
 Vc_ALWAYS_INLINE Vc_PURE Scalar::Vector<T> abs(Scalar::Vector<T> x)
 {
     return std::abs(x.data());
+}
+
+Vc_ALWAYS_INLINE Vc_PURE Scalar::Vector<short> abs(Scalar::Vector<short> x)
+{
+    return std::abs(static_cast<int>(x.data()));
 }
 
 template<typename T> static Vc_ALWAYS_INLINE void sincos(const Scalar::Vector<T> &x, Scalar::Vector<T> *sin, Scalar::Vector<T> *cos)
