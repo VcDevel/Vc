@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 cmake_policy(SET CMP0028 NEW) # Double colon in target name means ALIAS or IMPORTED target.
 cmake_policy(SET CMP0048 NEW) # The ``project()`` command manages VERSION variables.
 
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
    message(FATAL_ERROR "You don't want to configure in the source directory!")
 endif()
 
@@ -18,7 +18,7 @@ file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/Vc/version.h _version_lines REGEX "^#de
 string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _version_matches "${_version_lines}")
 
 project(Vc VERSION "${CMAKE_MATCH_1}.${CMAKE_MATCH_2}.${CMAKE_MATCH_3}" LANGUAGES C CXX)
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set(disabled_targets)
 
@@ -218,7 +218,7 @@ write_basic_package_version_file(
    COMPATIBILITY AnyNewerVersion
    )
 configure_package_config_file(
-   ${CMAKE_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
+   ${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
    ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake
    INSTALL_DESTINATION ${PACKAGE_INSTALL_DESTINATION}
    PATH_VARS CMAKE_INSTALL_PREFIX
@@ -238,7 +238,7 @@ install(FILES
 
 #Release# option(BUILD_TESTING "Build the testing tree." OFF)
 include (CTest)
-configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_BINARY_DIR}/CTestCustom.cmake COPYONLY)
+configure_file(${PROJECT_SOURCE_DIR}/CTestCustom.cmake ${PROJECT_BINARY_DIR}/CTestCustom.cmake COPYONLY)
 if(BUILD_TESTING)
    add_custom_target(build_tests ALL VERBATIM)
    add_subdirectory(tests)
@@ -255,14 +255,14 @@ mark_as_advanced(Vc_IMPL)
 find_program(BIN_CAT cat)
 mark_as_advanced(BIN_CAT)
 if(BIN_CAT)
-   file(REMOVE ${CMAKE_BINARY_DIR}/help.txt)
-   add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/help.txt
-      COMMAND ${CMAKE_MAKE_PROGRAM} help > ${CMAKE_BINARY_DIR}/help.txt
+   file(REMOVE ${PROJECT_BINARY_DIR}/help.txt)
+   add_custom_command(OUTPUT ${PROJECT_BINARY_DIR}/help.txt
+      COMMAND ${CMAKE_MAKE_PROGRAM} help > ${PROJECT_BINARY_DIR}/help.txt
       VERBATIM
       )
    add_custom_target(cached_help
-      ${BIN_CAT} ${CMAKE_BINARY_DIR}/help.txt
-      DEPENDS ${CMAKE_BINARY_DIR}/help.txt
+      ${BIN_CAT} ${PROJECT_BINARY_DIR}/help.txt
+      DEPENDS ${PROJECT_BINARY_DIR}/help.txt
       VERBATIM
       )
 endif()
