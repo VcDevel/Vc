@@ -338,6 +338,7 @@ int main() { return 0; }
          add_definitions(-D_CRT_SECURE_NO_WARNINGS)
       endif()
       vc_add_compiler_flag(Vc_COMPILE_FLAGS "/Gv") # default to __vectorcall
+      vc_add_compiler_flag(Vc_COMPILE_FLAGS "/bigobj") # required for building tests with AVX
 
       if(MSVC_VERSION LESS 1900)
          UserWarning("MSVC before 2015 does not support enough of C++11")
