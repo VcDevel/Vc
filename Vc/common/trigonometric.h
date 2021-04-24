@@ -63,12 +63,12 @@ namespace Common
 {
 template<typename Impl> struct Trigonometric
 {
-    template<typename T> static T sin(const T &_x);
-    template<typename T> static T cos(const T &_x);
-    template<typename T> static void sincos(const T &_x, T *_sin, T *_cos);
-    template<typename T> static T asin (const T &_x);
-    template<typename T> static T atan (const T &_x);
-    template<typename T> static T atan2(const T &y, const T &x);
+    template<typename T> static T Vc_VDECL sin(const T &_x);
+    template<typename T> static T Vc_VDECL cos(const T &_x);
+    template<typename T> static void Vc_VDECL sincos(const T &_x, T *_sin, T *_cos);
+    template<typename T> static T Vc_VDECL asin (const T &_x);
+    template<typename T> static T Vc_VDECL atan (const T &_x);
+    template<typename T> static T Vc_VDECL atan2(const T &y, const T &x);
 };
 }  // namespace Common
 
