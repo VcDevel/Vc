@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#include "../IO"
 
 #include <array>
+#include <limits>
 
 #include "writemaskedvector.h"
 #include "simdarrayhelper.h"
