@@ -1,4 +1,6 @@
-**You may be interested in switching to [std-simd](https://github.com/VcDevel/std-simd).** Features present in Vc 1.4 and not present in *std-simd* will eventually turn into Vc 2.0, which then depends on *std-simd*.
+**You may be interested in switching to [std-simd](https://github.com/VcDevel/std-simd).**
+GCC 11 includes an experimental version of `std::simd` as part of libstdc++, which also works with clang.
+Features present in Vc 1.4 and not present in *std-simd* will eventually turn into Vc 2.0,which then depends on *std-simd*.
 
 # Vc: portable, zero-overhead C++ types for explicitly data-parallel programming
 
@@ -156,16 +158,6 @@ Alternatively, you can find nightly builds of the documentation at:
 
 [Work on integrating the functionality of Vc in the C++ standard library.](
 https://github.com/VcDevel/Vc/wiki/ISO-Standardization-of-the-Vector-classes)
-
-## Communication
-
-A channel on the freenode IRC network is reserved for discussions on Vc:
-[##vc on freenode](irc://chat.freenode.net:6667/##vc)
-([via SSL](ircs://chat.freenode.net:6697/##vc))
-
-Feel free to use the GitHub issue tracker for questions.
-Alternatively, there's a [mailinglist for users of
-Vc](https://compeng.uni-frankfurt.de/mailman/listinfo/vc)
 
 ## License
 
