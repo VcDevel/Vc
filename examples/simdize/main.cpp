@@ -40,7 +40,7 @@ public:
 
 private:
     value_type data;
-    int count = 0;
+    std::size_t count = 0;
 };
 
 int Vc_CDECL main()
