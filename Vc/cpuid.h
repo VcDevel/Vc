@@ -67,7 +67,7 @@ class CpuId
          * Will be executed automatically before main, but not necessarily before other functions
          * executing before main.
          */
-        static void init();
+        static void Vc_VDECL init();
 
         //! Return the cache line size in bits.
         static inline ushort cacheLineSize() { return static_cast<ushort>(s_cacheLineSize) * 8u; }
