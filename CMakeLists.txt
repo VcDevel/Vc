@@ -220,7 +220,7 @@ if (Vc_ENABLE_INSTALL)
       COMPATIBILITY AnyNewerVersion
       )
    configure_package_config_file(
-      ${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
+      ${CMAKE_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in
       ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake
       INSTALL_DESTINATION ${PACKAGE_INSTALL_DESTINATION}
       PATH_VARS CMAKE_INSTALL_PREFIX
@@ -237,6 +237,12 @@ if (Vc_ENABLE_INSTALL)
       ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake
       DESTINATION ${PACKAGE_INSTALL_DESTINATION}
       )
+   if (Vc_COMPILER_IS_MSVC)
+      install(FILES
+         cmake/msvc_version.c
+         DESTINATION ${PACKAGE_INSTALL_DESTINATION}
+      )
+   endif()
 endif()
 
 #Release# option(BUILD_TESTING "Build the testing tree." OFF)
