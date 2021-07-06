@@ -76,6 +76,7 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         static constexpr size_t Size = 1;
         static constexpr size_t MemoryAlignment = alignof(VectorType);
         using IndexType = fixed_size_simd<int, 1>;
+        using index_type = IndexType;
 
 #include "../common/generalinterface.h"
 

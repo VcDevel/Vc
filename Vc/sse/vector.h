@@ -79,6 +79,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         using value_type = EntryType;
         using VectorEntryType = EntryType;
         using IndexType = fixed_size_simd<int, Size>;
+        using index_type = IndexType;
         typedef typename SSE::VectorTraits<T>::MaskType Mask;
         using MaskType = Mask;
         using mask_type = Mask;
