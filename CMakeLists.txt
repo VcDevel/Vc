@@ -62,8 +62,8 @@ if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++11 on/off
          endif()
       endif()
    endif()
-elseif(Vc_MSVC_VERSION LESS 180021114)
-   message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least Visual Studio 2013 with the Nov 2013 CTP.")
+elseif(MSVC_VERSION LESS 1900)
+   message(FATAL_ERROR "Vc 1.x requires at least Visual Studio 2015.")
 endif()
 
 if(Vc_COMPILER_IS_GCC)
