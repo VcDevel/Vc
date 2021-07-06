@@ -94,6 +94,7 @@ public:
         static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
         static constexpr size_t MemoryAlignment = alignof(VectorType);
     using IndexType = fixed_size_simd<int, Size>;
+    using index_type = IndexType;
         typedef Vector<T, abi> AsArg;
         typedef VectorType VectorTypeArg;
 
