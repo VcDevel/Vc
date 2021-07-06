@@ -72,8 +72,7 @@ unsigned int extraInstructionsSupported();
  *
  * \param impl The SIMD target to test for.
  */
-Vc_TARGET_NO_SIMD
-bool isImplementationSupported(Vc::Implementation impl);
+Vc_TARGET_NO_SIMD bool Vc_VDECL isImplementationSupported(Vc::Implementation impl);
 
 /**
  * \internal

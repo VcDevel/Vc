@@ -772,7 +772,7 @@ Vc_INTRINSIC  uchar max(__m128i a,  uchar) {
 
 // sorted{{{1
 template <Vc::Implementation, typename T>
-Vc_CONST_L SSE::Vector<T> sorted(SSE::Vector<T> x) Vc_CONST_R;
+Vc_CONST_L SSE::Vector<T> Vc_VDECL sorted(SSE::Vector<T> x) Vc_CONST_R;
 template <typename T> Vc_INTRINSIC Vc_CONST SSE::Vector<T> sorted(SSE::Vector<T> x)
 {
     static_assert(!CurrentImplementation::is(ScalarImpl),

@@ -937,7 +937,7 @@ Vc_INTRINSIC __m256i avx_broadcast( uchar x) { return _mm256_set1_epi8(x); }
 // sorted{{{1
 template <Vc::Implementation Impl, typename T,
           typename = enable_if<(Impl >= AVXImpl && Impl <= AVX2Impl)>>
-Vc_CONST_L AVX2::Vector<T> sorted(AVX2::Vector<T> x) Vc_CONST_R;
+Vc_CONST_L AVX2::Vector<T> Vc_VDECL sorted(AVX2::Vector<T> x) Vc_CONST_R;
 template <typename T> Vc_INTRINSIC Vc_CONST AVX2::Vector<T> sorted(AVX2::Vector<T> x)
 {
     return sorted<CurrentImplementation::current()>(x);
