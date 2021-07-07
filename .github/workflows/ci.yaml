@@ -1,0 +1,85 @@
+name: CI
+on: [push, pull_request]
+env:
+  build_type: Release
+jobs:
+  #clang-format:
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #  - uses: actions/checkout@v2
+  #  - uses: DoozyX/clang-format-lint-action@v0.12
+  #    with:
+  #      exclude: './thirdparty'
+  #      clangFormatVersion: 12
+        
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    env:
+      dashboard_model: Experimental
+      NUMBER_OF_PROCESSORS: 2
+      CXX: ${{ matrix.CXX }}
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: build-ubuntu-gcc9
+            CXX: g++-9
+          - name: build-ubuntu-gcc10
+            CXX: g++-10
+          - name: build-ubuntu-clang10
+            CXX: clang++-10
+          - name: build-ubuntu-clang11
+            CXX: clang++-11
+            INSTALL_EXTRA: clang-11
+          - name: build-ubuntu-icpc
+            CXX: icpc
+            INSTALL_ONEAPI: true
+          #- name: build-ubuntu-icpx
+          #  CXX: icpx
+          #  INSTALL_ONEAPI: true
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: install OneAPI
+        if: ${{ matrix.INSTALL_ONEAPI }}
+        run: |
+          wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          sudo apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+          sudo add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
+          sudo apt update
+          sudo apt install intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic
+      - name: install extras
+        if: ${{ matrix.INSTALL_EXTRA }}
+        run: |
+          sudo apt update
+          sudo apt install ${{ matrix.INSTALL_EXTRA }}
+      - name: ctest
+        run: |
+          if [ ${{ matrix.INSTALL_ONEAPI }} ]
+          then
+            source /opt/intel/oneapi/setvars.sh
+            export LC_ALL=en_US.utf8
+          fi
+          $CXX --version
+          ctest -VV -S test.cmake
+
+  build-windows:
+    runs-on: ${{ matrix.os }}
+    env:
+      subset: ${{ matrix.subset }}
+    name: build-${{ matrix.os }}-${{ matrix.subset }}
+    strategy:
+      fail-fast: false
+      matrix:
+        subset: [sse, avx]
+        os: [windows-2016] # , windows-2019
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - uses: egor-tensin/vs-shell@v2
+    - name: ctest
+      run: |
+        ctest -VV -S test.cmake
