@@ -25,6 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
+#include "Vc/vector.h"
 #include "unittest.h"
 #include <limits>
 #include <algorithm>
@@ -391,6 +392,28 @@ TEST(fullConversion)/*{{{*/
     }
 }/*}}}*/
 #endif // Vc_DEFAULT_TYPES
+
+TEST(referenceConstruction)
+{
+    float_v a = float_v::Random();
+
+    Vc::float_v r(a[2]);
+
+    for (size_t i = 0; i < float_v::Size; ++i) {
+        COMPARE(r[i], static_cast<float>(a[2])) << "i = " << i;
+    }
+}
+
+TEST(referenceConstructionSimdArray)
+{
+    float_v a = float_v::Random();
+
+    Vc::SimdArray<float, Vc::float_v::size()> r2(a[2]);
+
+    for (size_t i = 0; i < float_v::Size; ++i) {
+        COMPARE(r2[i], static_cast<float>(a[2])) << "i = " << i;
+    }
+}
 
 #if 0
 /*{{{*/
