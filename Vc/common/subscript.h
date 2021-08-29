@@ -233,7 +233,7 @@ struct IndexVectorSizeMatches<MinSize,
 
 template <std::size_t MinSize, typename T, std::ptrdiff_t N>
 struct IndexVectorSizeMatches<MinSize, Vc::Common::span<T, N>, false>
-    : public std::integral_constant<bool, (N == -1 || MinSize <= N)> {
+    : public std::integral_constant<bool, (N == -1 || static_cast<std::ptrdiff_t>(MinSize) <= N)> {
 };
 // SubscriptOperation {{{1
 template <
