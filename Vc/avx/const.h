@@ -119,8 +119,7 @@ namespace AVX
     {
 #ifdef Vc_IMPL_AVX2
 #if defined Vc_ICC || defined Vc_MSVC
-        __m256i allone;
-        allone = _mm256_cmpeq_epi8(allone, allone);
+        __m256i allone = _mm256_set1_epi64x(~0);
 #else
         auto allone = ~__m256i();
 #endif
@@ -134,8 +133,7 @@ namespace AVX
     {
 #ifdef Vc_IMPL_AVX2
 #if defined Vc_ICC || defined Vc_MSVC
-        __m256i allone;
-        allone = _mm256_cmpeq_epi8(allone, allone);
+        __m256i allone = _mm256_set1_epi64x(~0);
 #else
         auto allone = ~__m256i();
 #endif
