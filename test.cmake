@@ -107,10 +107,13 @@ endif()
 # determine the (short) hostname of the build machine
 ################################################################################
 set(travis_os $ENV{TRAVIS_OS_NAME})
+set(github_ci $ENV{GITHUB_ACTIONS})
 if(travis_os)
    set(CTEST_SITE "Travis CI")
 elseif(appveyor)
    set(CTEST_SITE "AppVeyor CI")
+elseif(github_ci)
+   set(CTEST_SITE "GitHub Actions")
 else()
    execute_process(COMMAND hostname -s RESULT_VARIABLE ok OUTPUT_VARIABLE CTEST_SITE ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
    if(NOT ok EQUAL 0)
@@ -434,7 +437,7 @@ macro(go)
       unset(CTEST_NOTES_FILES) # less clutter in ctest -V output
       if(res EQUAL 0)
          set(test_results 0)
-         if(travis_os)
+         if(travis_os OR github_ci)
             set(CTEST_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM} ${MAKE_ARGS}")
             ctest_build(
                BUILD "${CTEST_BINARY_DIRECTORY}"
