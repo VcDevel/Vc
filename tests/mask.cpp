@@ -478,6 +478,17 @@ TEST_TYPES(V, testCompareOperators, AllVectors) /*{{{*/
         VERIFY(!(k2 != k2)) << k << k2;
     }
 }
+
+TEST_TYPES(V, testMaskDefined, AllVectors)
+{
+    V a(1);
+    V b(2);
+    auto r = a < b;
+    auto s = a > b;
+    VERIFY(r[0] == true);
+    VERIFY(s[0] == false);
+}
+
 /*}}}*/
 
 // vim: foldmethod=marker
