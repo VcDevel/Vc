@@ -222,7 +222,7 @@ private:
     friend reference;
     static Vc_INTRINSIC Vc_PURE value_type get(const Mask &m, int i) noexcept
     {
-        return MaskBool(m.d.m(i));
+        return m.toInt() & (1 << i);
     }
     template <typename U>
     static Vc_INTRINSIC void set(Mask &m, int i,
