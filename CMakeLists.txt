@@ -66,6 +66,14 @@ elseif(MSVC_VERSION LESS 1900)
    message(FATAL_ERROR "Vc 1.x requires at least Visual Studio 2015.")
 endif()
 
+if(MSVC AND (NOT DEFINED Vc_USE_MSVC_SSA_OPTIMIZER_DESPITE_BUGGY_EXP OR NOT Vc_USE_MSVC_SSA_OPTIMIZER_DESPITE_BUGGY_EXP) AND
+   CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.20)
+   # bug report: https://developercommunity.visualstudio.com/t/AVX-codegen-bug-on-Vc-with-MSVC-2019/1470844#T-N1521672
+   message(STATUS "WARNING! MSVC starting with 19.20 uses a new optimizer that has a bug causing Vc::exp() to return slighly wrong results.\
+ You can set Vc_USE_MSVC_SSA_OPTIMIZER_DESPITE_BUGGY_EXP=ON to still use the new optimizer on the affected MSVC versions.")
+   AddCompilerFlag("/d2SSAOptimizer-" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
+endif()
+
 if(Vc_COMPILER_IS_GCC)
    if(Vc_GCC_VERSION VERSION_GREATER "5.0.0" AND Vc_GCC_VERSION VERSION_LESS "6.0.0")
       UserWarning("GCC 5 goes into an endless loop comiling example_scaling_scalar. Therefore, this target is disabled.")
