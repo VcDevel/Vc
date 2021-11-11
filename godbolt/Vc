@@ -116,7 +116,17 @@ namespace Vc = Vc_VERSIONED_NAMESPACE;
 #define Vc_GNU_ASM 1
 #endif
 #ifdef Vc_GCC
+# if Vc_GCC >= 0x70000 && defined __i386__
+# ifdef __GLIBC_PREREQ
+# if __GLIBC_PREREQ(2,26)
+#define Vc_HAVE_STD_MAX_ALIGN_T 1
+# endif
+# endif
+# elif Vc_GCC >= 0x40900
+#define Vc_HAVE_STD_MAX_ALIGN_T 1
+# else
 #define Vc_HAVE_MAX_ALIGN_T 1
+# endif
 #elif !defined(Vc_CLANG) && !defined(Vc_ICC)
 #define Vc_HAVE_STD_MAX_ALIGN_T 1
 #endif
@@ -466,8 +476,8 @@ SSE2Impl
 }
 #ifndef VC_VERSION_H_
 #define VC_VERSION_H_ 
-#define Vc_VERSION_STRING "1.4.1-dev"
-#define Vc_VERSION_NUMBER 0x010403
+#define Vc_VERSION_STRING "1.4.2-dev"
+#define Vc_VERSION_NUMBER 0x010405
 #define Vc_VERSION_CHECK(major,minor,patch) ((major << 16) | (minor << 8) | (patch << 1))
 #define Vc_LIBRARY_ABI_VERSION 5
 #define Vc_IS_VERSION_2 (Vc_VERSION_NUMBER >= Vc_VERSION_CHECK(1, 70, 0))
@@ -2142,6 +2152,7 @@ inline Vector(EntryType a);
 template <typename U>
 inline Vector(U a, enable_if<std::is_same<U, int>::value &&
 !std::is_same<U, EntryType>::value> = nullarg);
+inline explicit Vector(reference a);
 explicit Vc_INTRINSIC Vector(const EntryType *mem)
 {
 load(mem);
@@ -2840,6 +2851,7 @@ Vc_ALWAYS_INLINE const VectorType &data() const { return m_data; }
 static constexpr size_t Size = 1;
 static constexpr size_t MemoryAlignment = alignof(VectorType);
 using IndexType = fixed_size_simd<int, 1>;
+using index_type = IndexType;
 public:
 Vc_INTRINSIC Vector() = default;
 static constexpr std::size_t size() { return Size; }
@@ -2878,6 +2890,7 @@ void *>::type = nullptr)
 {
 }
 #endif
+Vc_INTRINSIC explicit Vector(reference a) : Vector(static_cast<EntryType>(a)) {}
 Vc_INTRINSIC Vector(EntryType a) : m_data(a) {}
 template <typename U>
 Vc_INTRINSIC Vector(U a,
@@ -3161,13 +3174,6 @@ Vc_DEPRECATED("Use simd_cast instead of Vector::staticCast") Vc_ALWAYS_INLINE V2
 staticCast() const
 {
 return V2(static_cast<typename V2::EntryType>(m_data));
-}
-template <typename V2>
-Vc_DEPRECATED("use reinterpret_components_cast instead") Vc_ALWAYS_INLINE V2
-reinterpretCast() const
-{
-typedef typename V2::EntryType AliasT2 Vc_MAY_ALIAS;
-return V2(*reinterpret_cast<const AliasT2 *>(&m_data));
 }
 Vc_ALWAYS_INLINE Common::WriteMaskedVector<Vector, Mask> operator()(Mask m)
 {
@@ -6941,7 +6947,7 @@ a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), schar());
 return std::max((_mm_cvtsi128_si32(a) >> 8) & 0xff, _mm_cvtsi128_si32(a) & 0xff);
 }
 template <Vc::Implementation, typename T>
-Vc_CONST_L SSE::Vector<T> sorted(SSE::Vector<T> x) Vc_CONST_R;
+Vc_CONST_L SSE::Vector<T> Vc_VDECL sorted(SSE::Vector<T> x) Vc_CONST_R;
 template <typename T> Vc_INTRINSIC Vc_CONST SSE::Vector<T> sorted(SSE::Vector<T> x)
 {
 static_assert(!CurrentImplementation::is(ScalarImpl),
@@ -7756,7 +7762,7 @@ private:
 friend reference;
 static Vc_INTRINSIC Vc_PURE value_type get(const Mask &m, int i) noexcept
 {
-return MaskBool(m.d.m(i));
+return m.toInt() & (1 << i);
 }
 template <typename U>
 static Vc_INTRINSIC void set(Mask &m, int i,
@@ -8071,6 +8077,7 @@ typedef typename SSE::VectorTraits<T>::EntryType EntryType;
 using value_type = EntryType;
 using VectorEntryType = EntryType;
 using IndexType = fixed_size_simd<int, Size>;
+using index_type = IndexType;
 typedef typename SSE::VectorTraits<T>::MaskType Mask;
 using MaskType = Mask;
 using mask_type = Mask;
@@ -8129,6 +8136,7 @@ void *>::type = nullptr)
 : Vector(static_cast<EntryType>(a))
 {
 }
+Vc_INTRINSIC explicit Vector(reference a) : Vector(static_cast<EntryType>(a)) {}
 explicit Vc_INTRINSIC Vector(const EntryType *mem)
 {
 load(mem);
@@ -8773,9 +8781,8 @@ static Vc_INTRINSIC Vc_CONST ::Vc::SSE::int_v denorm_min() Vc_NOEXCEPT { return 
 #ifndef VC_COMMON_BITSCANINTRINSICS_H_
 #define VC_COMMON_BITSCANINTRINSICS_H_ 
 #if defined(Vc_GCC) || defined(Vc_CLANG) || defined(Vc_APPLECLANG)
-# if Vc_GCC >= 0x40500
-# include <x86intrin.h>
-# else
+#include <x86intrin.h>
+# ifndef _bit_scan_forward
 #define _bit_scan_forward(x) __builtin_ctz(x)
 static Vc_ALWAYS_INLINE Vc_CONST int _Vc_bit_scan_reverse_asm(unsigned int x) {
 int r;
@@ -12175,7 +12182,7 @@ Vc_INTRINSIC __m256i avx_broadcast( schar x) { return _mm256_set1_epi8(x); }
 Vc_INTRINSIC __m256i avx_broadcast( uchar x) { return _mm256_set1_epi8(x); }
 template <Vc::Implementation Impl, typename T,
 typename = enable_if<(Impl >= AVXImpl && Impl <= AVX2Impl)>>
-Vc_CONST_L AVX2::Vector<T> sorted(AVX2::Vector<T> x) Vc_CONST_R;
+Vc_CONST_L AVX2::Vector<T> Vc_VDECL sorted(AVX2::Vector<T> x) Vc_CONST_R;
 template <typename T> Vc_INTRINSIC Vc_CONST AVX2::Vector<T> sorted(AVX2::Vector<T> x)
 {
 return sorted<CurrentImplementation::current()>(x);
@@ -13774,6 +13781,7 @@ typedef EntryType VectorEntryType;
 static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
 static constexpr size_t MemoryAlignment = alignof(VectorType);
 using IndexType = fixed_size_simd<int, Size>;
+using index_type = IndexType;
 typedef Vector<T, abi> AsArg;
 typedef VectorType VectorTypeArg;
 protected:
@@ -13832,6 +13840,7 @@ Vc_DEPRECATED("use simd_cast instead of explicit type casting to convert between
 "vector types") Vc_INTRINSIC_L
 explicit Vector(U &&x) Vc_INTRINSIC_R;
 #endif
+Vc_INTRINSIC explicit Vector(reference a) : Vector(static_cast<EntryType>(a)) {}
 Vc_INTRINSIC Vector(EntryType a) : d(Detail::avx_broadcast(a)) {}
 template <typename U>
 Vc_INTRINSIC Vector(U a,
@@ -14479,8 +14488,7 @@ template <> Vc_ALWAYS_INLINE Vc_CONST Vector<float> Const<float>::highMask(int b
 {
 #ifdef Vc_IMPL_AVX2
 #if defined Vc_ICC || defined Vc_MSVC
-__m256i allone;
-allone = _mm256_cmpeq_epi8(allone, allone);
+__m256i allone = _mm256_set1_epi64x(~0);
 #else
 auto allone = ~__m256i();
 #endif
@@ -14494,8 +14502,7 @@ template <> Vc_ALWAYS_INLINE Vc_CONST Vector<double> Const<double>::highMask(int
 {
 #ifdef Vc_IMPL_AVX2
 #if defined Vc_ICC || defined Vc_MSVC
-__m256i allone;
-allone = _mm256_cmpeq_epi8(allone, allone);
+__m256i allone = _mm256_set1_epi64x(~0);
 #else
 auto allone = ~__m256i();
 #endif
@@ -17672,6 +17679,7 @@ static_assert(ushort_v::Size == Vc_USHORT_V_SIZE, "Vc_USHORT_V_SIZE macro define
 #ifndef VC_COMMON_SIMDARRAY_H_
 #define VC_COMMON_SIMDARRAY_H_ 
 #include <array>
+#include <limits>
 #ifndef VC_COMMON_SIMDARRAYHELPER_H_
 #define VC_COMMON_SIMDARRAYHELPER_H_ 
 namespace Vc_VERSIONED_NAMESPACE
@@ -18924,7 +18932,7 @@ return fromOperation(Common::Operations::random());
 template <class U, class Flags = DefaultLoadTag,
 class = enable_if<std::is_arithmetic<U>::value &&
 Traits::is_load_store_flag<Flags>::value>>
-explicit Vc_INTRINSIC SimdArray(const U *mem, Flags f = Flags()) : data(mem, f)
+explicit Vc_INTRINSIC SimdArray(const U *mem, Flags f = {}) : data(mem, f)
 {
 }
 template <typename... Args> Vc_INTRINSIC void load(Args &&... args)
@@ -19250,7 +19258,7 @@ SimdArray &operator=(const SimdArray &) = default;
 template <typename U, typename Flags = DefaultLoadTag,
 typename = enable_if<std::is_arithmetic<U>::value &&
 Traits::is_load_store_flag<Flags>::value>>
-explicit Vc_INTRINSIC SimdArray(const U *mem, Flags f = Flags())
+explicit Vc_INTRINSIC SimdArray(const U *mem, Flags f = {})
 : data0(mem, f), data1(mem + storage_type0::size(), f)
 {
 }
@@ -19258,14 +19266,14 @@ explicit Vc_INTRINSIC SimdArray(const U *mem, Flags f = Flags())
 template <typename U, std::size_t Extent, typename Flags = DefaultLoadTag,
 typename = enable_if<std::is_arithmetic<U>::value &&
 Traits::is_load_store_flag<Flags>::value>>
-explicit Vc_INTRINSIC SimdArray(CArray<U, Extent> &mem, Flags f = Flags())
+explicit Vc_INTRINSIC SimdArray(CArray<U, Extent> &mem, Flags f = {})
 : data0(&mem[0], f), data1(&mem[storage_type0::size()], f)
 {
 }
 template <typename U, std::size_t Extent, typename Flags = DefaultLoadTag,
 typename = enable_if<std::is_arithmetic<U>::value &&
 Traits::is_load_store_flag<Flags>::value>>
-explicit Vc_INTRINSIC SimdArray(const CArray<U, Extent> &mem, Flags f = Flags())
+explicit Vc_INTRINSIC SimdArray(const CArray<U, Extent> &mem, Flags f = {})
 : data0(&mem[0], f), data1(&mem[storage_type0::size()], f)
 {
 }
@@ -21286,11 +21294,14 @@ const typename Vector<T, VectorAbi::Scalar>::EntryType one = 1; return Scalar::V
 }
 template <typename T,
 typename = enable_if<std::is_same<T, double>::value || std::is_same<T, float>::value ||
-std::is_same<T, short>::value ||
 std::is_same<T, int>::value>>
 Vc_ALWAYS_INLINE Vc_PURE Scalar::Vector<T> abs(Scalar::Vector<T> x)
 {
 return std::abs(x.data());
+}
+Vc_ALWAYS_INLINE Vc_PURE Scalar::Vector<short> abs(Scalar::Vector<short> x)
+{
+return std::abs(static_cast<int>(x.data()));
 }
 template<typename T> static Vc_ALWAYS_INLINE void sincos(const Scalar::Vector<T> &x, Scalar::Vector<T> *sin, Scalar::Vector<T> *cos)
 {
@@ -22451,12 +22462,12 @@ namespace Common
 {
 template<typename Impl> struct Trigonometric
 {
-template<typename T> static T sin(const T &_x);
-template<typename T> static T cos(const T &_x);
-template<typename T> static void sincos(const T &_x, T *_sin, T *_cos);
-template<typename T> static T asin (const T &_x);
-template<typename T> static T atan (const T &_x);
-template<typename T> static T atan2(const T &y, const T &x);
+template<typename T> static T Vc_VDECL sin(const T &_x);
+template<typename T> static T Vc_VDECL cos(const T &_x);
+template<typename T> static void Vc_VDECL sincos(const T &_x, T *_sin, T *_cos);
+template<typename T> static T Vc_VDECL asin (const T &_x);
+template<typename T> static T Vc_VDECL atan (const T &_x);
+template<typename T> static T Vc_VDECL atan2(const T &y, const T &x);
 };
 }
 #if defined Vc_IMPL_SSE || defined DOXYGEN
@@ -22755,8 +22766,8 @@ return Detail::LogImpl<Base2>::calc<T, Abi>(x);
 #endif
 #ifdef Vc_COMMON_MATH_H_INTERNAL
 constexpr float log2_e = 1.44269504088896341f;
-constexpr float MAXLOGF = 88.72283905206835f;
-constexpr float MINLOGF = -103.278929903431851103f;
+constexpr float MAXLOGF = 88.722831726074219f;
+constexpr float MINLOGF = -88.029685974121094f;
 constexpr float MAXNUMF = 3.4028234663852885981170418348451692544e38f;
 template <typename Abi, typename = enable_if<std::is_same<Abi, VectorAbi::Sse>::value ||
 std::is_same<Abi, VectorAbi::Avx>::value>>

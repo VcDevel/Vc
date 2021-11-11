@@ -740,7 +740,7 @@ false> : public std::integral_constant<bool, (MinSize <= ArraySize)>
 };
 template <std::size_t MinSize, typename T, std::ptrdiff_t N>
 struct IndexVectorSizeMatches<MinSize, Vc::Common::span<T, N>, false>
-: public std::integral_constant<bool, (N == -1 || MinSize <= N)> {
+: public std::integral_constant<bool, (N == -1 || static_cast<std::ptrdiff_t>(MinSize) <= N)> {
 };
 template <
 typename T, typename IndexVector, typename Scale = std::ratio<1, 1>,
@@ -1547,6 +1547,7 @@ size_ = _other.size_;
 _other.size_ = _sz;
 }
 #ifdef __cpp_lib_byte
+#if _MSC_VER > 1928
 span<const std::byte, dynamic_extent> _as_bytes() const noexcept
 {
 return {reinterpret_cast<const std::byte*>(data()), size_bytes()};
@@ -1555,6 +1556,7 @@ span<std::byte, dynamic_extent> _as_writeable_bytes() const noexcept
 {
 return {reinterpret_cast<std::byte*>(data()), size_bytes()};
 }
+#endif
 #endif
 private:
 pointer data_;
