@@ -1586,16 +1586,16 @@ namespace Detail
 #define Vc_FIXED_OP(op)                                                                  \
     template <class T, int N,                                                            \
               class = typename std::enable_if<fixed_size_simd<T, N>::is_atomic>::type>   \
-    fixed_size_simd<T, N> operator op(const fixed_size_simd<T, N> &a,                    \
-                                      const fixed_size_simd<T, N> &b)                    \
+    Vc_INTRINSIC fixed_size_simd<T, N> operator op(const fixed_size_simd<T, N> &a,       \
+                                                   const fixed_size_simd<T, N> &b)       \
     {                                                                                    \
         return {private_init, internal_data(a) op internal_data(b)};                     \
     }                                                                                    \
     template <class T, int N,                                                            \
               class = typename std::enable_if<!fixed_size_simd<T, N>::is_atomic>::type,  \
               class = T>                                                                 \
-    fixed_size_simd<T, N> operator op(const fixed_size_simd<T, N> &a,                    \
-                                      const fixed_size_simd<T, N> &b)                    \
+    Vc_INTRINSIC fixed_size_simd<T, N> operator op(const fixed_size_simd<T, N> &a,       \
+                                                   const fixed_size_simd<T, N> &b)       \
     {                                                                                    \
         return {internal_data0(a) op internal_data0(b),                                  \
                 internal_data1(a) op internal_data1(b)};                                 \
@@ -1607,16 +1607,16 @@ Vc_ALL_SHIFTS(Vc_FIXED_OP);
 #define Vc_FIXED_OP(op)                                                                  \
     template <class T, int N,                                                            \
               class = typename std::enable_if<fixed_size_simd<T, N>::is_atomic>::type>   \
-    fixed_size_simd_mask<T, N> operator op(const fixed_size_simd<T, N> &a,               \
-                                           const fixed_size_simd<T, N> &b)               \
+    Vc_INTRINSIC fixed_size_simd_mask<T, N> operator op(const fixed_size_simd<T, N> &a,  \
+                                                        const fixed_size_simd<T, N> &b)  \
     {                                                                                    \
         return {private_init, internal_data(a) op internal_data(b)};                     \
     }                                                                                    \
     template <class T, int N,                                                            \
               class = typename std::enable_if<!fixed_size_simd<T, N>::is_atomic>::type,  \
               class = T>                                                                 \
-    fixed_size_simd_mask<T, N> operator op(const fixed_size_simd<T, N> &a,               \
-                                           const fixed_size_simd<T, N> &b)               \
+    Vc_INTRINSIC fixed_size_simd_mask<T, N> operator op(const fixed_size_simd<T, N> &a,  \
+                                                        const fixed_size_simd<T, N> &b)  \
     {                                                                                    \
         return {internal_data0(a) op internal_data0(b),                                  \
                 internal_data1(a) op internal_data1(b)};                                 \
