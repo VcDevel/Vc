@@ -302,12 +302,6 @@ static Vc_INTRINSIC void unreachable() { __assume(0); }
 
 #define Vc_make_unique(name) Vc_CAT(Vc_,name,_,__LINE__)
 
-#if defined(Vc_ICC) || defined(Vc_CLANG) || defined Vc_APPLECLANG
-#define Vc_OFFSETOF(Type, member) (reinterpret_cast<const char *>(&reinterpret_cast<const Type *>(0)->member) - reinterpret_cast<const char *>(0))
-#else
-#define Vc_OFFSETOF(Type, member) offsetof(Type, member)
-#endif
-
 #if defined(Vc_NO_NOEXCEPT)
 #define Vc_NOEXCEPT throw()
 #else

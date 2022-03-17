@@ -296,7 +296,7 @@ class Memory<V, Size, 0u, InitPadding> :
                 // accordingly
                 char *addr = reinterpret_cast<char *>(ptr);
                 typedef Memory<V, Size, 0u, false> MM;
-                addr -= Vc_OFFSETOF(MM, m_mem);
+                addr -= offsetof(MM, m_mem);
                 return *new(addr) MM;
             }
 
