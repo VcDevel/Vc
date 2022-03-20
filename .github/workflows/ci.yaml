@@ -36,6 +36,9 @@ jobs:
           - name: build-ubuntu-clang11
             CXX: clang++-11
             INSTALL_EXTRA: clang-11
+          - name: build-ubuntu-clang12
+            CXX: clang++-12
+            INSTALL_EXTRA: clang-12
           - name: build-ubuntu-icpc
             CXX: icpc
             INSTALL_ONEAPI: true
