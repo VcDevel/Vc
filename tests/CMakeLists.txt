@@ -73,9 +73,8 @@ vc_set_first_flag_of(_sse4_1_flag "-xSSE4.1" "-msse4.1" "/arch:SSE2")
 vc_set_first_flag_of(_avx_flag "-xAVX" "-mavx" "/arch:AVX")
 vc_set_first_flag_of(_avx2_flag "-xCORE-AVX2" "-mavx2" "/arch:AVX2")
 macro(vc_add_run_target _target)
-   if("${CMAKE_GENERATOR}" MATCHES "Visual Studio")
-      # do nothing. This just clutters the solution explorer
-   else()
+   # avoid cluttering the solution explorer
+   if(NOT "${CMAKE_GENERATOR}" MATCHES "Visual Studio")
       add_custom_target(run_${_target}
          ${_target} -v
          DEPENDS ${_target}

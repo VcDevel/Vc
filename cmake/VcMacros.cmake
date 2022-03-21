@@ -34,10 +34,9 @@
 
 cmake_minimum_required(VERSION 2.8.3...3.13)
 
-get_filename_component(_currentDir "${CMAKE_CURRENT_LIST_FILE}" PATH)
-include ("${_currentDir}/UserWarning.cmake")
-include ("${_currentDir}/AddCompilerFlag.cmake")
-include ("${_currentDir}/OptimizeForArchitecture.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/UserWarning.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/AddCompilerFlag.cmake")
+include ("${CMAKE_CURRENT_LIST_DIR}/OptimizeForArchitecture.cmake")
 
 macro(vc_determine_compiler)
    if(NOT DEFINED Vc_COMPILER_IS_INTEL)
@@ -47,74 +46,30 @@ macro(vc_determine_compiler)
       set(Vc_COMPILER_IS_CLANG false)
       set(Vc_COMPILER_IS_MSVC false)
       set(Vc_COMPILER_IS_GCC false)
-      if(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$")
+      if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
          set(Vc_COMPILER_IS_INTEL true)
-         exec_program(${CMAKE_CXX_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE Vc_ICC_VERSION)
-         message(STATUS "Detected Compiler: Intel ${Vc_ICC_VERSION}")
-
-         # break build with too old clang as early as possible.
-         if(Vc_ICC_VERSION VERSION_LESS 18.0.0)
+         if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0.0)
             message(FATAL_ERROR "Vc 1.4 requires least ICC 18")
          endif()
       elseif(CMAKE_CXX_COMPILER MATCHES "(opencc|openCC)$")
          set(Vc_COMPILER_IS_OPEN64 true)
-         message(STATUS "Detected Compiler: Open64")
-      elseif(CMAKE_CXX_COMPILER MATCHES "clang\\+\\+$" OR "${_cxx_compiler_version}" MATCHES "clang")
+      elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
          set(Vc_COMPILER_IS_CLANG true)
-         exec_program(${CMAKE_CXX_COMPILER} ARGS --version OUTPUT_VARIABLE Vc_CLANG_VERSION)
-         string(REGEX MATCH "[0-9]+\\.[0-9]+(\\.[0-9]+)?" Vc_CLANG_VERSION "${Vc_CLANG_VERSION}")
-         message(STATUS "Detected Compiler: Clang ${Vc_CLANG_VERSION}")
-
-         # break build with too old clang as early as possible.
-         if(Vc_CLANG_VERSION VERSION_LESS 3.4)
-            message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least clang 3.4")
+         if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.7.0)
+            message(FATAL_ERROR "Clang 3.6 has serious issues with AVX code generation\nPlease update to a more recent clang version.\n")
          endif()
       elseif(MSVC)
          set(Vc_COMPILER_IS_MSVC true)
-         message(STATUS "Detected Compiler: MSVC ${MSVC_VERSION}")
+         if(MSVC_VERSION LESS 1900)
+            message(FATAL_ERROR "Vc 1.x requires at least Visual Studio 2015.")
+         endif()
       elseif(CMAKE_COMPILER_IS_GNUCXX)
          set(Vc_COMPILER_IS_GCC true)
-         exec_program(${CMAKE_CXX_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE Vc_GCC_VERSION)
-         message(STATUS "Detected Compiler: GCC ${Vc_GCC_VERSION}")
-
-         # some distributions patch their GCC to return nothing or only major and minor version on -dumpversion.
-         # In that case we must extract the version number from --version.
-         if(NOT Vc_GCC_VERSION OR Vc_GCC_VERSION MATCHES "^[0-9]\\.[0-9]+$")
-            exec_program(${CMAKE_CXX_COMPILER} ARGS --version OUTPUT_VARIABLE Vc_GCC_VERSION)
-            string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" Vc_GCC_VERSION "${Vc_GCC_VERSION}")
-            message(STATUS "GCC Version from --version: ${Vc_GCC_VERSION}")
-         endif()
-
-         # some distributions patch their GCC to be API incompatible to what the FSF released. In
-         # those cases we require a macro to identify the distribution version
-         find_program(Vc_lsb_release lsb_release)
-         mark_as_advanced(Vc_lsb_release)
-         if(Vc_lsb_release)
-            if(NOT Vc_distributor_id)
-              execute_process(COMMAND ${Vc_lsb_release} -is OUTPUT_VARIABLE Vc_distributor_id OUTPUT_STRIP_TRAILING_WHITESPACE)
-              string(TOUPPER "${Vc_distributor_id}" Vc_distributor_id)
-              set(Vc_distributor_id "${Vc_distributor_id}" CACHE STRING "lsb distribution id")
-              execute_process(COMMAND ${Vc_lsb_release} -rs OUTPUT_VARIABLE Vc_distributor_release OUTPUT_STRIP_TRAILING_WHITESPACE)
-              set(Vc_distributor_release "${Vc_distributor_release}" CACHE STRING "lsb release id")
-            endif()
-            if(Vc_distributor_id STREQUAL "UBUNTU")
-               execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE _gcc_version)
-               string(REGEX MATCH "\\(.* ${Vc_GCC_VERSION}-([0-9]+).*\\)" _tmp "${_gcc_version}")
-               if(_tmp)
-                  set(_patch ${CMAKE_MATCH_1})
-                  string(REGEX MATCH "^([0-9]+)\\.([0-9]+)$" _tmp "${Vc_distributor_release}")
-                  execute_process(COMMAND printf 0x%x%02x%02x ${CMAKE_MATCH_1} ${CMAKE_MATCH_2} ${_patch} OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE _tmp)
-                  set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -D__GNUC_UBUNTU_VERSION__=${_tmp}")
-               endif()
-            endif()
-         endif()
-
-         # break build with too old GCC as early as possible.
-         if(Vc_GCC_VERSION VERSION_LESS 4.8.1)
+         if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.8.1)
             message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least GCC 4.8.1")
          endif()
       else()
-         message(WARNING "Untested/-supported Compiler (${CMAKE_CXX_COMPILER}) for use with Vc.\nPlease fill out the missing parts in the CMake scripts and submit a patch to http://code.compeng.uni-frankfurt.de/projects/vc")
+         message(WARNING "Untested/-supported Compiler (${CMAKE_CXX_COMPILER}) for use with Vc.\nPlease fill out the missing parts in the CMake scripts and submit a patch to https://github.com/VcDevel/Vc")
       endif()
    endif()
 endmacro()
@@ -207,7 +162,7 @@ int main() { return 0; }
             set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DVc_HAVE_LIBMVEC=1")
          endif()
       endif()
-   endif(Vc_LIB_MVEC)
+   endif()
 
    set(_add_warning_flags false)
    set(_add_buildtype_flags false)
@@ -337,19 +292,10 @@ int main() { return 0; }
       vc_add_compiler_flag(Vc_COMPILE_FLAGS "/Gv") # default to __vectorcall
       vc_add_compiler_flag(Vc_COMPILE_FLAGS "/bigobj") # required for building tests with AVX
 
-      if(MSVC_VERSION LESS 1900)
-         UserWarning("MSVC before 2015 does not support enough of C++11")
-      endif()
    elseif(Vc_COMPILER_IS_CLANG)
       ##################################################################################################
       #                                              Clang                                             #
       ##################################################################################################
-
-      if(Vc_CLANG_VERSION VERSION_GREATER "3.5.99" AND Vc_CLANG_VERSION VERSION_LESS 3.7.0)
-         UserWarning("Clang 3.6 has serious issues with AVX code generation, frequently losing 50% of the data. AVX is therefore disabled.\nPlease update to a more recent clang version.\n")
-         set(Vc_AVX_INTRINSICS_BROKEN true)
-         set(Vc_AVX2_INTRINSICS_BROKEN true)
-      endif()
 
       # disable these warnings because clang shows them for function overloads that were discarded via SFINAE
       vc_add_compiler_flag(Vc_COMPILE_FLAGS "-Wno-local-type-template-args")
