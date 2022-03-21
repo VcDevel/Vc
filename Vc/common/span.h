@@ -520,7 +520,7 @@ public:
 #ifdef __cpp_lib_byte
 // Disable _as_bytes() for older MSVC versions as it leads to a compilation error due to a compiler bug.
 // When parsing the return type, MSVC will instantiate the primary template of span<> and static_assert().
-#if _MSC_VER > 1928
+#if defined(_MSC_VER) && _MSC_VER > 1928
     span<const std::byte, dynamic_extent> _as_bytes() const noexcept
     {
         return {reinterpret_cast<const std::byte*>(data()), size_bytes()};
