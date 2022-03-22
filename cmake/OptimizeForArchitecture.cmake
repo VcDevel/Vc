@@ -130,16 +130,18 @@ macro(AutodetectHostArchitecture)
          # 4E | Skylake Client
          # 3C | Broadwell (likely a bug in the SDE)
          # 3C | Haswell
-         if(_cpu_model EQUAL 87) # 57
+         if(_cpu_model EQUAL 142 OR _cpu_model EQUAL 158) # 8E, 9E
+            set(TARGET_ARCHITECTURE "kaby-lake")
+         elseif(_cpu_model EQUAL 106)
+            set(TARGET_ARCHITECTURE "icelake")
+         elseif(_cpu_model EQUAL 102)
+            set(TARGET_ARCHITECTURE "cannonlake")
+         elseif(_cpu_model EQUAL 87) # 57
             set(TARGET_ARCHITECTURE "knl")  # Knights Landing
          elseif(_cpu_model EQUAL 92)
             set(TARGET_ARCHITECTURE "goldmont")
          elseif(_cpu_model EQUAL 90 OR _cpu_model EQUAL 76)
             set(TARGET_ARCHITECTURE "silvermont")
-         elseif(_cpu_model EQUAL 102)
-            set(TARGET_ARCHITECTURE "cannonlake")
-         elseif(_cpu_model EQUAL 142 OR _cpu_model EQUAL 158) # 8E, 9E
-            set(TARGET_ARCHITECTURE "kaby-lake")
          elseif(_cpu_model EQUAL 85) # 55
             set(TARGET_ARCHITECTURE "skylake-avx512")
          elseif(_cpu_model EQUAL 78 OR _cpu_model EQUAL 94) # 4E, 5E
@@ -225,7 +227,7 @@ Using an incorrect setting here can result in crashes of the resulting binary be
 Setting the value to \"auto\" will try to optimize for the architecture where cmake is called. \
 Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Core2), \
 \"penryn\" (45nm Core2), \"nehalem\", \"westmere\", \"sandy-bridge\", \"ivy-bridge\", \
-\"haswell\", \"broadwell\", \"skylake\", \"skylake-xeon\", \"kaby-lake\", \"cannonlake\", \"silvermont\", \
+\"haswell\", \"broadwell\", \"skylake\", \"skylake-xeon\", \"kaby-lake\", \"cannonlake\", \"icelake\", \"silvermont\", \
 \"goldmont\", \"knl\" (Knights Landing), \"atom\", \"k8\", \"k8-sse3\", \"barcelona\", \
 \"istanbul\", \"magny-cours\", \"bulldozer\", \"interlagos\", \"piledriver\", \
 \"AMD 14h\", \"AMD 16h\", \"zen\", \"zen3\".")
@@ -327,6 +329,8 @@ Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Cor
       endif()
    elseif(TARGET_ARCHITECTURE STREQUAL "knl")
       _knightslanding()
+   elseif(TARGET_ARCHITECTURE STREQUAL "icelake")
+      _cannonlake()
    elseif(TARGET_ARCHITECTURE STREQUAL "cannonlake")
       _cannonlake()
    elseif(TARGET_ARCHITECTURE STREQUAL "kaby-lake")
@@ -509,6 +513,7 @@ Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Cor
          endforeach(_flag)
       elseif(CMAKE_CXX_COMPILER MATCHES "/(icpc|icc)$") # ICC (on Linux)
          set(OFA_map_knl "-xMIC-AVX512")
+         set(OFA_map_icelake "-xCORE-AVX512")
          set(OFA_map_cannonlake "-xCORE-AVX512")
          set(OFA_map_skylake-avx512 "-xCORE-AVX512")
          set(OFA_map_skylake "-xCORE-AVX2")
