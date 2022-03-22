@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.13)
 
 cmake_policy(SET CMP0028 NEW) # Double colon in target name means ALIAS or IMPORTED target.
 cmake_policy(SET CMP0048 NEW) # The ``project()`` command manages VERSION variables.
@@ -46,42 +46,15 @@ if(USE_CCACHE)
    endif()
 endif()
 
-# TODO: check that 'decltype' compiles
-# TODO: check that 'constexpr' compiles
-if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++11 on/off AFAIK
-   AddCompilerFlag("-std=c++14" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
-   if(NOT _ok)
-      AddCompilerFlag("-std=c++1y" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
-      if(NOT _ok)
-         AddCompilerFlag("-std=c++11" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
-         if(NOT _ok)
-            AddCompilerFlag("-std=c++0x" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
-            if(NOT _ok)
-               message(FATAL_ERROR "Vc 1.x requires C++11, better even C++14. It seems this is not available. If this was incorrectly determined please notify vc-devel@compeng.uni-frankfurt.de")
-            endif()
-         endif()
-      endif()
-   endif()
-elseif(MSVC_VERSION LESS 1900)
-   message(FATAL_ERROR "Vc 1.x requires at least Visual Studio 2015.")
-endif()
+add_library(Vc STATIC)
+target_compile_features(Vc PUBLIC cxx_std_11)
 
 if(Vc_COMPILER_IS_GCC)
-   if(Vc_GCC_VERSION VERSION_GREATER "5.0.0" AND Vc_GCC_VERSION VERSION_LESS "6.0.0")
+   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "5.0.0" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "6.0.0")
       UserWarning("GCC 5 goes into an endless loop comiling example_scaling_scalar. Therefore, this target is disabled.")
-      list(APPEND disabled_targets
-         example_scaling_scalar
-         )
+      list(APPEND disabled_targets example_scaling_scalar)
    endif()
 elseif(Vc_COMPILER_IS_MSVC)
-   if(MSVC_VERSION LESS 1700)
-      # MSVC before 2012 has a broken std::vector::resize implementation. STL + Vc code will probably not compile.
-      # UserWarning in VcMacros.cmake
-      list(APPEND disabled_targets
-         stlcontainer_sse
-         stlcontainer_avx
-         )
-   endif()
    # Disable warning "C++ exception specification ignored except to indicate a function is not __declspec(nothrow)"
    # MSVC emits the warning for the _UnitTest_Compare desctructor which needs the throw declaration so that it doesn't std::terminate
    AddCompilerFlag("/wd4290")
@@ -89,19 +62,14 @@ endif()
 
 vc_set_preferred_compiler_flags(WARNING_FLAGS BUILDTYPE_FLAGS)
 
-add_definitions(${Vc_DEFINITIONS})
-add_compile_options(${Vc_COMPILE_FLAGS})
+target_compile_definitions(Vc PUBLIC ${Vc_DEFINITIONS})
+target_compile_definitions(Vc PRIVATE Vc_COMPILE_LIB)
+target_compile_options(Vc PUBLIC ${Vc_COMPILE_FLAGS})
 
 if(Vc_COMPILER_IS_INTEL)
    # per default icc is not IEEE compliant, but we need that for verification
    AddCompilerFlag("-fp-model source")
 endif()
-
-if(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
-   message(STATUS "WARNING! It seems you are compiling without optimization. Please set CMAKE_BUILD_TYPE.")
-endif(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}) # ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_custom_target(other VERBATIM)
 add_custom_target(Scalar COMMENT "build Scalar code" VERBATIM)
@@ -111,25 +79,23 @@ add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
 
 AddCompilerFlag(-ftemplate-depth=128 CXX_FLAGS CMAKE_CXX_FLAGS)
 
-set(libvc_compile_flags "-DVc_COMPILE_LIB")
+set(libvc_compile_flags)
 AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags)
 
 # -fstack-protector is the default of GCC, but at least Ubuntu changes the default to -fstack-protector-strong, which is crazy
 AddCompilerFlag("-fstack-protector" CXX_FLAGS libvc_compile_flags)
 
-set(_srcs src/const.cpp)
+target_sources(Vc PRIVATE src/const.cpp)
 if(Vc_X86)
-   list(APPEND _srcs src/cpuid.cpp src/support_x86.cpp)
-   vc_compile_for_all_implementations(_srcs src/trigonometric.cpp ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA AVX2+FMA+BMI2)
-   vc_compile_for_all_implementations(_srcs src/sse_sorthelper.cpp ONLY SSE2 SSE4_1 AVX AVX2+FMA+BMI2)
-   vc_compile_for_all_implementations(_srcs src/avx_sorthelper.cpp ONLY AVX AVX2+FMA+BMI2)
-elseif(Vc_ARM)
-   list(APPEND _srcs src/support_dummy.cpp)
+   target_sources(Vc PRIVATE src/cpuid.cpp src/support_x86.cpp)
+   vc_compile_for_all_implementations(src/trigonometric.cpp ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA AVX2+FMA+BMI2)
+   vc_compile_for_all_implementations(src/sse_sorthelper.cpp ONLY SSE2 SSE4_1 AVX AVX2+FMA+BMI2)
+   vc_compile_for_all_implementations(src/avx_sorthelper.cpp ONLY AVX AVX2+FMA+BMI2)
 else()
-   list(APPEND _srcs src/support_dummy.cpp)
+   target_sources(Vc PRIVATE src/support_dummy.cpp)
 endif()
-add_library(Vc STATIC ${_srcs})
-set_property(TARGET Vc APPEND PROPERTY COMPILE_OPTIONS ${libvc_compile_flags})
+
+target_compile_options(Vc PRIVATE ${libvc_compile_flags})
 add_target_property(Vc LABELS "other")
 if(XCODE)
    # TODO: document what this does and why it has no counterpart in the non-XCODE logic
@@ -245,12 +211,12 @@ configure_file(${PROJECT_SOURCE_DIR}/CTestCustom.cmake ${PROJECT_BINARY_DIR}/CTe
 if(BUILD_TESTING)
    add_custom_target(build_tests ALL VERBATIM)
    add_subdirectory(tests)
-endif(BUILD_TESTING)
+endif()
 
 set(BUILD_EXAMPLES FALSE CACHE BOOL "Build examples.")
 if(BUILD_EXAMPLES)
    add_subdirectory(examples)
-endif(BUILD_EXAMPLES)
+endif()
 
 # Hide Vc_IMPL as it is only meant for users of Vc
 mark_as_advanced(Vc_IMPL)
