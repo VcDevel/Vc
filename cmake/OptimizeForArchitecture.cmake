@@ -521,8 +521,9 @@ Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Cor
          set(OFA_map_penryn "-xSSSE3")
          set(OFA_map_merom "-xSSSE3")
          set(OFA_map_core2 "-xSSE3")
-         set(OFA_map_zen3 "-xAVX2")
-         set(OFA_map_zen "-xAVX2")
+         set(OFA_map_znver3 "-mavx2") # -xAVX2 does not work and causes this runtime check to appear:
+         set(OFA_map_znver2 "-mavx2") # Please verify that both the operating system and the processor support Intel(R) X87, CMOV, MMX, FXSAVE, SSE, SSE2, SSE3, SSSE3, SSE4_1, SSE4_2, MOVBE, POPCNT, AVX, F16C, FMA, BMI, LZCNT and AVX2 instructions.
+         set(OFA_map_znver1 "-mavx2")
          set(_ok FALSE)
          foreach(arch ${_march_flag_list})
             if(DEFINED OFA_map_${arch})
