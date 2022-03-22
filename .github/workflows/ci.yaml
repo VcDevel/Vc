@@ -31,6 +31,9 @@ jobs:
             CXX: g++-9
           - name: build-ubuntu-gcc10
             CXX: g++-10
+          - name: build-ubuntu-gcc11
+            CXX: g++-11
+            INSTALL_EXTRA: g++-11
           - name: build-ubuntu-clang10
             CXX: clang++-10
           - name: build-ubuntu-clang11
