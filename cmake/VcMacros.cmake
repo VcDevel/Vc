@@ -495,7 +495,7 @@ macro(vc_compile_for_all_implementations _srcs _src)
       # which case AVX2 implies the availability of FMA and BMI2
       #_vc_compile_one_implementation(${_srcs} AVX2  "-mavx2")
       #_vc_compile_one_implementation(${_srcs} AVX2+BMI2 "-mavx2 -mbmi2")
-      _vc_compile_one_implementation(${_srcs} AVX2+FMA+BMI2 "-xCORE-AVX2" "-mavx2 -mfma -mbmi2" "/arch:AVX2")
+      _vc_compile_one_implementation(${_srcs} AVX2+FMA+BMI2 "-xAVX2" "-mavx2 -mfma -mbmi2" "/arch:AVX2")
       #_vc_compile_one_implementation(${_srcs} AVX2+FMA "-mavx2 -mfma")
    endif()
    list(LENGTH _only_targets _len)
