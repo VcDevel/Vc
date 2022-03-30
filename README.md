@@ -98,14 +98,16 @@ C++11 Compiler:
 * GCC >= 4.8.1
 * clang >= 3.4
 * ICC >= 18.0.5
-* Visual Studio 2015 (64-bit target)
+* Visual Studio >= 2017 (64-bit target)
 
 
 ## Building and Installing Vc
 
-* After cloning, you need to initialize Vc's git submodules:
+* Clone Vc and initialize Vc's git submodules:
 
 ```sh
+git clone https://github.com/VcDevel/Vc.git
+cd Vc
 git submodule update --init
 ```
 
@@ -116,18 +118,35 @@ $ mkdir build
 $ cd build
 ```
 
-* Call cmake with the relevant options:
+* Configure with cmake and add relevant options:
 
 ```sh
-$ cmake -DCMAKE_INSTALL_PREFIX=/opt/Vc -DBUILD_TESTING=OFF <srcdir>
+$ cmake -DBUILD_TESTING=OFF ..
 ```
+
+Optionally, specify an installation directory:
+
+```sh
+$ cmake -DCMAKE_INSTALL_PREFIX=/opt/Vc -DBUILD_TESTING=OFF ..
+```
+
+On Windows, if you have multiple versions of Visual Studio installed, you can select one:
+
+```sh
+$ cmake -G "Visual Studio 16 2019" -DBUILD_TESTING=OFF ..
+```
+
+See `cmake --help` for a list of possible generators.
+
 
 * Build and install:
 
 ```sh
-$ make -j16
-$ make install
+$ cmake --build . -j 16
+$ cmake --install . # may require permissions
 ```
+
+On Windows, you can also open `Vc.sln` in Visual Studio and build/install from the IDE.
 
 ## Documentation
 
