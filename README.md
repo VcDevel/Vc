@@ -1,3 +1,6 @@
+**Vc is now in maintenance mode and no longer actively developed.
+However, we continue to review pull requests with bugfixes from the community.**
+
 **You may be interested in switching to [std-simd](https://github.com/VcDevel/std-simd).**
 GCC 11 includes an experimental version of `std::simd` as part of libstdc++, which also works with clang.
 Features present in Vc 1.4 and not present in *std-simd* will eventually turn into Vc 2.0,which then depends on *std-simd*.
