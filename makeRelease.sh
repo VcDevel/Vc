@@ -38,8 +38,6 @@ P
 w
 EOF
 
-# Don't build tests with make all
-sed -i -e 's/#Release# //' CMakeLists.txt
 git commit README.md CMakeLists.txt doc/Doxyfile Vc/version.h -s -F- <<EOF
 release: version $versionString
 

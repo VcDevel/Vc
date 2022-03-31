@@ -124,19 +124,25 @@ $ cd build
 * Configure with cmake and add relevant options:
 
 ```sh
-$ cmake -DBUILD_TESTING=OFF ..
+$ cmake ..
 ```
 
 Optionally, specify an installation directory:
 
 ```sh
-$ cmake -DCMAKE_INSTALL_PREFIX=/opt/Vc -DBUILD_TESTING=OFF ..
+$ cmake -DCMAKE_INSTALL_PREFIX=/opt/Vc ..
+```
+
+Optionally, include building the unit tests:
+
+```sh
+$ cmake -DBUILD_TESTING=ON ..
 ```
 
 On Windows, if you have multiple versions of Visual Studio installed, you can select one:
 
 ```sh
-$ cmake -G "Visual Studio 16 2019" -DBUILD_TESTING=OFF ..
+$ cmake -G "Visual Studio 16 2019" ..
 ```
 
 See `cmake --help` for a list of possible generators.
