@@ -46,9 +46,7 @@ if(USE_CCACHE)
    endif()
 endif()
 
-# TODO: check that 'decltype' compiles
-# TODO: check that 'constexpr' compiles
-if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++11 on/off AFAIK
+if(NOT Vc_COMPILER_IS_MSVC)
    AddCompilerFlag("-std=c++14" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
    if(NOT _ok)
       AddCompilerFlag("-std=c++1y" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
@@ -62,12 +60,12 @@ if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++11 on/off
          endif()
       endif()
    endif()
-elseif(MSVC_VERSION LESS 1900)
-   message(FATAL_ERROR "Vc 1.x requires at least Visual Studio 2015.")
+elseif(MSVC_VERSION LESS 1920)
+   message(FATAL_ERROR "Vc 1.x requires at least Visual Studio 2019.")
+   AddCompilerFlag("/std:c++14" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
 endif()
 
-if(MSVC AND (NOT DEFINED Vc_USE_MSVC_SSA_OPTIMIZER_DESPITE_BUGGY_EXP OR NOT Vc_USE_MSVC_SSA_OPTIMIZER_DESPITE_BUGGY_EXP) AND
-   CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.20)
+if(MSVC AND (NOT DEFINED Vc_USE_MSVC_SSA_OPTIMIZER_DESPITE_BUGGY_EXP OR NOT Vc_USE_MSVC_SSA_OPTIMIZER_DESPITE_BUGGY_EXP))
    # bug report: https://developercommunity.visualstudio.com/t/AVX-codegen-bug-on-Vc-with-MSVC-2019/1470844#T-N1521672
    message(STATUS "WARNING! MSVC starting with 19.20 uses a new optimizer that has a bug causing Vc::exp() to return slighly wrong results.\
  You can set Vc_USE_MSVC_SSA_OPTIMIZER_DESPITE_BUGGY_EXP=ON to still use the new optimizer on the affected MSVC versions.")
@@ -82,14 +80,6 @@ if(Vc_COMPILER_IS_GCC)
          )
    endif()
 elseif(Vc_COMPILER_IS_MSVC)
-   if(MSVC_VERSION LESS 1700)
-      # MSVC before 2012 has a broken std::vector::resize implementation. STL + Vc code will probably not compile.
-      # UserWarning in VcMacros.cmake
-      list(APPEND disabled_targets
-         stlcontainer_sse
-         stlcontainer_avx
-         )
-   endif()
    # Disable warning "C++ exception specification ignored except to indicate a function is not __declspec(nothrow)"
    # MSVC emits the warning for the _UnitTest_Compare desctructor which needs the throw declaration so that it doesn't std::terminate
    AddCompilerFlag("/wd4290")
