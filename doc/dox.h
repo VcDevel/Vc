@@ -228,10 +228,8 @@ If no SIMD instructions are enabled via compiler flags, %Vc must fall back
 to the scalar implementation.
 \li \e Clang: The same as for GCC applies.
 \li \e ICC: The same as for GCC applies (at least on Linux).
-\li \e MSVC: For 32-bit targets, the compiler supports the `/arch:SSE` and `/arch:SSE2`
-flags. It is undocumented when (or whether at all) SSE3, SSSE3, SSE4a, SSE4.1, or SSE4.2
-ISA extensions are used with these flags.
-For all x86 targets, the `/arch:AVX` and `/arch:AVX2` flags are supported.
+\li \e MSVC: The compiler supports, among others, the `/arch:AVX`, `/arch:AVX2` and `/arch:AVX512 flags.
+Without such a flag, at least SSE2 is enabled.
 
 \par Where does the final executable run?
 
