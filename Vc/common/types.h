@@ -94,6 +94,9 @@ constexpr VectorSpecialInitializerIndexesFromZero IndexesFromZero = {};
 namespace Detail
 {
 template<typename T> struct MayAliasImpl {
+#ifdef Vc_ICC
+#pragma warning(disable:2621)
+#endif
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -101,6 +104,9 @@ template<typename T> struct MayAliasImpl {
     typedef T type Vc_MAY_ALIAS;
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif
+#ifdef Vc_ICC
+#pragma warning(enable:2621)
 #endif
 };
 //template<size_t Bytes> struct MayAlias<MaskBool<Bytes>> { typedef MaskBool<Bytes> type; };
@@ -111,11 +117,7 @@ template<typename T> struct MayAliasImpl {
  * attribute is already part of the type and applying it a second times leads to warnings/errors,
  * therefore MaskBool is simply forwarded as is.
  */
-#ifdef Vc_ICC
-template <typename T> using MayAlias [[gnu::may_alias]] = T;
-#else
 template <typename T> using MayAlias = typename Detail::MayAliasImpl<T>::type;
-#endif
 
 template <class To, class From> MayAlias<To> &aliasing_cast(From &x)
 {
