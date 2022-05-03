@@ -64,24 +64,14 @@ template<typename V, size_t Size> struct _MemorySizeCalculation
  * \param Size2 Number of columns
  */
 template <typename V, size_t Size1, size_t Size2, bool InitPadding>
-#ifdef Vc_RECURSIVE_MEMORY
 class Memory : public MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2,
                                  Memory<V, Size2, 0, InitPadding>>
-#else
-class Memory : public AlignedBase<V::MemoryAlignment>,
-               public MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2,
-                                 Memory<V, Size2, 0, false>>
-#endif
 {
 public:
     typedef typename V::EntryType EntryType;
 
 private:
-#ifdef Vc_RECURSIVE_MEMORY
     using RowMemory = Memory<V, Size2, 0, InitPadding>;
-#else
-    using RowMemory = Memory<V, Size2, 0, false>;
-#endif
     typedef MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2, RowMemory> Base;
     friend class MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2, RowMemory>;
     friend class MemoryDimensionBase<V, Memory<V, Size1, Size2, InitPadding>, 2,
@@ -93,11 +83,7 @@ private:
     alignas(static_cast<size_t>(Alignment))  // GCC complains about 'is not an
                                              // integer constant' unless the
                                              // static_cast is present
-#ifdef Vc_RECURSIVE_MEMORY
         RowMemory m_mem[Size1];
-#else
-        EntryType m_mem[Size1][PaddedSize2];
-#endif
 
         public:
             using Base::vector;
@@ -106,19 +92,7 @@ private:
                 VectorsCount = PaddedSize2 / V::Size
             };
 
-#ifdef Vc_RECURSIVE_MEMORY
             Memory() = default;
-#else
-            Memory()
-            {
-                if (InitPadding) {
-                    if (Size1 > 32)
-                    for (size_t i = 0; i < Size1; ++i) {
-                        V::Zero().store(&m_mem[i][PaddedSize2 - V::Size], Vc::Streaming);
-                    }
-                }
-            }
-#endif
 
             /**
              * \return the number of rows in the array.
@@ -223,9 +197,6 @@ private:
      */
 template <typename V, size_t Size, bool InitPadding>
 class Memory<V, Size, 0u, InitPadding> :
-#ifndef Vc_RECURSIVE_MEMORY
-    public AlignedBase<V::MemoryAlignment>,
-#endif
     public MemoryBase<V, Memory<V, Size, 0u, InitPadding>, 1, void>
     {
         public:
