@@ -61,14 +61,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_TEMPLATES_DROP_ATTRIBUTES 1
 #endif
 
-#if Vc_IS_VERSION_2 || (defined Vc_GCC && Vc_GCC >= 0x60000)
-// GCC 6 optimizes the RowMemory::fromRawData hack away (common/memorybase.h). Therefore
-// the 2D Memory class is implemented recursively using 1D Memory members. Since this is
-// an ABI break this is only enabled for GCC 6. With Vc 2.x all implementations should do
-// this.
-#define Vc_RECURSIVE_MEMORY 1
-#endif
-
 #if defined Vc_CLANG || defined Vc_APPLECLANG
 #  define Vc_UNREACHABLE __builtin_unreachable
 #  define Vc_NEVER_INLINE [[gnu::noinline]]
