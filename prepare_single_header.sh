@@ -7,12 +7,6 @@ seen=()
 parse_file() {
   dir=${1%/*}
   file=${1##*/}
-  case "$file" in
-    memory.h) return;;
-    memorybase.h) return;;
-    *deprecated*) return;;
-    *debug.h) return;;
-  esac
   [[ "$1" =~ "/" ]] && pushd "$dir"
   #echo "${seen[@]}"
   if [[ "$PWD/$file" = ${(~j.|.)seen} ]]; then
