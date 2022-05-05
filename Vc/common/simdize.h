@@ -1358,7 +1358,11 @@ Vc_INTRINSIC V fromIterator(
         Traits::is_simd_vector<V>::value && Traits::has_contiguous_storage<It>::value, It>
         it)
 {
+#ifndef _MSC_VER
+    // this check potentially moves it past the end of a container, which is UB. Some STL
+    // implementations, like MS STL, trap this.
     Vc_ASSERT(&*it + 1 == &*(it + 1));
+#endif
     return V(&*it, Vc::Unaligned);
 }
 
