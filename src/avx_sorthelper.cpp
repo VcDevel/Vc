@@ -71,71 +71,71 @@ Vc_CONST AVX2::short_v sorted<CurrentImplementation::current()>(AVX2::short_v x_
     // sort pairs (one min/max)
     auto x = AVX::lo128(x_.data());
     auto y = AVX::hi128(x_.data());
-    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     auto l = _mm_min_epi16(x, y);
     auto h = _mm_max_epi16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
 
     // merge left & right quads (two min/max)
     x = _mm_unpacklo_epi16(l, h);
     y = _mm_unpackhi_epi16(h, l);
-    Vc_DEBUG << "8x2 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "8x2 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epi16(x, y);
     h = _mm_max_epi16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
     x = Mem::permuteLo<X1, X0, X3, X2>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(l, h));
     y = Mem::permuteHi<X5, X4, X7, X6>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(h, l));
-    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epi16(x, y);
     h = _mm_max_epi16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
 
     // merge quads into octs (three min/max)
     x = _mm_unpacklo_epi16(h, l);
     y = _mm_unpackhi_epi16(l, h);
-    Vc_DEBUG << "4x4 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "4x4 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epi16(x, y);
     h = _mm_max_epi16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
     x = Mem::permuteLo<X2, X3, X0, X1>(Mem::blend<X0, X1, Y2, Y3, X4, X5, Y6, Y7>(h, l));
     y = Mem::permuteHi<X6, X7, X4, X5>(Mem::blend<X0, X1, Y2, Y3, X4, X5, Y6, Y7>(l, h));
-    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epi16(x, y);
     h = _mm_max_epi16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
     x = Mem::permuteHi<X5, X4, X7, X6>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(l, h));
     y = Mem::permuteLo<X1, X0, X3, X2>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(h, l));
-    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epi16(x, y);
     h = _mm_max_epi16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h) << " done?";
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h) << " done?";
 
     // merge octs into hexa (four min/max)
     x = _mm_unpacklo_epi16(l, h);
     y = _mm_unpackhi_epi16(h, l);
-    Vc_DEBUG << "2x8 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "2x8 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epi16(x, y);
     h = _mm_max_epi16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
     x = _mm_unpacklo_epi64(l, h);
     y = _mm_unpackhi_epi64(l, h);
-    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epi16(x, y);
     h = _mm_max_epi16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
     x = _mm_castps_si128(Mem::permute<X1, X0, X3, X2>(Mem::blend<X0, Y1, X2, Y3>(_mm_castsi128_ps(h), _mm_castsi128_ps(l))));
     y = _mm_castps_si128(Mem::blend<X0, Y1, X2, Y3>(_mm_castsi128_ps(l), _mm_castsi128_ps(h)));
-    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epi16(x, y);
     h = _mm_max_epi16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
     x = Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(l, h);
     y = Mem::permuteLo<X1, X0, X3, X2>(
         Mem::permuteHi<X5, X4, X7, X6>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(h, l)));
-    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epi16(x, y);
     h = _mm_max_epi16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
     x = _mm_unpacklo_epi16(l, h);
     y = _mm_unpackhi_epi16(l, h);
     return AVX::concat(x, y);
@@ -147,71 +147,71 @@ Vc_CONST AVX2::ushort_v sorted<CurrentImplementation::current()>(AVX2::ushort_v 
     // sort pairs (one min/max)
     auto x = AVX::lo128(x_.data());
     auto y = AVX::hi128(x_.data());
-    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     auto l = _mm_min_epu16(x, y);
     auto h = _mm_max_epu16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
 
     // merge left & right quads (two min/max)
     x = _mm_unpacklo_epi16(l, h);
     y = _mm_unpackhi_epi16(h, l);
-    Vc_DEBUG << "8x2 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "8x2 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epu16(x, y);
     h = _mm_max_epu16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
     x = Mem::permuteLo<X1, X0, X3, X2>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(l, h));
     y = Mem::permuteHi<X5, X4, X7, X6>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(h, l));
-    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epu16(x, y);
     h = _mm_max_epu16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
 
     // merge quads into octs (three min/max)
     x = _mm_unpacklo_epi16(h, l);
     y = _mm_unpackhi_epi16(l, h);
-    Vc_DEBUG << "4x4 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "4x4 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epu16(x, y);
     h = _mm_max_epu16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
     x = Mem::permuteLo<X2, X3, X0, X1>(Mem::blend<X0, X1, Y2, Y3, X4, X5, Y6, Y7>(h, l));
     y = Mem::permuteHi<X6, X7, X4, X5>(Mem::blend<X0, X1, Y2, Y3, X4, X5, Y6, Y7>(l, h));
-    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epu16(x, y);
     h = _mm_max_epu16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
     x = Mem::permuteHi<X5, X4, X7, X6>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(l, h));
     y = Mem::permuteLo<X1, X0, X3, X2>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(h, l));
-    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epu16(x, y);
     h = _mm_max_epu16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h) << " done?";
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h) << " done?";
 
     // merge octs into hexa (four min/max)
     x = _mm_unpacklo_epi16(l, h);
     y = _mm_unpackhi_epi16(h, l);
-    Vc_DEBUG << "2x8 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "2x8 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epu16(x, y);
     h = _mm_max_epu16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
     x = _mm_unpacklo_epi64(l, h);
     y = _mm_unpackhi_epi64(l, h);
-    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epu16(x, y);
     h = _mm_max_epu16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
     x = _mm_castps_si128(Mem::permute<X1, X0, X3, X2>(Mem::blend<X0, Y1, X2, Y3>(_mm_castsi128_ps(h), _mm_castsi128_ps(l))));
     y = _mm_castps_si128(Mem::blend<X0, Y1, X2, Y3>(_mm_castsi128_ps(l), _mm_castsi128_ps(h)));
-    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epu16(x, y);
     h = _mm_max_epu16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
     x = Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(l, h);
     y = Mem::permuteLo<X1, X0, X3, X2>(
         Mem::permuteHi<X5, X4, X7, X6>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(h, l)));
-    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    // Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     l = _mm_min_epu16(x, y);
     h = _mm_max_epu16(x, y);
-    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    // Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
     x = _mm_unpacklo_epi16(l, h);
     y = _mm_unpackhi_epi16(l, h);
     return AVX::concat(x, y);
