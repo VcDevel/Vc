@@ -29,6 +29,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 TEST_TYPES(V, testUlpDiff, concat<RealVectors, RealSimdArrayList>)  //{{{1
 {
+    // MSVC takes too long in debug mode
+#if defined _MSC_VER && defined _DEBUG
+    const auto range = 1000;
+#else
+    const auto range = 10000;
+#endif
+
     typedef typename V::EntryType T;
 
     using vir::detail::ulpDiffToReference;
@@ -41,7 +48,7 @@ TEST_TYPES(V, testUlpDiff, concat<RealVectors, RealSimdArrayList>)  //{{{1
         frexp(base, &exp);
         const V eps = ldexp(V(std::numeric_limits<T>::epsilon()), exp - 1);
         //std::cout << base << ", " << exp << ", " << eps << std::endl;
-        for (int i = -10000; i <= 10000; ++i) {
+        for (int i = -range; i <= range; ++i) {
             const V i_v = V(T(i));
             const V diff = base + i_v * eps;
 
