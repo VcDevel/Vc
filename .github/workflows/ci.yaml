@@ -42,6 +42,10 @@ jobs:
           - name: build-ubuntu-clang12
             CXX: clang++-12
             INSTALL_EXTRA: clang-12
+          - name: build-ubuntu-clang14
+            CXX: clang++-14
+            ADD_LLVM_REPO: true
+            INSTALL_EXTRA: clang-14
           - name: build-ubuntu-icpc
             CXX: icpc
             INSTALL_ONEAPI: true
@@ -52,6 +56,11 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: true
+      - name: add LLVM APT repo
+        if: matrix.ADD_LLVM_REPO
+        run: |
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+          sudo add-apt-repository 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-14 main'
       - name: install OneAPI
         if: ${{ matrix.INSTALL_ONEAPI }}
         run: |
