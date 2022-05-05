@@ -56,6 +56,9 @@ macro(vc_determine_compiler)
          if(Vc_ICC_VERSION VERSION_LESS 18.0.0)
             message(FATAL_ERROR "Vc 1.4 requires least ICC 18")
          endif()
+      elseif(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+         set(Vc_COMPILER_IS_INTEL_LLVM true)
+         message(STATUS "Detected Compiler: IntelLLVM ${CMAKE_CXX_COMPILER_VERSION}")
       elseif(CMAKE_CXX_COMPILER MATCHES "(opencc|openCC)$")
          set(Vc_COMPILER_IS_OPEN64 true)
          message(STATUS "Detected Compiler: Open64")
@@ -314,6 +317,29 @@ int main() { return 0; }
          # disable warning #2928: the __GXX_EXPERIMENTAL_CXX0X__ macro is disabled when using GNU version 4.6 with the c++0x option
          # this warning just adds noise about problems in the compiler - but I'm only interested in seeing problems in Vc
          vc_add_compiler_flag(Vc_COMPILE_FLAGS "-diag-disable 2928")
+      endif()
+
+      # Intel doesn't implement the XOP or FMA4 intrinsics
+      set(Vc_XOP_INTRINSICS_BROKEN true)
+      set(Vc_FMA4_INTRINSICS_BROKEN true)
+   elseif(Vc_COMPILER_IS_INTEL_LLVM)
+      ##################################################################################################
+      #                                          Intel LLVM Compiler                                   #
+      ##################################################################################################
+
+      if(_add_buildtype_flags)
+         set(CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+         set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DNDEBUG -O3")
+         set(CMAKE_C_FLAGS_RELEASE          "${CMAKE_C_FLAGS_RELEASE} -O3")
+         set(CMAKE_C_FLAGS_RELWITHDEBINFO   "${CMAKE_C_FLAGS_RELWITHDEBINFO} -DNDEBUG -O3")
+      endif()
+      if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+         set(ENABLE_STRICT_ALIASING true CACHE BOOL "Enables strict aliasing rules for more aggressive optimizations")
+         if(ENABLE_STRICT_ALIASING)
+            AddCompilerFlag(-ansi-alias CXX_FLAGS Vc_COMPILE_FLAGS)
+         else()
+            AddCompilerFlag(-no-ansi-alias CXX_FLAGS Vc_COMPILE_FLAGS)
+         endif()
       endif()
 
       # Intel doesn't implement the XOP or FMA4 intrinsics

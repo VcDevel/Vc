@@ -94,6 +94,11 @@ if(Vc_COMPILER_IS_INTEL)
    # per default icc is not IEEE compliant, but we need that for verification
    AddCompilerFlag("-fp-model source")
 endif()
+if(Vc_COMPILER_IS_INTEL_LLVM)
+   # per default icpx is not IEEE compliant, but we need that for verification
+   AddCompilerFlag("-fno-fast-math")
+   AddCompilerFlag("-fp-model=precise")
+endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
    message(STATUS "WARNING! It seems you are compiling without optimization. Please set CMAKE_BUILD_TYPE.")
