@@ -4,8 +4,6 @@ on:
   pull_request:
   schedule:
     - cron:  '0 3 * * *'
-env:
-  build_type: Release
 jobs:
   #clang-format:
   #  runs-on: ubuntu-latest
@@ -20,34 +18,27 @@ jobs:
     runs-on: ubuntu-latest
     env:
       dashboard_model: Experimental
+      build_type: ${{ matrix.build_type }}
       NUMBER_OF_PROCESSORS: 2
-      CXX: ${{ matrix.CXX }}
-    name: ${{ matrix.name }}
+      CXX: ${{ matrix.cxx }}
     strategy:
       fail-fast: false
       matrix:
+        build_type: [Debug, Release]
+        cxx: [g++-9, g++-10, g++-11, clang++-10, clang++-11, clang++-12, icpc]
         include:
-          - name: build-ubuntu-gcc9
-            CXX: g++-9
-          - name: build-ubuntu-gcc10
-            CXX: g++-10
-          - name: build-ubuntu-gcc11
-            CXX: g++-11
+          - cxx: g++-11
             INSTALL_EXTRA: g++-11
-          - name: build-ubuntu-clang10
-            CXX: clang++-10
-          - name: build-ubuntu-clang11
-            CXX: clang++-11
+          - cxx: clang++-11
             INSTALL_EXTRA: clang-11
-          - name: build-ubuntu-clang12
-            CXX: clang++-12
+          - cxx: clang++-12
             INSTALL_EXTRA: clang-12
-          - name: build-ubuntu-icpc
-            CXX: icpc
+          - cxx: icpc
             INSTALL_ONEAPI: true
-          #- name: build-ubuntu-icpx
-          #  CXX: icpx
-          #  INSTALL_ONEAPI: true
+        exclude:
+          # icpc in debug mode runs out of memory in CI
+          - cxx: icpc
+            build_type: Debug
     steps:
       - uses: actions/checkout@v2
         with:
@@ -77,10 +68,12 @@ jobs:
 
   build-windows:
     runs-on: ${{ matrix.os }}
-    name: build-${{ matrix.os }}
+    env:
+      build_type: ${{ matrix.build_type }}
     strategy:
       fail-fast: false
       matrix:
+        build_type: [Debug, Release]
         os: [windows-2019]
     steps:
     - uses: actions/checkout@v2
