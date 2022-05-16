@@ -41,11 +41,11 @@ sets. Thus an application written with Vc can be compiled for:
 * AVX and AVX2
 * SSE2 up to SSE4.2 or SSE4a
 * Scalar
-* AVX-512 (Vc 2 development)
-* NEON (in development)
-* NVIDIA GPUs / CUDA (research)
+* ~~AVX-512 (Vc 2 development)~~
+* ~~NEON (in development)~~
+* ~~NVIDIA GPUs / CUDA (research)~~
 
-After Intel dropped MIC support with ICC 18, Vc 1.4 also removes support for it.
+After Intel dropped MIC support with ICC 18, Vc 1.4 also removed support for it.
 
 ## Examples
 
@@ -101,7 +101,7 @@ C++11 Compiler:
 * GCC >= 4.8.1
 * clang >= 3.4
 * ICC >= 18.0.5
-* Visual Studio >= 2017 (64-bit target)
+* Visual Studio 2019 (64-bit target)
 
 
 ## Building and Installing Vc
