@@ -422,7 +422,7 @@ macro(go)
    if(NOT is_experimental)
       CTEST_UPDATE (SOURCE "${CTEST_SOURCE_DIRECTORY}" RETURN_VALUE res)
       if(res GREATER 0)
-         #ctest_submit(PARTS Update)
+         ctest_submit(PARTS Update)
       endif()
    endif()
 
@@ -436,7 +436,7 @@ macro(go)
          #"${CTEST_BINARY_DIRECTORY}/CMakeFiles/CMakeOutput.log"
          "${CTEST_BINARY_DIRECTORY}/CMakeFiles/CMakeError.log"
          )
-      #ctest_submit(PARTS Notes Configure)
+      ctest_submit(PARTS Notes Configure)
       unset(CTEST_NOTES_FILES) # less clutter in ctest -V output
       if(res EQUAL 0)
          set(test_results 0)
@@ -446,7 +446,7 @@ macro(go)
                BUILD "${CTEST_BINARY_DIRECTORY}"
                APPEND
                RETURN_VALUE res)
-            #ctest_submit(PARTS Build)
+            ctest_submit(PARTS Build)
             if(NOT skip_tests)
                ctest_test(
                   BUILD "${CTEST_BINARY_DIRECTORY}"
@@ -454,7 +454,7 @@ macro(go)
                   RETURN_VALUE test_results
                   PARALLEL_LEVEL ${number_of_processors})
             endif()
-            #ctest_submit(PARTS Test)
+            ctest_submit(PARTS Test)
          else()
             if("${subset}" STREQUAL "sse")
                set(label_list other Scalar SSE)
@@ -471,7 +471,7 @@ macro(go)
                   BUILD "${CTEST_BINARY_DIRECTORY}"
                   APPEND
                   RETURN_VALUE res)
-               #ctest_submit(PARTS Build)
+               ctest_submit(PARTS Build)
                if(res EQUAL 0 AND NOT skip_tests)
                   execute_process(
                      COMMAND ${CMAKE_CTEST_COMMAND} -N -L "^${label}$"
@@ -487,7 +487,7 @@ macro(go)
                         RETURN_VALUE res
                         PARALLEL_LEVEL ${number_of_processors}
                         INCLUDE_LABEL "^${label}$")
-                     #ctest_submit(PARTS Test)
+                     ctest_submit(PARTS Test)
                      if(NOT res EQUAL 0)
                         message("ctest_test returned non-zero result: ${res}")
                         set(test_results ${res})
@@ -501,7 +501,7 @@ macro(go)
                      BUILD "${CTEST_BINARY_DIRECTORY}"
                      APPEND
                      RETURN_VALUE res)
-                  #ctest_submit(PARTS Build)
+                  ctest_submit(PARTS Build)
                endif()
             endforeach()
          endif()
