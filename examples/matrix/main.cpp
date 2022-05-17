@@ -252,8 +252,7 @@ template <typename T> void unused(T &&x) { asm("" ::"m"(x)); }
 template <size_t N, typename F> Vc_ALWAYS_INLINE void benchmark(F &&f)
 {
     TimeStampCounter tsc;
-    auto cycles = tsc.cycles();
-    cycles = 0x7fffffff;
+    decltype(tsc.cycles()) cycles = 0x7fffffff;
     for (int i = 0; i < 100; ++i) {
         tsc.start();
         for (int j = 0; j < 10; ++j) {
