@@ -59,7 +59,7 @@ static inline bool xgetbvCheck(unsigned int bits)
 }
 
 Vc_TARGET_NO_SIMD
-bool isImplementationSupported(Implementation impl)
+bool Vc_VDECL isImplementationSupported(Implementation impl)
 {
     CpuId::init();
 
