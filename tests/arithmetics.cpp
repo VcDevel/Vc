@@ -472,6 +472,23 @@ TEST_TYPES(Vec, testMax, AllVectors)
     }
 }
 
+#if defined(Vc_IMPL_AVX2) && !defined(Vc_MSVC)
+TEST(minChar)
+{
+    uint8_t a[64]{0, 10, 250};
+    COMPARE(Vc::schar_v(reinterpret_cast<Vc::schar*>(a)).min(), Vc::schar{-6});
+    COMPARE(Vc::uchar_v(a).min(), Vc::uchar{0});
+}
+
+// Tests issue: https://github.com/VcDevel/Vc/issues/349
+TEST(maxChar)
+{
+    uint8_t a[64]{0, 10, 250};
+    COMPARE(Vc::schar_v(reinterpret_cast<Vc::schar*>(a)).max(), Vc::schar{10});
+    COMPARE(Vc::uchar_v(a).max(), Vc::uchar{250});
+}
+#endif
+
 // testProduct{{{1
 TEST_TYPES(Vec, testProduct, AllVectors)
 {

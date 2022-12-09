@@ -719,9 +719,9 @@ Vc_INTRINSIC  schar min(__m128i a,  schar) {
     return std::min(schar(_mm_cvtsi128_si32(a) >> 8), schar(_mm_cvtsi128_si32(a)));
 }
 Vc_INTRINSIC  uchar min(__m128i a,  uchar) {
-    a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
-    a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
-    a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), schar());
+    a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), uchar());
+    a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), uchar());
+    a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), uchar());
     return std::min((_mm_cvtsi128_si32(a) >> 8) & 0xff, _mm_cvtsi128_si32(a) & 0xff);
 }
 
@@ -764,9 +764,9 @@ Vc_INTRINSIC  schar max(__m128i a,  schar) {
     return std::max(schar(_mm_cvtsi128_si32(a) >> 8), schar(_mm_cvtsi128_si32(a)));
 }
 Vc_INTRINSIC  uchar max(__m128i a,  uchar) {
-    a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
-    a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
-    a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), schar());
+    a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), uchar());
+    a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), uchar());
+    a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), uchar());
     return std::max((_mm_cvtsi128_si32(a) >> 8) & 0xff, _mm_cvtsi128_si32(a) & 0xff);
 }
 
