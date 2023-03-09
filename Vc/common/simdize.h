@@ -152,7 +152,7 @@ template <typename... Ts> struct Typelist;
  */
 enum class Category {
     ///\internal No transformation
-    None,
+    NoTransformation,
     ///\internal simple Vector<T> transformation
     ArithmeticVectorizable,
     ///\internal transform an input iterator to return vectorized entries
@@ -186,7 +186,7 @@ constexpr Category iteratorCategories(int, ItCat * = nullptr)
                                  ? Category::OutputIterator
                                  : is_base_of<std::input_iterator_tag, ItCat>::value
                                        ? Category::InputIterator
-                                       : Category::None;
+                                       : Category::NoTransformation;
 }
 /**\internal
  * This overload is selected for pointer types => RandomAccessIterator.
@@ -201,7 +201,7 @@ constexpr enable_if<std::is_pointer<T>::value, Category> iteratorCategories(floa
  */
 template <typename T> constexpr Category iteratorCategories(...)
 {
-    return Category::None;
+    return Category::NoTransformation;
 }
 
 /**\internal
@@ -225,10 +225,10 @@ template <typename T> constexpr Category typeCategory()
             is_same<T, unsigned int>::value || is_same<T, float>::value ||
             is_same<T, double>::value)
                ? Category::ArithmeticVectorizable
-               : iteratorCategories<T>(int()) != Category::None
+               : iteratorCategories<T>(int()) != Category::NoTransformation
                      ? iteratorCategories<T>(int())
                      : is_class_template<T>::value ? Category::ClassTemplate
-                                                   : Category::None;
+                                                   : Category::NoTransformation;
 }
 
 /**\internal
@@ -279,7 +279,7 @@ struct ReplaceTypes : public The_simdization_for_the_requested_type_is_not_imple
  * Specialization of ReplaceTypes that is used for types that should not be transformed by
  * simdize.
  */
-template <typename T, size_t N, typename MT> struct ReplaceTypes<T, N, MT, Category::None>
+template <typename T, size_t N, typename MT> struct ReplaceTypes<T, N, MT, Category::NoTransformation>
 {
     typedef T type;
 };
