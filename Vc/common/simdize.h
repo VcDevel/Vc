@@ -1553,12 +1553,11 @@ class Iterator;
 
 template <typename T, size_t N, IteratorDetails::Mutable M, typename V, size_t Size_>
 class Iterator<T, N, M, V, Size_, std::forward_iterator_tag>
-    : public std::iterator<typename std::iterator_traits<T>::iterator_category, V,
-                           typename std::iterator_traits<T>::difference_type,
-                           IteratorDetails::Pointer<T, V, M>,
-                           IteratorDetails::Reference<T, V, M>>
 {
 public:
+    using iterator_category = typename std::iterator_traits<T>::iterator_category;
+    using difference_type = typename std::iterator_traits<T>::difference_type;
+    using value_type = V;
     using pointer = IteratorDetails::Pointer<T, V, M>;
     using reference = IteratorDetails::Reference<T, V, M>;
     using const_pointer = IteratorDetails::Pointer<T, V, IteratorDetails::Mutable::No>;
