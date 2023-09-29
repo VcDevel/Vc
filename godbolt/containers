@@ -151,9 +151,481 @@ return out << AnsiColor::blue << "»" << AnsiColor::normal;
 #endif
 #ifndef VC_MEMORY_
 #define VC_MEMORY_ 
-#ifndef VC_COMMON_MAKE_UNIQUE_H_
-#define VC_COMMON_MAKE_UNIQUE_H_ 
-#include <memory>
+#ifndef VC_COMMON_MEMORY_H_
+#define VC_COMMON_MEMORY_H_ 
+#ifndef VC_COMMON_MEMORYBASE_H_
+#define VC_COMMON_MEMORYBASE_H_ 
+#include <assert.h>
+#include <type_traits>
+#include <iterator>
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
+#define Vc_MEM_OPERATOR_EQ(op) \
+template<typename T> \
+Vc_ALWAYS_INLINE enable_if_mutable<T, MemoryVector &> operator op##=(const T &x) { \
+const V v = value() op x; \
+v.store(&m_data[0], Flags()); \
+return *this; \
+}
+template<typename _V, typename Flags> class MemoryVector
+{
+typedef typename std::remove_cv<_V>::type V;
+template<typename T, typename R> using enable_if_mutable =
+typename std::enable_if<std::is_same<T, T>::value && !std::is_const<_V>::value, R>::type;
+using EntryType =
+typename std::conditional<std::is_const<_V>::value, const typename V::EntryType,
+typename V::EntryType>::type;
+typedef typename V::Mask Mask;
+EntryType m_data[V::Size];
+public:
+Vc_INTRINSIC MemoryVector() = default;
+MemoryVector(const MemoryVector &) = delete;
+MemoryVector(MemoryVector &&) = delete;
+Vc_ALWAYS_INLINE Vc_PURE V value() const { return V(&m_data[0], Flags()); }
+Vc_ALWAYS_INLINE Vc_PURE operator V() const { return value(); }
+template<typename T>
+Vc_ALWAYS_INLINE enable_if_mutable<T, MemoryVector &> operator=(const T &x) {
+V v;
+v = x;
+v.store(&m_data[0], Flags());
+return *this;
+}
+Vc_ALL_BINARY(Vc_MEM_OPERATOR_EQ);
+Vc_ALL_ARITHMETICS(Vc_MEM_OPERATOR_EQ);
+Vc_ALWAYS_INLINE EntryType &operator[](size_t i) { return m_data[i]; }
+Vc_ALWAYS_INLINE const EntryType &operator[](size_t i) const { return m_data[i]; }
+};
+template<typename _V, typename Flags> class MemoryVectorIterator
+{
+typedef typename std::remove_cv<_V>::type V;
+template<typename T, typename R> using enable_if_mutable =
+typename std::enable_if<std::is_same<T, T>::value && !std::is_const<_V>::value, R>::type;
+using iterator_traits = std::iterator_traits<MemoryVector<_V, Flags> *>;
+MemoryVector<_V, Flags> *d;
+public:
+typedef typename iterator_traits::difference_type difference_type;
+typedef typename iterator_traits::value_type value_type;
+typedef typename iterator_traits::pointer pointer;
+typedef typename iterator_traits::reference reference;
+typedef typename iterator_traits::iterator_category iterator_category;
+constexpr MemoryVectorIterator(MemoryVector<_V, Flags> *dd) : d(dd) {}
+constexpr MemoryVectorIterator(const MemoryVectorIterator &) = default;
+constexpr MemoryVectorIterator(MemoryVectorIterator &&) = default;
+Vc_ALWAYS_INLINE MemoryVectorIterator &operator=(const MemoryVectorIterator &) = default;
+Vc_ALWAYS_INLINE void *orderBy() const { return d; }
+Vc_ALWAYS_INLINE difference_type operator-(const MemoryVectorIterator &rhs) const { return d - rhs.d; }
+Vc_ALWAYS_INLINE reference operator[](size_t i) const { return d[i]; }
+Vc_ALWAYS_INLINE reference operator*() const { return *d; }
+Vc_ALWAYS_INLINE pointer operator->() const { return d; }
+Vc_ALWAYS_INLINE MemoryVectorIterator &operator++() { ++d; return *this; }
+Vc_ALWAYS_INLINE MemoryVectorIterator operator++(int) { MemoryVectorIterator r(*this); ++d; return r; }
+Vc_ALWAYS_INLINE MemoryVectorIterator &operator--() { --d; return *this; }
+Vc_ALWAYS_INLINE MemoryVectorIterator operator--(int) { MemoryVectorIterator r(*this); --d; return r; }
+Vc_ALWAYS_INLINE MemoryVectorIterator &operator+=(size_t n) { d += n; return *this; }
+Vc_ALWAYS_INLINE MemoryVectorIterator &operator-=(size_t n) { d -= n; return *this; }
+Vc_ALWAYS_INLINE MemoryVectorIterator operator+(size_t n) const { return MemoryVectorIterator(d + n); }
+Vc_ALWAYS_INLINE MemoryVectorIterator operator-(size_t n) const { return MemoryVectorIterator(d - n); }
+};
+template<typename V, typename FlagsL, typename FlagsR>
+Vc_ALWAYS_INLINE bool operator==(const MemoryVectorIterator<V, FlagsL> &l, const MemoryVectorIterator<V, FlagsR> &r)
+{
+return l.orderBy() == r.orderBy();
+}
+template<typename V, typename FlagsL, typename FlagsR>
+Vc_ALWAYS_INLINE bool operator!=(const MemoryVectorIterator<V, FlagsL> &l, const MemoryVectorIterator<V, FlagsR> &r)
+{
+return l.orderBy() != r.orderBy();
+}
+template<typename V, typename FlagsL, typename FlagsR>
+Vc_ALWAYS_INLINE bool operator>=(const MemoryVectorIterator<V, FlagsL> &l, const MemoryVectorIterator<V, FlagsR> &r)
+{
+return l.orderBy() >= r.orderBy();
+}
+template<typename V, typename FlagsL, typename FlagsR>
+Vc_ALWAYS_INLINE bool operator<=(const MemoryVectorIterator<V, FlagsL> &l, const MemoryVectorIterator<V, FlagsR> &r)
+{
+return l.orderBy() <= r.orderBy();
+}
+template<typename V, typename FlagsL, typename FlagsR>
+Vc_ALWAYS_INLINE bool operator> (const MemoryVectorIterator<V, FlagsL> &l, const MemoryVectorIterator<V, FlagsR> &r)
+{
+return l.orderBy() > r.orderBy();
+}
+template<typename V, typename FlagsL, typename FlagsR>
+Vc_ALWAYS_INLINE bool operator< (const MemoryVectorIterator<V, FlagsL> &l, const MemoryVectorIterator<V, FlagsR> &r)
+{
+return l.orderBy() < r.orderBy();
+}
+#undef Vc_MEM_OPERATOR_EQ
+#define Vc_VPH_OPERATOR(op) \
+template <typename V1, typename Flags1, typename V2, typename Flags2> \
+decltype(std::declval<V1>() op std::declval<V2>()) operator op( \
+const MemoryVector<V1, Flags1> &x, const MemoryVector<V2, Flags2> &y) \
+{ \
+return x.value() op y.value(); \
+}
+Vc_ALL_ARITHMETICS(Vc_VPH_OPERATOR);
+Vc_ALL_BINARY (Vc_VPH_OPERATOR);
+Vc_ALL_COMPARES (Vc_VPH_OPERATOR);
+#undef Vc_VPH_OPERATOR
+template<typename V, typename Parent, typename Flags = Prefetch<>> class MemoryRange
+{
+Parent *m_parent;
+size_t m_first;
+size_t m_last;
+public:
+MemoryRange(Parent *p, size_t firstIndex, size_t lastIndex)
+: m_parent(p), m_first(firstIndex), m_last(lastIndex)
+{}
+MemoryVectorIterator<V, Flags> begin() const { return &m_parent->vector(m_first , Flags()); }
+MemoryVectorIterator<V, Flags> end() const { return &m_parent->vector(m_last + 1, Flags()); }
+};
+template<typename V, typename Parent, int Dimension, typename RowMemory> class MemoryDimensionBase;
+template<typename V, typename Parent, typename RowMemory> class MemoryDimensionBase<V, Parent, 1, RowMemory>
+{
+private:
+Parent *p() { return static_cast<Parent *>(this); }
+const Parent *p() const { return static_cast<const Parent *>(this); }
+public:
+typedef typename V::EntryType EntryType;
+Vc_ALWAYS_INLINE Vc_PURE EntryType *entries() { return &p()->m_mem[0]; }
+Vc_ALWAYS_INLINE Vc_PURE const EntryType *entries() const { return &p()->m_mem[0]; }
+Vc_ALWAYS_INLINE Vc_PURE EntryType &scalar(size_t i) { return entries()[i]; }
+Vc_ALWAYS_INLINE Vc_PURE const EntryType scalar(size_t i) const { return entries()[i]; }
+#ifdef DOXYGEN
+Vc_ALWAYS_INLINE Vc_PURE operator EntryType*() { return entries(); }
+Vc_ALWAYS_INLINE Vc_PURE operator const EntryType*() const { return entries(); }
+#else
+template <typename T,
+typename std::enable_if<
+std::is_same<typename std::remove_const<T>::type, EntryType *>::value ||
+std::is_same<typename std::remove_const<T>::type, void *>::value,
+int>::type = 0>
+Vc_ALWAYS_INLINE Vc_PURE operator T()
+{
+return entries();
+}
+template <typename T,
+typename std::enable_if<std::is_same<T, const EntryType *>::value ||
+std::is_same<T, const void *>::value,
+int>::type = 0>
+Vc_ALWAYS_INLINE Vc_PURE operator T() const
+{
+return entries();
+}
+#endif
+template<typename Flags>
+Vc_ALWAYS_INLINE MemoryRange<V, Parent, Flags> range(size_t firstIndex, size_t lastIndex, Flags) {
+return MemoryRange<V, Parent, Flags>(p(), firstIndex, lastIndex);
+}
+Vc_ALWAYS_INLINE MemoryRange<V, Parent> range(size_t firstIndex, size_t lastIndex) {
+return MemoryRange<V, Parent>(p(), firstIndex, lastIndex);
+}
+template<typename Flags>
+Vc_ALWAYS_INLINE MemoryRange<const V, Parent, Flags> range(size_t firstIndex, size_t lastIndex, Flags) const {
+return MemoryRange<const V, Parent, Flags>(p(), firstIndex, lastIndex);
+}
+Vc_ALWAYS_INLINE MemoryRange<const V, Parent> range(size_t firstIndex, size_t lastIndex) const {
+return MemoryRange<const V, Parent>(p(), firstIndex, lastIndex);
+}
+Vc_ALWAYS_INLINE EntryType &operator[](size_t i) { return entries()[i]; }
+Vc_ALWAYS_INLINE const EntryType &operator[](size_t i) const { return entries()[i]; }
+template<typename IndexT> Vc_ALWAYS_INLINE Vc_PURE V operator[](Vector<IndexT> i) const
+{
+return V(entries(), i);
+}
+};
+template<typename V, typename Parent, typename RowMemory> class MemoryDimensionBase<V, Parent, 2, RowMemory>
+{
+private:
+Parent *p() { return static_cast<Parent *>(this); }
+const Parent *p() const { return static_cast<const Parent *>(this); }
+public:
+typedef typename V::EntryType EntryType;
+static constexpr size_t rowCount() { return Parent::RowCount; }
+Vc_ALWAYS_INLINE Vc_PURE EntryType *entries(size_t x = 0) { return &p()->m_mem[x][0]; }
+Vc_ALWAYS_INLINE Vc_PURE const EntryType *entries(size_t x = 0) const { return &p()->m_mem[x][0]; }
+Vc_ALWAYS_INLINE Vc_PURE EntryType &scalar(size_t i, size_t j) { return entries(i)[j]; }
+Vc_ALWAYS_INLINE Vc_PURE const EntryType scalar(size_t i, size_t j) const { return entries(i)[j]; }
+Vc_ALWAYS_INLINE Vc_PURE RowMemory &operator[](size_t i) {
+return p()->m_mem[i];
+}
+Vc_ALWAYS_INLINE Vc_PURE const RowMemory &operator[](size_t i) const {
+return p()->m_mem[i];
+}
+Vc_ALWAYS_INLINE Vc_PURE size_t rowsCount() const { return p()->rowsCount(); }
+};
+template<typename V, typename Parent, int Dimension, typename RowMemory> class MemoryBase : public MemoryDimensionBase<V, Parent, Dimension, RowMemory>
+{
+static_assert((V::size() * sizeof(typename V::EntryType)) % V::MemoryAlignment == 0,
+"Vc::Memory can only be used for data-parallel types storing a number "
+"of values that's a multiple of the memory alignment.");
+private:
+Parent *p() { return static_cast<Parent *>(this); }
+const Parent *p() const { return static_cast<const Parent *>(this); }
+template <class Flags>
+using vector_reference = MayAlias<MemoryVector<V, Flags>> &;
+template <class Flags>
+using const_vector_reference = const MayAlias<MemoryVector<const V, Flags>> &;
+public:
+typedef typename V::EntryType EntryType;
+Vc_ALWAYS_INLINE Vc_PURE size_t entriesCount() const { return p()->entriesCount(); }
+Vc_ALWAYS_INLINE Vc_PURE size_t vectorsCount() const { return p()->vectorsCount(); }
+using MemoryDimensionBase<V, Parent, Dimension, RowMemory>::entries;
+using MemoryDimensionBase<V, Parent, Dimension, RowMemory>::scalar;
+template<typename Flags = AlignedTag>
+Vc_ALWAYS_INLINE MemoryVectorIterator< V, Flags> begin(Flags flags = Flags()) { return &firstVector(flags); }
+template<typename Flags = AlignedTag>
+Vc_ALWAYS_INLINE MemoryVectorIterator<const V, Flags> begin(Flags flags = Flags()) const { return &firstVector(flags); }
+template<typename Flags = AlignedTag>
+Vc_ALWAYS_INLINE MemoryVectorIterator< V, Flags> end(Flags flags = Flags()) { return &lastVector(flags) + 1; }
+template<typename Flags = AlignedTag>
+Vc_ALWAYS_INLINE MemoryVectorIterator<const V, Flags> end(Flags flags = Flags()) const { return &lastVector(flags) + 1; }
+template <typename Flags = AlignedTag>
+Vc_ALWAYS_INLINE Vc_PURE
+typename std::enable_if<!std::is_convertible<Flags, int>::value,
+vector_reference<Flags>>::type
+vector(size_t i, Flags = Flags())
+{
+return *aliasing_cast<MemoryVector<V, Flags>>(&entries()[i * V::Size]);
+}
+template <typename Flags = AlignedTag>
+Vc_ALWAYS_INLINE Vc_PURE
+typename std::enable_if<!std::is_convertible<Flags, int>::value,
+const_vector_reference<Flags>>::type
+vector(size_t i, Flags = Flags()) const
+{
+return *aliasing_cast<MemoryVector<const V, Flags>>(&entries()[i * V::Size]);
+}
+template <typename Flags = UnalignedTag>
+Vc_ALWAYS_INLINE Vc_PURE vector_reference<Flags> vectorAt(size_t i,
+Flags flags = Flags())
+{
+return *aliasing_cast<MemoryVector<V, Flags>>(&entries()[i]);
+}
+template <typename Flags = UnalignedTag>
+Vc_ALWAYS_INLINE Vc_PURE const_vector_reference<Flags> vectorAt(
+size_t i, Flags flags = Flags()) const
+{
+return *aliasing_cast<MemoryVector<const V, Flags>>(&entries()[i]);
+}
+template <typename ShiftT, typename Flags = decltype(Unaligned)>
+Vc_ALWAYS_INLINE Vc_PURE typename std::enable_if<
+std::is_convertible<ShiftT, int>::value,
+vector_reference<decltype(std::declval<Flags>() | Unaligned)>>::type
+vector(size_t i, ShiftT shift, Flags = Flags())
+{
+return *aliasing_cast<
+MemoryVector<V, decltype(std::declval<Flags>() | Unaligned)>>(
+&entries()[i * V::Size + shift]);
+}
+template <typename ShiftT, typename Flags = decltype(Unaligned)>
+Vc_ALWAYS_INLINE Vc_PURE typename std::enable_if<
+std::is_convertible<ShiftT, int>::value,
+const_vector_reference<decltype(std::declval<Flags>() | Unaligned)>>::type
+vector(size_t i, ShiftT shift, Flags = Flags()) const
+{
+return *aliasing_cast<
+MemoryVector<const V, decltype(std::declval<Flags>() | Unaligned)>>(
+&entries()[i * V::Size + shift]);
+}
+template <typename Flags = AlignedTag>
+Vc_ALWAYS_INLINE Vc_PURE vector_reference<Flags> firstVector(Flags f = Flags())
+{
+return vector(0, f);
+}
+template <typename Flags = AlignedTag>
+Vc_ALWAYS_INLINE Vc_PURE const_vector_reference<Flags> firstVector(
+Flags f = Flags()) const
+{
+return vector(0, f);
+}
+template <typename Flags = AlignedTag>
+Vc_ALWAYS_INLINE Vc_PURE vector_reference<Flags> lastVector(Flags f = Flags())
+{
+return vector(vectorsCount() - 1, f);
+}
+template <typename Flags = AlignedTag>
+Vc_ALWAYS_INLINE Vc_PURE const_vector_reference<Flags> lastVector(
+Flags f = Flags()) const
+{
+return vector(vectorsCount() - 1, f);
+}
+Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned char *indexes) const { return V(entries(), typename V::IndexType(indexes, Vc::Unaligned)); }
+Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned short *indexes) const { return V(entries(), typename V::IndexType(indexes, Vc::Unaligned)); }
+Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned int *indexes) const { return V(entries(), typename V::IndexType(indexes, Vc::Unaligned)); }
+Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned long *indexes) const { return V(entries(), typename V::IndexType(indexes, Vc::Unaligned)); }
+Vc_ALWAYS_INLINE void setZero() {
+V zero(Vc::Zero);
+for (size_t i = 0; i < vectorsCount(); ++i) {
+vector(i) = zero;
+}
+}
+template<typename U>
+Vc_ALWAYS_INLINE Parent &operator=(U &&x) {
+for (size_t i = 0; i < vectorsCount(); ++i) {
+vector(i) = std::forward<U>(x);
+}
+}
+template<typename P2, typename RM>
+inline Parent &operator+=(const MemoryBase<V, P2, Dimension, RM> &rhs) {
+assert(vectorsCount() == rhs.vectorsCount());
+for (size_t i = 0; i < vectorsCount(); ++i) {
+vector(i) += rhs.vector(i);
+}
+return static_cast<Parent &>(*this);
+}
+template<typename P2, typename RM>
+inline Parent &operator-=(const MemoryBase<V, P2, Dimension, RM> &rhs) {
+assert(vectorsCount() == rhs.vectorsCount());
+for (size_t i = 0; i < vectorsCount(); ++i) {
+vector(i) -= rhs.vector(i);
+}
+return static_cast<Parent &>(*this);
+}
+template<typename P2, typename RM>
+inline Parent &operator*=(const MemoryBase<V, P2, Dimension, RM> &rhs) {
+assert(vectorsCount() == rhs.vectorsCount());
+for (size_t i = 0; i < vectorsCount(); ++i) {
+vector(i) *= rhs.vector(i);
+}
+return static_cast<Parent &>(*this);
+}
+template<typename P2, typename RM>
+inline Parent &operator/=(const MemoryBase<V, P2, Dimension, RM> &rhs) {
+assert(vectorsCount() == rhs.vectorsCount());
+for (size_t i = 0; i < vectorsCount(); ++i) {
+vector(i) /= rhs.vector(i);
+}
+return static_cast<Parent &>(*this);
+}
+inline Parent &operator+=(EntryType rhs) {
+V v(rhs);
+for (size_t i = 0; i < vectorsCount(); ++i) {
+vector(i) += v;
+}
+return static_cast<Parent &>(*this);
+}
+inline Parent &operator-=(EntryType rhs) {
+V v(rhs);
+for (size_t i = 0; i < vectorsCount(); ++i) {
+vector(i) -= v;
+}
+return static_cast<Parent &>(*this);
+}
+inline Parent &operator*=(EntryType rhs) {
+V v(rhs);
+for (size_t i = 0; i < vectorsCount(); ++i) {
+vector(i) *= v;
+}
+return static_cast<Parent &>(*this);
+}
+inline Parent &operator/=(EntryType rhs) {
+V v(rhs);
+for (size_t i = 0; i < vectorsCount(); ++i) {
+vector(i) /= v;
+}
+return static_cast<Parent &>(*this);
+}
+template<typename P2, typename RM>
+inline bool operator==(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
+assert(vectorsCount() == rhs.vectorsCount());
+for (size_t i = 0; i < vectorsCount(); ++i) {
+if (!(V(vector(i)) == V(rhs.vector(i))).isFull()) {
+return false;
+}
+}
+return true;
+}
+template<typename P2, typename RM>
+inline bool operator!=(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
+assert(vectorsCount() == rhs.vectorsCount());
+for (size_t i = 0; i < vectorsCount(); ++i) {
+if (!(V(vector(i)) == V(rhs.vector(i))).isEmpty()) {
+return false;
+}
+}
+return true;
+}
+template<typename P2, typename RM>
+inline bool operator<(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
+assert(vectorsCount() == rhs.vectorsCount());
+for (size_t i = 0; i < vectorsCount(); ++i) {
+if (!(V(vector(i)) < V(rhs.vector(i))).isFull()) {
+return false;
+}
+}
+return true;
+}
+template<typename P2, typename RM>
+inline bool operator<=(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
+assert(vectorsCount() == rhs.vectorsCount());
+for (size_t i = 0; i < vectorsCount(); ++i) {
+if (!(V(vector(i)) <= V(rhs.vector(i))).isFull()) {
+return false;
+}
+}
+return true;
+}
+template<typename P2, typename RM>
+inline bool operator>(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
+assert(vectorsCount() == rhs.vectorsCount());
+for (size_t i = 0; i < vectorsCount(); ++i) {
+if (!(V(vector(i)) > V(rhs.vector(i))).isFull()) {
+return false;
+}
+}
+return true;
+}
+template<typename P2, typename RM>
+inline bool operator>=(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
+assert(vectorsCount() == rhs.vectorsCount());
+for (size_t i = 0; i < vectorsCount(); ++i) {
+if (!(V(vector(i)) >= V(rhs.vector(i))).isFull()) {
+return false;
+}
+}
+return true;
+}
+};
+namespace Detail
+{
+template <typename V,
+typename ParentL,
+typename ParentR,
+int Dimension,
+typename RowMemoryL,
+typename RowMemoryR>
+inline void copyVectors(MemoryBase<V, ParentL, Dimension, RowMemoryL> &dst,
+const MemoryBase<V, ParentR, Dimension, RowMemoryR> &src)
+{
+const size_t vectorsCount = dst.vectorsCount();
+size_t i = 3;
+for (; i < vectorsCount; i += 4) {
+const V tmp3 = src.vector(i - 3);
+const V tmp2 = src.vector(i - 2);
+const V tmp1 = src.vector(i - 1);
+const V tmp0 = src.vector(i - 0);
+dst.vector(i - 3) = tmp3;
+dst.vector(i - 2) = tmp2;
+dst.vector(i - 1) = tmp1;
+dst.vector(i - 0) = tmp0;
+}
+for (i -= 3; i < vectorsCount; ++i) {
+dst.vector(i) = src.vector(i);
+}
+}
+}
+}
+}
+#endif
+#include <assert.h>
+#include <algorithm>
+#include <cstring>
+#include <cstddef>
+#include <initializer_list>
 #ifndef VC_COMMON_MALLOC_H_
 #define VC_COMMON_MALLOC_H_ 
 #ifndef Vc_VECTOR_DECLARED_
@@ -230,6 +702,249 @@ Common::free(p);
 }
 }
 #endif
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
+template<typename V, size_t Size> struct _MemorySizeCalculation
+{
+enum AlignmentCalculations {
+Alignment = V::Size,
+AlignmentMask = Alignment - 1,
+MaskedSize = Size & AlignmentMask,
+Padding = Alignment - MaskedSize,
+PaddedSize = MaskedSize == 0 ? Size : Size + Padding
+};
+};
+template <typename V, size_t Size1, size_t Size2, bool InitPadding>
+class Memory : public MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2,
+Memory<V, Size2, 0, InitPadding>>
+{
+public:
+typedef typename V::EntryType EntryType;
+private:
+using RowMemory = Memory<V, Size2, 0, InitPadding>;
+typedef MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2, RowMemory> Base;
+friend class MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2, RowMemory>;
+friend class MemoryDimensionBase<V, Memory<V, Size1, Size2, InitPadding>, 2,
+RowMemory>;
+enum : size_t {
+Alignment = V::MemoryAlignment,
+PaddedSize2 = _MemorySizeCalculation<V, Size2>::PaddedSize
+};
+alignas(static_cast<size_t>(Alignment))
+RowMemory m_mem[Size1];
+public:
+using Base::vector;
+enum Constants {
+RowCount = Size1,
+VectorsCount = PaddedSize2 / V::Size
+};
+Memory() = default;
+static constexpr size_t rowsCount() { return RowCount; }
+static constexpr size_t entriesCount() { return Size1 * Size2; }
+static constexpr size_t vectorsCount() { return VectorsCount * Size1; }
+template<typename Parent, typename RM>
+Vc_ALWAYS_INLINE Memory &operator=(const MemoryBase<V, Parent, 2, RM> &rhs) {
+assert(vectorsCount() == rhs.vectorsCount());
+Detail::copyVectors(*this, rhs);
+return *this;
+}
+Vc_ALWAYS_INLINE Memory &operator=(const Memory &rhs) {
+Detail::copyVectors(*this, rhs);
+return *this;
+}
+inline Memory &operator=(const V &v) {
+for (size_t i = 0; i < vectorsCount(); ++i) {
+vector(i) = v;
+}
+return *this;
+}
+};
+template <typename V, size_t Size, bool InitPadding>
+class Memory<V, Size, 0u, InitPadding> :
+public MemoryBase<V, Memory<V, Size, 0u, InitPadding>, 1, void>
+{
+public:
+typedef typename V::EntryType EntryType;
+private:
+typedef MemoryBase<V, Memory<V, Size, 0u, InitPadding>, 1, void> Base;
+friend class MemoryBase<V, Memory<V, Size, 0u, InitPadding>, 1, void>;
+friend class MemoryDimensionBase<V, Memory<V, Size, 0u, InitPadding>, 1, void>;
+enum : size_t {
+Alignment = V::MemoryAlignment,
+MaskedSize = Size & (V::Size - 1),
+Padding = V::Size - MaskedSize,
+PaddedSize = MaskedSize == 0 ? Size : Size + Padding
+};
+alignas(static_cast<size_t>(Alignment))
+EntryType m_mem[PaddedSize];
+public:
+using Base::vector;
+enum Constants {
+EntriesCount = Size,
+VectorsCount = PaddedSize / V::Size
+};
+Memory()
+{
+if (InitPadding) {
+Base::lastVector() = V::Zero();
+}
+}
+Memory(std::initializer_list<EntryType> init)
+{
+Vc_ASSERT(init.size() <= Size);
+Base::lastVector() = V::Zero();
+std::copy(init.begin(), init.end(), &m_mem[0]);
+}
+static Vc_ALWAYS_INLINE Vc_CONST Memory<V, Size, 0u, false> &fromRawData(EntryType *ptr)
+{
+char *addr = reinterpret_cast<char *>(ptr);
+typedef Memory<V, Size, 0u, false> MM;
+addr -= offsetof(MM, m_mem);
+return *new(addr) MM;
+}
+static constexpr size_t entriesCount() { return EntriesCount; }
+static constexpr size_t vectorsCount() { return VectorsCount; }
+inline Memory(const Memory &rhs)
+{
+Detail::copyVectors(*this, rhs);
+}
+template <size_t S> inline Memory(const Memory<V, S> &rhs)
+{
+assert(vectorsCount() == rhs.vectorsCount());
+Detail::copyVectors(*this, rhs);
+}
+inline Memory &operator=(const Memory &rhs)
+{
+Detail::copyVectors(*this, rhs);
+return *this;
+}
+template <size_t S> inline Memory &operator=(const Memory<V, S> &rhs)
+{
+assert(vectorsCount() == rhs.vectorsCount());
+Detail::copyVectors(*this, rhs);
+return *this;
+}
+Vc_ALWAYS_INLINE Memory &operator=(const EntryType *rhs) {
+std::memcpy(m_mem, rhs, entriesCount() * sizeof(EntryType));
+return *this;
+}
+inline Memory &operator=(const V &v) {
+for (size_t i = 0; i < vectorsCount(); ++i) {
+vector(i) = v;
+}
+return *this;
+}
+};
+template<typename V> class Memory<V, 0u, 0u, true> : public MemoryBase<V, Memory<V, 0u, 0u, true>, 1, void>
+{
+public:
+typedef typename V::EntryType EntryType;
+private:
+typedef MemoryBase<V, Memory<V>, 1, void> Base;
+friend class MemoryBase<V, Memory<V>, 1, void>;
+friend class MemoryDimensionBase<V, Memory<V>, 1, void>;
+enum InternalConstants {
+Alignment = V::Size,
+AlignmentMask = Alignment - 1
+};
+size_t m_entriesCount;
+size_t m_vectorsCount;
+EntryType *m_mem;
+size_t calcPaddedEntriesCount(size_t x)
+{
+size_t masked = x & AlignmentMask;
+return (masked == 0 ? x : x + (Alignment - masked));
+}
+public:
+using Base::vector;
+Vc_ALWAYS_INLINE Memory(size_t size)
+: m_entriesCount(size),
+m_vectorsCount(calcPaddedEntriesCount(m_entriesCount)),
+m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount))
+{
+m_vectorsCount /= V::Size;
+Base::lastVector() = V::Zero();
+}
+template<typename Parent, typename RM>
+Vc_ALWAYS_INLINE Memory(const MemoryBase<V, Parent, 1, RM> &rhs)
+: m_entriesCount(rhs.entriesCount()),
+m_vectorsCount(rhs.vectorsCount()),
+m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
+{
+Detail::copyVectors(*this, rhs);
+}
+Vc_ALWAYS_INLINE Memory(const Memory &rhs)
+: m_entriesCount(rhs.entriesCount()),
+m_vectorsCount(rhs.vectorsCount()),
+m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
+{
+Detail::copyVectors(*this, rhs);
+}
+Vc_ALWAYS_INLINE ~Memory()
+{
+Vc::free(m_mem);
+}
+inline void swap(Memory &rhs) {
+std::swap(m_mem, rhs.m_mem);
+std::swap(m_entriesCount, rhs.m_entriesCount);
+std::swap(m_vectorsCount, rhs.m_vectorsCount);
+}
+Vc_ALWAYS_INLINE Vc_PURE size_t entriesCount() const { return m_entriesCount; }
+Vc_ALWAYS_INLINE Vc_PURE size_t vectorsCount() const { return m_vectorsCount; }
+template<typename Parent, typename RM>
+Vc_ALWAYS_INLINE Memory &operator=(const MemoryBase<V, Parent, 1, RM> &rhs) {
+assert(vectorsCount() == rhs.vectorsCount());
+Detail::copyVectors(*this, rhs);
+return *this;
+}
+Vc_ALWAYS_INLINE Memory &operator=(const Memory &rhs) {
+assert(vectorsCount() == rhs.vectorsCount());
+Detail::copyVectors(*this, rhs);
+return *this;
+}
+Vc_ALWAYS_INLINE Memory &operator=(const EntryType *rhs) {
+std::memcpy(m_mem, rhs, entriesCount() * sizeof(EntryType));
+return *this;
+}
+};
+Vc_ALWAYS_INLINE void prefetchForOneRead(const void *addr)
+{
+Vc::Detail::prefetchForOneRead(addr, VectorAbi::Best<float>());
+}
+Vc_ALWAYS_INLINE void prefetchForModify(const void *addr)
+{
+Vc::Detail::prefetchForModify(addr, VectorAbi::Best<float>());
+}
+Vc_ALWAYS_INLINE void prefetchClose(const void *addr)
+{
+Vc::Detail::prefetchClose(addr, VectorAbi::Best<float>());
+}
+Vc_ALWAYS_INLINE void prefetchMid(const void *addr)
+{
+Vc::Detail::prefetchMid(addr, VectorAbi::Best<float>());
+}
+Vc_ALWAYS_INLINE void prefetchFar(const void *addr)
+{
+Vc::Detail::prefetchFar(addr, VectorAbi::Best<float>());
+}
+}
+using Common::Memory;
+using Common::prefetchForOneRead;
+using Common::prefetchForModify;
+using Common::prefetchClose;
+using Common::prefetchMid;
+using Common::prefetchFar;
+}
+namespace std
+{
+template<typename V> Vc_ALWAYS_INLINE void swap(Vc::Memory<V> &a, Vc::Memory<V> &b) { a.swap(b); }
+}
+#endif
+#ifndef VC_COMMON_MAKE_UNIQUE_H_
+#define VC_COMMON_MAKE_UNIQUE_H_ 
+#include <memory>
 namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
