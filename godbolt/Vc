@@ -476,8 +476,8 @@ SSE2Impl
 }
 #ifndef VC_VERSION_H_
 #define VC_VERSION_H_ 
-#define Vc_VERSION_STRING "1.4.2-dev"
-#define Vc_VERSION_NUMBER 0x010405
+#define Vc_VERSION_STRING "1.4.3-dev"
+#define Vc_VERSION_NUMBER 0x010407
 #define Vc_VERSION_CHECK(major,minor,patch) ((major << 16) | (minor << 8) | (patch << 1))
 #define Vc_LIBRARY_ABI_VERSION 5
 #define Vc_IS_VERSION_2 (Vc_VERSION_NUMBER >= Vc_VERSION_CHECK(1, 70, 0))
@@ -913,9 +913,6 @@ using new_type_ alignas(sizeof(n_)) = type_
 #if defined Vc_GCC && Vc_GCC >= 0x60000
 #define Vc_TEMPLATES_DROP_ATTRIBUTES 1
 #endif
-#if Vc_IS_VERSION_2 || (defined Vc_GCC && Vc_GCC >= 0x60000)
-#define Vc_RECURSIVE_MEMORY 1
-#endif
 #if defined Vc_CLANG || defined Vc_APPLECLANG
 #define Vc_UNREACHABLE __builtin_unreachable
 #define Vc_NEVER_INLINE [[gnu::noinline]]
@@ -1134,11 +1131,6 @@ size(macro, %, a, b, c, d)
 #define Vc_EXACT_TYPE(_test,_reference,_type) \
 typename std::enable_if<std::is_same<_test, _reference>::value, _type>::type
 #define Vc_make_unique(name) Vc_CAT(Vc_,name,_,__LINE__)
-#if defined(Vc_ICC) || defined(Vc_CLANG) || defined Vc_APPLECLANG
-#define Vc_OFFSETOF(Type,member) (reinterpret_cast<const char *>(&reinterpret_cast<const Type *>(0)->member) - reinterpret_cast<const char *>(0))
-#else
-#define Vc_OFFSETOF(Type,member) offsetof(Type, member)
-#endif
 #if defined(Vc_NO_NOEXCEPT)
 #define Vc_NOEXCEPT throw()
 #else
@@ -1187,6 +1179,9 @@ constexpr VectorSpecialInitializerIndexesFromZero IndexesFromZero = {};
 namespace Detail
 {
 template<typename T> struct MayAliasImpl {
+#ifdef Vc_ICC
+#pragma warning(disable:2621)
+#endif
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -1195,13 +1190,12 @@ typedef T type Vc_MAY_ALIAS;
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
+#ifdef Vc_ICC
+#pragma warning(enable:2621)
+#endif
 };
 }
-#ifdef Vc_ICC
-template <typename T> using MayAlias [[gnu::may_alias]] = T;
-#else
 template <typename T> using MayAlias = typename Detail::MayAliasImpl<T>::type;
-#endif
 template <class To, class From> MayAlias<To> &aliasing_cast(From &x)
 {
 return *reinterpret_cast<MayAlias<To> *>(&x);
@@ -2300,6 +2294,137 @@ Vc_ASSERT_GATHER_PARAMETER_TYPES_;
 gatherImplementation(
 Common::make_gather<1>(mem, Common::convertIndexVector(indexes)), mask);
 }
+template <typename S1, typename IT>
+Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline Vc_CURRENT_CLASS_NAME(const S1 *array,
+const EntryType S1::*member1,
+IT indexes)
+{
+gather(Common::SubscriptOperation<const S1, IT, std::ratio<1, 1>, true>(
+array, indexes)[member1]
+.gatherArguments());
+}
+template <typename S1, typename IT>
+Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline Vc_CURRENT_CLASS_NAME(const S1 *array,
+const EntryType S1::*member1,
+IT indexes, MaskArgument mask)
+{
+gather(Common::SubscriptOperation<const S1, IT, std::ratio<1, 1>, true>(
+array, indexes)[member1]
+.gatherArguments(),
+mask);
+}
+template <typename S1, typename S2, typename IT>
+Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline Vc_CURRENT_CLASS_NAME(const S1 *array,
+const S2 S1::*member1,
+const EntryType S2::*member2,
+IT indexes)
+{
+gather(Common::SubscriptOperation<const S1, IT, std::ratio<1, 1>, true>(
+array, indexes)[member1][member2]
+.gatherArguments());
+}
+template <typename S1, typename S2, typename IT>
+Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline Vc_CURRENT_CLASS_NAME(const S1 *array,
+const S2 S1::*member1,
+const EntryType S2::*member2,
+IT indexes, MaskArgument mask)
+{
+gather(Common::SubscriptOperation<const S1, IT, std::ratio<1, 1>, true>(
+array, indexes)[member1][member2]
+.gatherArguments(),
+mask);
+}
+template <typename S1, typename IT1, typename IT2>
+Vc_DEPRECATED(
+"use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline Vc_CURRENT_CLASS_NAME(const S1 *array,
+const EntryType *const S1::*ptrMember1,
+IT1 outerIndexes, IT2 innerIndexes)
+{
+gather(Common::SubscriptOperation<const S1, IT1, std::ratio<1, 1>, true>(
+array, outerIndexes)[ptrMember1][innerIndexes]
+.gatherArguments());
+}
+template <typename S1, typename IT1, typename IT2>
+Vc_DEPRECATED(
+"use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline Vc_CURRENT_CLASS_NAME(const S1 *array,
+const EntryType *const S1::*ptrMember1,
+IT1 outerIndexes, IT2 innerIndexes,
+MaskArgument mask)
+{
+gather(Common::SubscriptOperation<const S1, IT1, std::ratio<1, 1>, true>(
+array, outerIndexes)[ptrMember1][innerIndexes]
+.gatherArguments(),
+mask);
+}
+template <typename S1, typename IT>
+Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline void gather(const S1 *array,
+const EntryType S1::*member1, IT indexes)
+{
+gather(Common::SubscriptOperation<const S1, IT, std::ratio<1, 1>, true>(
+array, indexes)[member1]
+.gatherArguments());
+}
+template <typename S1, typename IT>
+Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline void gather(const S1 *array,
+const EntryType S1::*member1,
+IT indexes,
+MaskArgument mask)
+{
+gather(Common::SubscriptOperation<const S1, IT, std::ratio<1, 1>, true>(
+array, indexes)[member1]
+.gatherArguments(),
+mask);
+}
+template <typename S1, typename S2, typename IT>
+Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline void gather(const S1 *array, const S2 S1::*member1,
+const EntryType S2::*member2, IT indexes)
+{
+gather(Common::SubscriptOperation<const S1, IT, std::ratio<1, 1>, true>(
+array, indexes)[member1][member2]
+.gatherArguments());
+}
+template <typename S1, typename S2, typename IT>
+Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline void gather(const S1 *array, const S2 S1::*member1,
+const EntryType S2::*member2, IT indexes,
+MaskArgument mask)
+{
+gather(Common::SubscriptOperation<const S1, IT, std::ratio<1, 1>, true>(
+array, indexes)[member1][member2]
+.gatherArguments(),
+mask);
+}
+template <typename S1, typename IT1, typename IT2>
+Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline void gather(const S1 *array,
+const EntryType *const S1::*ptrMember1,
+IT1 outerIndexes, IT2 innerIndexes)
+{
+gather(Common::SubscriptOperation<const S1, IT1, std::ratio<1, 1>, true>(
+array, outerIndexes)[ptrMember1][innerIndexes]
+.gatherArguments());
+}
+template <typename S1, typename IT1, typename IT2>
+Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline void gather(const S1 *array,
+const EntryType *const S1::*ptrMember1,
+IT1 outerIndexes, IT2 innerIndexes,
+MaskArgument mask)
+{
+gather(Common::SubscriptOperation<const S1, IT1, std::ratio<1, 1>, true>(
+array, outerIndexes)[ptrMember1][innerIndexes]
+.gatherArguments(),
+mask);
+}
 template <class MT, class IT, int Scale>
 Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT, Scale> &args)
 {
@@ -2354,6 +2479,67 @@ Vc_INTRINSIC void scatter(MT *mem, IT &&indexes, MaskArgument mask) const
 {
 Vc_ASSERT_SCATTER_PARAMETER_TYPES_;
 scatterImplementation(mem, std::forward<IT>(indexes), mask);
+}
+template <typename S1, typename IT>
+Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline void scatter(S1 *array, EntryType S1::*member1,
+IT indexes) const
+{
+scatter(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+array, indexes)[member1]
+.scatterArguments());
+}
+template <typename S1, typename IT>
+Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline void scatter(S1 *array, EntryType S1::*member1,
+IT indexes, MaskArgument mask) const
+{
+scatter(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+array, indexes)[member1]
+.scatterArguments(),
+mask);
+}
+template <typename S1, typename S2, typename IT>
+Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline void scatter(S1 *array, S2 S1::*member1,
+EntryType S2::*member2,
+IT indexes) const
+{
+scatter(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+array, indexes)[member1][member2]
+.scatterArguments());
+}
+template <typename S1, typename S2, typename IT>
+Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline void scatter(S1 *array, S2 S1::*member1,
+EntryType S2::*member2, IT indexes,
+MaskArgument mask) const
+{
+scatter(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+array, indexes)[member1][member2]
+.scatterArguments(),
+mask);
+}
+template <typename S1, typename IT1, typename IT2>
+Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline void scatter(S1 *array, EntryType *S1::*ptrMember1,
+IT1 outerIndexes,
+IT2 innerIndexes) const
+{
+scatter(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
+array, outerIndexes)[ptrMember1][innerIndexes]
+.scatterArguments());
+}
+template <typename S1, typename IT1, typename IT2>
+Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+"instead.") inline void scatter(S1 *array, EntryType *S1::*ptrMember1,
+IT1 outerIndexes, IT2 innerIndexes,
+MaskArgument mask) const
+{
+scatter(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
+array, outerIndexes)[ptrMember1][innerIndexes]
+.scatterArguments(),
+mask);
 }
 template <typename MT, typename IT>
 Vc_INTRINSIC void scatter(const Common::ScatterArguments<MT, IT> &args) const
@@ -4978,6 +5164,74 @@ alignas(64) static const unsigned long long data[21 * Size];
 }
 #endif
 #include <cstdlib>
+#ifndef VC_SSE_DEBUG_H_
+#define VC_SSE_DEBUG_H_ 
+#ifndef NDEBUG
+#include <iostream>
+#include <iomanip>
+#endif
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
+#ifdef NDEBUG
+class DebugStream
+{
+public:
+DebugStream(const char *, const char *, int) {}
+template<typename T> inline DebugStream &operator<<(const T &) { return *this; }
+};
+#else
+class DebugStream
+{
+private:
+static char hexChar(char x) { return x + (x > 9 ? 87 : 48); }
+template<typename T, typename V> static void printVector(V _x)
+{
+std::cerr << "0x";
+const auto bytes = reinterpret_cast<const std::uint8_t *>(&_x);
+for (std::size_t i = 0; i < sizeof(V); ++i) {
+std::cerr << hexChar(bytes[i] >> 4) << hexChar(bytes[i] & 0xf);
+if (i % 4 == 3) {
+std::cerr << '\'';
+}
+}
+enum { Size = sizeof(V) / sizeof(T) };
+union { V v; T m[Size]; } x = { _x };
+std::cerr << " = [" << std::setprecision(24) << x.m[0];
+for (int i = 1; i < Size; ++i) {
+std::cerr << ", " << std::setprecision(24) << x.m[i];
+}
+std::cerr << ']';
+}
+public:
+DebugStream(const char *func, const char *file, int line)
+{
+std::cerr << "\033[1;40;33mDEBUG: " << file << ':' << line << ' ' << func << ' ';
+}
+template<typename T> DebugStream &operator<<(const T &x) { std::cerr << x; return *this; }
+DebugStream &operator<<(__m128 x) {
+printVector<float, __m128>(x);
+return *this;
+}
+DebugStream &operator<<(__m128d x) {
+printVector<double, __m128d>(x);
+return *this;
+}
+DebugStream &operator<<(__m128i x) {
+printVector<int, __m128i>(x);
+return *this;
+}
+~DebugStream()
+{
+std::cerr << "\033[0m" << std::endl;
+}
+};
+#endif
+#define Vc_DEBUG Vc::SSE::DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
+}
+}
+#endif
 #if defined(Vc_GCC) && !defined(__OPTIMIZE__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -6898,9 +7152,9 @@ a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), schar());
 return std::min(schar(_mm_cvtsi128_si32(a) >> 8), schar(_mm_cvtsi128_si32(a)));
 }
 Vc_INTRINSIC uchar min(__m128i a, uchar) {
-a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
-a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
-a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), schar());
+a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), uchar());
+a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), uchar());
+a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), uchar());
 return std::min((_mm_cvtsi128_si32(a) >> 8) & 0xff, _mm_cvtsi128_si32(a) & 0xff);
 }
 Vc_INTRINSIC float max(__m128 a, float) {
@@ -6941,9 +7195,9 @@ a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), schar());
 return std::max(schar(_mm_cvtsi128_si32(a) >> 8), schar(_mm_cvtsi128_si32(a)));
 }
 Vc_INTRINSIC uchar max(__m128i a, uchar) {
-a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
-a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
-a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), schar());
+a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), uchar());
+a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), uchar());
+a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), uchar());
 return std::max((_mm_cvtsi128_si32(a) >> 8) & 0xff, _mm_cvtsi128_si32(a) & 0xff);
 }
 template <Vc::Implementation, typename T>
@@ -20036,7 +20290,7 @@ namespace Detail
 #define Vc_FIXED_OP(op) \
 template <class T, int N, \
 class = typename std::enable_if<fixed_size_simd<T, N>::is_atomic>::type> \
-fixed_size_simd<T, N> operator op(const fixed_size_simd<T, N> &a, \
+Vc_INTRINSIC fixed_size_simd<T, N> operator op(const fixed_size_simd<T, N> &a, \
 const fixed_size_simd<T, N> &b) \
 { \
 return {private_init, internal_data(a) op internal_data(b)}; \
@@ -20044,7 +20298,7 @@ return {private_init, internal_data(a) op internal_data(b)}; \
 template <class T, int N, \
 class = typename std::enable_if<!fixed_size_simd<T, N>::is_atomic>::type, \
 class = T> \
-fixed_size_simd<T, N> operator op(const fixed_size_simd<T, N> &a, \
+Vc_INTRINSIC fixed_size_simd<T, N> operator op(const fixed_size_simd<T, N> &a, \
 const fixed_size_simd<T, N> &b) \
 { \
 return {internal_data0(a) op internal_data0(b), \
@@ -20057,7 +20311,7 @@ Vc_ALL_SHIFTS(Vc_FIXED_OP);
 #define Vc_FIXED_OP(op) \
 template <class T, int N, \
 class = typename std::enable_if<fixed_size_simd<T, N>::is_atomic>::type> \
-fixed_size_simd_mask<T, N> operator op(const fixed_size_simd<T, N> &a, \
+Vc_INTRINSIC fixed_size_simd_mask<T, N> operator op(const fixed_size_simd<T, N> &a, \
 const fixed_size_simd<T, N> &b) \
 { \
 return {private_init, internal_data(a) op internal_data(b)}; \
@@ -20065,7 +20319,7 @@ return {private_init, internal_data(a) op internal_data(b)}; \
 template <class T, int N, \
 class = typename std::enable_if<!fixed_size_simd<T, N>::is_atomic>::type, \
 class = T> \
-fixed_size_simd_mask<T, N> operator op(const fixed_size_simd<T, N> &a, \
+Vc_INTRINSIC fixed_size_simd_mask<T, N> operator op(const fixed_size_simd<T, N> &a, \
 const fixed_size_simd<T, N> &b) \
 { \
 return {internal_data0(a) op internal_data0(b), \
