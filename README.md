@@ -164,6 +164,7 @@ the documentation by running `doxygen` in the `doc` subdirectory.
 Alternatively, you can find nightly builds of the documentation at:
 
 * [1.4 branch](https://vcdevel.github.io/Vc-1.4/)
+* [1.4.4 release](https://vcdevel.github.io/Vc-1.4.4/)
 * [1.4.3 release](https://vcdevel.github.io/Vc-1.4.3/)
 * [1.4.2 release](https://vcdevel.github.io/Vc-1.4.2/)
 * [1.4.1 release](https://vcdevel.github.io/Vc-1.4.1/)
