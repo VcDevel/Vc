@@ -141,6 +141,7 @@ if(XCODE)
    set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "YES")
    set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
    set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+   set_property(TARGET Vc APPEND PROPERTY LINK_OPTIONS "-ffp-contract=off")
 elseif(UNIX AND Vc_COMPILER_IS_CLANG)
    # On UNIX (Linux) the standard library used by default typically is libstdc++ (GCC).
    # To get the full clang deal we rather want to build against libc++. This requires
