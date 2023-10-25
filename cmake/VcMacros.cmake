@@ -52,7 +52,7 @@ macro(vc_determine_compiler)
          exec_program(${CMAKE_CXX_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE Vc_ICC_VERSION)
          message(STATUS "Detected Compiler: Intel ${Vc_ICC_VERSION}")
 
-         # break build with too old clang as early as possible.
+         # break build with too old ICC as early as possible.
          if(Vc_ICC_VERSION VERSION_LESS 18.0.0)
             message(FATAL_ERROR "Vc 1.4 requires least ICC 18")
          endif()
