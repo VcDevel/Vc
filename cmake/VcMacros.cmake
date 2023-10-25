@@ -32,7 +32,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #=============================================================================
 
-cmake_minimum_required(VERSION 2.8.3...3.13)
+cmake_minimum_required(VERSION 3.5...3.13)
 
 get_filename_component(_currentDir "${CMAKE_CURRENT_LIST_FILE}" PATH)
 include ("${_currentDir}/UserWarning.cmake")
