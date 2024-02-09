@@ -264,7 +264,7 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "(x86_64|AMD64|amd64)")
          COMMAND ${CMAKE_CXX_COMPILER}
          ${incdirs} ${_flags} -O1 -DVc_IMPL=${_impl} ${ARGN} -S -o ${asmfile}
          ${CMAKE_CURRENT_SOURCE_DIR}/abi.cpp
-         DEPENDS abi.cpp ${PROJECT_SOURCE_DIR}/Vc/*/*.h ${PROJECT_SOURCE_DIR}/Vc/*/*.tcc
+         DEPENDS abi.cpp
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
          COMMENT "Build ABI test: ${asmfile}"
          VERBATIM
