@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_TRAITS_HAS_CONTIGUOUS_STORAGE_H_
 
 #include <initializer_list>
+#include <iterator>
 #include <memory>
 
 #ifdef _LIBCPP_BEGIN_NAMESPACE_STD
