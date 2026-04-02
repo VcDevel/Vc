@@ -8,7 +8,7 @@ jobs:
   #clang-format:
   #  runs-on: ubuntu-latest
   #  steps:
-  #  - uses: actions/checkout@v2
+  #  - uses: actions/checkout@v6
   #  - uses: DoozyX/clang-format-lint-action@v0.12
   #    with:
   #      exclude: './thirdparty'
@@ -40,7 +40,7 @@ jobs:
           - cxx: icpc
             build_type: Debug
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
         with:
           submodules: true
       - name: install OneAPI
@@ -76,7 +76,7 @@ jobs:
         build_type: [Debug, Release]
         os: [windows-2019]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
       with:
         submodules: true
     - uses: egor-tensin/vs-shell@v2
