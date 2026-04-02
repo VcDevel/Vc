@@ -25,14 +25,12 @@ jobs:
       fail-fast: false
       matrix:
         build_type: [Debug, Release]
-        cxx: [g++-9, g++-10, g++-11, clang++-10, clang++-11, clang++-12, icpc]
+        cxx: [g++-13, g++-14, clang++-17, clang++-18, icpc]
         include:
-          - cxx: g++-11
-            INSTALL_EXTRA: g++-11
-          - cxx: clang++-11
-            INSTALL_EXTRA: clang-11
-          - cxx: clang++-12
-            INSTALL_EXTRA: clang-12
+          - cxx: g++-14
+            INSTALL_EXTRA: g++-14
+          - cxx: clang++-17
+            INSTALL_EXTRA: clang-17
           - cxx: icpc
             INSTALL_ONEAPI: true
         exclude:
