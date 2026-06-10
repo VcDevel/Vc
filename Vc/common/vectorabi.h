@@ -37,7 +37,7 @@ using Avx1Abi = typename std::conditional<std::is_integral<T>::value, VectorAbi:
                                           VectorAbi::Avx>::type;
 
 template <typename T> struct DeduceCompatible {
-#ifdef __x86_64__
+#if defined(__x86_64__) && !defined(__riscv)
     using type = Sse;
 #else
     using type = Scalar;
