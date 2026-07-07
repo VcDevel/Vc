@@ -225,7 +225,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef Vc_IMPL
 
-#  if defined(__AVX2__)
+#  if defined(__riscv)
+#    define Vc_IMPL_Scalar 1
+#  elif defined(__AVX2__)
 #    define Vc_IMPL_AVX2 1
 #    define Vc_IMPL_AVX 1
 #  elif defined(__AVX__)
